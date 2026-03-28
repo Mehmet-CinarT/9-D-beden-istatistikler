@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>9/D Maçlar ve İstatistikler</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -1178,27 +1180,32 @@
         { id: 12, name: "Ege Demir Şen", positions: ["KL"], foot: "Sağ", goals: 0, assists: 0, matches: 0 }
     ];
 
-    const DATA_VERSION = 5; // Oyuncu listesi güncellendiğinde bu sayıyı artır
+    // ===== FIREBASE =====
+    const firebaseConfig = {
+        apiKey: "AIzaSyDgLBRpNQruHC_lSKecRpIBAiGBa9qkCkU",
+        authDomain: "d-beden-istatistik.firebaseapp.com",
+        databaseURL: "https://d-beden-istatistik-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "d-beden-istatistik",
+        storageBucket: "d-beden-istatistik.firebasestorage.app",
+        messagingSenderId: "242639662592",
+        appId: "1:242639662592:web:647fe831704d44a691f2e5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    function loadData(key, fallback) {
-        try {
-            const d = localStorage.getItem(key);
-            return d ? JSON.parse(d) : fallback;
-        } catch { return fallback; }
-    }
     function saveData(key, data) {
-        localStorage.setItem(key, JSON.stringify(data));
+        db.ref(key).set(data);
     }
 
-    // Versiyon kontrolü: oyuncu listesi güncellendiyse localStorage'ı sıfırla
-    const savedVersion = loadData('9d_data_version', 0);
-    if (savedVersion < DATA_VERSION) {
-        localStorage.removeItem('9d_players');
-        saveData('9d_data_version', DATA_VERSION);
-    }
+    let players = [...defaultPlayers];
+    let matches = [];
 
-    let players = loadData('9d_players', defaultPlayers);
-    let matches = loadData('9d_matches', []);
+    // Firebase'den verileri dinle - anlık güncelleme
+    db.ref('9d_matches').on('value', (snapshot) => {
+        matches = snapshot.val() || [];
+        recalcPlayerStats();
+        renderAll();
+    });
 
     // ===== NOTIFICATION =====
     function notify(msg) {
@@ -1234,7 +1241,7 @@
                 }
             });
         });
-        saveData('9d_players', players);
+        // Oyuncu istatistikleri maçlardan hesaplanır, ayrıca kaydetmeye gerek yok
     }
 
     function renderOverview() {
@@ -1288,7 +1295,7 @@
             return;
         }
 
-        const sorted = [...matches].sort((a, b) => new Date(b.date) - new Date(a.date));
+        const sorted = [...matches].sort((a, b) => (a.week || 0) - (b.week || 0));
 
         function renderMatchCard(m) {
             const eventsHtml = (m.events || []).map(ev => {
@@ -1320,7 +1327,11 @@
                     <div class="match-details">${eventsHtml}</div>
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
                         <span style="font-size:0.75rem;color:#aaa">Detaylar için tıkla</span>
-                        <button class="control-only" onclick="event.stopPropagation();deleteMatch(${m.id})" style="background:#ff4757;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Sil</button>
+                        <div style="display:flex;gap:6px;align-items:center" class="control-only">
+                            <button onclick="event.stopPropagation();moveMatch(${m.id},-1)" style="background:#1E90FF;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer" title="Yukarı">&#9650;</button>
+                            <button onclick="event.stopPropagation();moveMatch(${m.id},1)" style="background:#1E90FF;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer" title="Aşağı">&#9660;</button>
+                            <button onclick="event.stopPropagation();deleteMatch(${m.id})" style="background:#ff4757;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Sil</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1509,6 +1520,23 @@
     }
 
     // ===== SAVE MATCH =====
+    function moveMatch(matchId, direction) {
+        // Hafta sırasına göre sırala
+        matches.sort((a, b) => (a.week || 0) - (b.week || 0));
+        const idx = matches.findIndex(m => m.id === matchId);
+        const swapIdx = idx + direction;
+
+        if (swapIdx < 0 || swapIdx >= matches.length) return;
+
+        // Hafta numaralarını değiştir
+        const tempWeek = matches[idx].week;
+        matches[idx].week = matches[swapIdx].week;
+        matches[swapIdx].week = tempWeek;
+
+        saveData('9d_matches', matches);
+        renderAll();
+    }
+
     function deleteMatch(matchId) {
         if (!confirm('Bu maçı silmek istediğinize emin misiniz?')) return;
         matches = matches.filter(m => m.id !== matchId);
@@ -1554,7 +1582,7 @@
         matches.push(match);
         saveData('9d_matches', matches);
         recalcPlayerStats();
-        saveData('9d_players', players);
+        // Oyuncu istatistikleri maçlardan hesaplanır, ayrıca kaydetmeye gerek yok
         renderAll();
         notify('Maç başarıyla kaydedildi!');
 
@@ -1983,8 +2011,23 @@
         ['KL', 'MO', 'ST'].forEach(cat => {
             const catPlayers = available.filter(p => p.category === cat && !assigned.has(p.id));
             if (catPlayers.length === 0) return;
-            catPlayers.sort((a, b) => b.rating - a.rating);
 
+            // Kaleciler ve forvetler: rastgele dağıt (her seferinde farklı kombinasyonlar)
+            if (cat === 'KL' || cat === 'ST') {
+                catPlayers.forEach(p => {
+                    if (assigned.has(p.id)) return;
+                    if (Math.random() < 0.5 && team1.length < t1Size) {
+                        team1.push(p); assigned.add(p.id);
+                    } else if (team2.length < t2Size) {
+                        team2.push(p); assigned.add(p.id);
+                    } else if (team1.length < t1Size) {
+                        team1.push(p); assigned.add(p.id);
+                    }
+                });
+                return;
+            }
+
+            catPlayers.sort((a, b) => b.rating - a.rating);
             if (catPlayers[0] && team1.length < t1Size) {
                 team1.push(catPlayers[0]); assigned.add(catPlayers[0].id);
             }

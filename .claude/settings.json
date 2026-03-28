@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(python -c \":*)",
+      "Bash(python -c \"import openpyxl; print\\(''ok''\\)\")",
+      "Bash(\"C:\\\\Users\\\\mcina\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -c \":*)",
+      "Bash(PYTHONIOENCODING=utf-8 \"C:\\\\Users\\\\mcina\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -c \":*)"
+    ]
+  }
+}

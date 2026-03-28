@@ -9,3 +9,5 @@ oyuncuları ve istatistiklerini detaylı gösteren sayfayı düzenle
 maçları ve istatistiklerini detaylı gösteren sayfayı düzenle
 son olarak düzenle ve geliştir
 Beyaz (#FFFFFF) + Mavi (#1E90FF)
+kontrol paneli ve gözlemci paneli olsun kontrol paneli için özel şifre olsun
+oyuncu istatistiklerini exele aktar

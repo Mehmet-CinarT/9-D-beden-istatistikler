@@ -1952,11 +1952,17 @@
         // Özel ID'ler
         const yusufId = 7, omerId = 8, cinarId = 1, fatihId = 2, kaganId = 3;
 
-        // 1. Aşama: Yusuf ve Ömer'i farklı takımlara ata
+        // 1. Aşama: Yusuf ve Ömer farklı takımlarda
         const yusuf = available.find(p => p.id === yusufId);
         const omer = available.find(p => p.id === omerId);
         if (yusuf) { team1.push(yusuf); assigned.add(yusufId); }
         if (omer) { team2.push(omer); assigned.add(omerId); }
+        // Mehmet Çınar: %50 ihtimalle Yusuf'un takımında, %50 karşısında
+        const cinar = available.find(p => p.id === cinarId);
+        if (cinar) {
+            if (Math.random() < 0.5) { team1.push(cinar); } else { team2.push(cinar); }
+            assigned.add(cinarId);
+        }
 
         // 2. Aşama: Stoper dağılımı - Yusuf'un takımına 2 STP daha (toplam 3), diğerine 2
         const otherStps = available.filter(p => p.category === 'STP' && !assigned.has(p.id));

@@ -1277,7 +1277,10 @@
         <div class="auth-error" id="auth-error"></div>
 
         <input type="email" id="auth-email" class="auth-input" placeholder="E-posta adresi" onkeydown="if(event.key==='Enter')document.getElementById('auth-password').focus()">
-        <input type="password" id="auth-password" class="auth-input" placeholder="Şifre" onkeydown="if(event.key==='Enter')authAction()">
+        <div style="position:relative">
+            <input type="password" id="auth-password" class="auth-input" placeholder="Şifre" style="padding-right:44px;margin-bottom:12px" onkeydown="if(event.key==='Enter')authAction()">
+            <button type="button" onclick="togglePassword()" id="toggle-pw-btn" style="position:absolute;right:12px;top:12px;background:none;border:none;cursor:pointer;color:#888;font-size:1.1rem;padding:2px" title="Şifreyi göster">&#128065;</button>
+        </div>
 
         <button class="auth-btn auth-btn-primary" id="auth-action-btn" onclick="authAction()">Giriş Yap</button>
 
@@ -3123,6 +3126,20 @@
     // ===== AUTH SYSTEM =====
     const auth = firebase.auth();
     let isRegisterMode = false;
+
+    function togglePassword() {
+        const input = document.getElementById('auth-password');
+        const btn = document.getElementById('toggle-pw-btn');
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.innerHTML = '&#128064;';
+            btn.title = 'Şifreyi gizle';
+        } else {
+            input.type = 'password';
+            btn.innerHTML = '&#128065;';
+            btn.title = 'Şifreyi göster';
+        }
+    }
 
     function showAuthError(msg) {
         const el = document.getElementById('auth-error');

@@ -1678,23 +1678,28 @@
 
     // ===== RENDER FUNCTIONS =====
     function recalcPlayerStats() {
-        players.forEach(p => { p.goals = 0; p.assists = 0; p.matches = 0; });
+        players.forEach(p => { p.goals = 0; p.assists = 0; p.matches = 0; p.gaMatches = 0; });
         matches.forEach(m => {
             if (m.pending) return;
             if (m.location === 'Halısaha') return; // Ana tabloda sadece okul maçları
-            if (!m.events || m.events.length === 0) return; // Olayları kayıt altına alınmamış maçları sayma
+            const hasEvents = m.events && m.events.length > 0;
             const allPlayerIds = [...(m.team1Players || []), ...(m.team2Players || [])];
             allPlayerIds.forEach(pid => {
                 const p = players.find(x => x.id === pid);
-                if (p) p.matches++;
-            });
-            (m.events || []).forEach(ev => {
-                const p = players.find(x => x.id === ev.playerId);
                 if (p) {
-                    if (ev.type === 'goal') p.goals += (ev.count || 1);
-                    if (ev.type === 'assist') p.assists += (ev.count || 1);
+                    p.matches++; // Tüm maçları say
+                    if (hasEvents) p.gaMatches++; // G/A oranı için sadece kayıt altına alınmış maçları say
                 }
             });
+            if (hasEvents) {
+                (m.events || []).forEach(ev => {
+                    const p = players.find(x => x.id === ev.playerId);
+                    if (p) {
+                        if (ev.type === 'goal') p.goals += (ev.count || 1);
+                        if (ev.type === 'assist') p.assists += (ev.count || 1);
+                    }
+                });
+            }
         });
         // Oyuncu istatistikleri maçlardan hesaplanır, ayrıca kaydetmeye gerek yok
     }
@@ -1734,7 +1739,7 @@
                 <td>${p.goals}</td>
                 <td>${p.assists}</td>
                 <td>${p.matches}</td>
-                <td>${p.matches > 0 ? ((p.goals + p.assists) / p.matches).toFixed(2) : '-'}</td>
+                <td>${p.gaMatches > 0 ? ((p.goals + p.assists) / p.gaMatches).toFixed(2) : '-'}</td>
             </tr>
         `).join('');
     }
@@ -3038,7 +3043,7 @@
 
         const sorted = [...players].sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists));
         sorted.forEach((p, i) => {
-            const avg = p.matches > 0 ? ((p.goals + p.assists) / p.matches).toFixed(2) : '0';
+            const avg = p.gaMatches > 0 ? ((p.goals + p.assists) / p.gaMatches).toFixed(2) : '0';
             xml += '  <Row>\n';
             xml += `    <Cell ss:StyleID="center"><Data ss:Type="Number">${i + 1}</Data></Cell>\n`;
             xml += `    <Cell><Data ss:Type="String">${p.name}</Data></Cell>\n`;

@@ -1808,6 +1808,10 @@
         matches = snapshot.val() || [];
         recalcPlayerStats();
         renderAll();
+        // Anketler sekmesi açıksa MVP maç listesini güncelle
+        if (document.getElementById('tab-anketler').classList.contains('active') && pollType === 'mvp') {
+            loadMvpMatchOptions();
+        }
     });
 
     // ===== NOTIFICATION =====
@@ -1854,6 +1858,7 @@
         }
         if (tab === 'anketler') {
             renderPolls();
+            if (pollType === 'mvp') loadMvpMatchOptions();
         }
         renderAll();
     }

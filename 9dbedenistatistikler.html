@@ -1534,8 +1534,11 @@
             return;
         }
 
-        // Oynanmış maçlar hafta sırasıyla, oynanmamışlar en alta
+        // Halısaha en üstte, sonra oynanmışlar hafta sırasıyla, oynanmamışlar en alta
         const sorted = [...matches].sort((a, b) => {
+            const aHali = a.location === 'Halısaha' ? 0 : 1;
+            const bHali = b.location === 'Halısaha' ? 0 : 1;
+            if (aHali !== bHali) return aHali - bHali;
             if (a.pending && !b.pending) return 1;
             if (!a.pending && b.pending) return -1;
             return (a.week || 0) - (b.week || 0);

@@ -1429,12 +1429,12 @@
 <script>
     // ===== DATA STORE =====
     const defaultPlayers = [
-        { id: 1, name: "Mehmet Çınar Turşak", positions: ["ST","MOO","SLK","SĞK"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 2, name: "Fatih Doğanay", positions: ["ST","MOO","SLK","SĞK"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 3, name: "Kağan Durak", positions: ["ST","MOO","SLK","SĞK"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 1, name: "Mehmet Çınar Turşak", positions: ["SNT","MOO","SLK","SĞK"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 2, name: "Fatih Doğanay", positions: ["SNT","MOO","SLK","SĞK"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 3, name: "Kağan Durak", positions: ["SNT","MOO","SLK","SĞK"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 4, name: "Mehmet Ali Çınar", positions: ["MOO","MO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 5, name: "Mehmet Efe Güvenmez", positions: ["MOO","MO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 6, name: "Egemen Işık", positions: ["MO","ST"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 6, name: "Egemen Işık", positions: ["MO","SNT"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 7, name: "Yusuf Karadağ", positions: ["STP","MO","MDO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 8, name: "Ömer Ege Durmuşoğlu", positions: ["STP","MO","MDO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 9, name: "Ertuğrul Gazi Kuzucu", positions: ["STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
@@ -2359,7 +2359,7 @@
         const isLeft = (teamKey === 'team1');
 
         // Mevkilere göre grupla
-        const groups = { KL: [], STP: [], MDO: [], MO: [], MOO: [], SLK: [], SĞK: [], ST: [] };
+        const groups = { KL: [], STP: [], MDO: [], MO: [], MOO: [], SLK: [], SĞK: [], SNT: [] };
         teamPlayers.forEach(p => {
             const pos = p.positions[0];
             if (groups[pos]) groups[pos].push(p);
@@ -2371,14 +2371,14 @@
             KL:  6,
             STP: 18, MDO: 18,
             MO:  32, MOO: 32,
-            SLK: 42, SĞK: 42, ST: 42
+            SLK: 42, SĞK: 42, SNT: 42
         };
         // Sağ yarı saha (aynalı)
         const linesRight = {
             KL:  94,
             STP: 82, MDO: 82,
             MO:  68, MOO: 68,
-            SLK: 58, SĞK: 58, ST: 58
+            SLK: 58, SĞK: 58, SNT: 58
         };
 
         const lines = isLeft ? linesLeft : linesRight;
@@ -2416,8 +2416,8 @@
         placed.push(...distribute(midPlayers, lines['MO']));
 
         // Hücum: ST + SLK + SĞK birleştir
-        const atkPlayers = [...groups['ST'], ...groups['SLK'], ...groups['SĞK']];
-        placed.push(...distribute(atkPlayers, lines['ST']));
+        const atkPlayers = [...groups['SNT'], ...groups['SLK'], ...groups['SĞK']];
+        placed.push(...distribute(atkPlayers, lines['SNT']));
 
         // HTML oluştur
         let html = '';
@@ -2600,8 +2600,8 @@
     // KL = Kaleci, DEF = Savunma (STP/MDO), MID = Orta (MO/MOO), ATK = Hücum (ST/SLK/SĞK)
     // Kadro kurucuda sabit mevki atamaları
     const fixedPositions = {
-        1: 'ST',   // Mehmet Çınar Turşak
-        2: 'ST',   // Fatih Doğanay
+        1: 'SNT',   // Mehmet Çınar Turşak
+        2: 'SNT',   // Fatih Doğanay
         3: 'MOO',  // Kağan Durak
         6: 'MOO',  // Egemen Işık
     };
@@ -2616,7 +2616,7 @@
         if (p === 'KL') return 'KL';
         if (p === 'STP' || p === 'MDO') return 'STP';
         if (p === 'MO' || p === 'MOO') return 'MO';
-        return 'ST';
+        return 'SNT';
     }
 
     function buildTeams() {
@@ -2711,12 +2711,12 @@
         });
 
         // === KURAL 5: Her takımda her mevki kategorisinden en az 1 (MO, ST) ===
-        ['MO', 'ST'].forEach(cat => {
+        ['MO', 'SNT'].forEach(cat => {
             const catPlayers = available.filter(p => p.category === cat && !assigned.has(p.id));
             if (catPlayers.length === 0) return;
 
             // Forvetler rastgele dağılsın
-            if (cat === 'ST') {
+            if (cat === 'SNT') {
                 catPlayers.forEach(p => {
                     if (assigned.has(p.id)) return;
                     if (Math.random() < 0.5 && team1.length < t1Size) {
@@ -2766,11 +2766,11 @@
 
         if ((t1Ids.includes(fatihId) && t1Ids.includes(cinarId)) ||
             (t2Ids.includes(fatihId) && t2Ids.includes(cinarId))) {
-            team1.forEach(p => { if (p.id === kaganId) { p.builderPos = 'ST'; p.category = 'ST'; } });
-            team2.forEach(p => { if (p.id === kaganId) { p.builderPos = 'ST'; p.category = 'ST'; } });
+            team1.forEach(p => { if (p.id === kaganId) { p.builderPos = 'SNT'; p.category = 'SNT'; } });
+            team2.forEach(p => { if (p.id === kaganId) { p.builderPos = 'SNT'; p.category = 'SNT'; } });
         }
 
-        const posOrder = { 'KL': 0, 'STP': 1, 'MDO': 1, 'MO': 2, 'MOO': 2, 'ST': 3, 'SLK': 3, 'SĞK': 3 };
+        const posOrder = { 'KL': 0, 'STP': 1, 'MDO': 1, 'MO': 2, 'MOO': 2, 'SNT': 3, 'SLK': 3, 'SĞK': 3 };
         const posLineNames = { 0: 'Kaleci', 1: 'Defans', 2: 'Orta Saha', 3: 'Forvet' };
 
         function renderTeamList(team) {

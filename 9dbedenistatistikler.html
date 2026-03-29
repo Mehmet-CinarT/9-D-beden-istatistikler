@@ -1210,31 +1210,60 @@
         body.logged-in .match-card .auth-only { display: flex !important; }
 
         .user-bar {
-            background: #fff;
-            padding: 6px 20px;
+            background: linear-gradient(135deg, #f8fbff, #e8f2ff);
+            padding: 10px 20px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 12px;
             font-size: 0.8rem;
             color: #666;
-            border-bottom: 1px solid #eee;
+            border-bottom: 2px solid #d0e4ff;
         }
 
-        .user-bar .user-email { font-weight: 600; color: #1E90FF; }
+        .user-bar .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1E90FF, #0066cc);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+        }
+
+        .user-bar .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .user-bar .user-name {
+            font-weight: 700;
+            color: #333;
+            font-size: 0.85rem;
+        }
+
+        .user-bar .user-email {
+            font-size: 0.7rem;
+            color: #888;
+        }
 
         .user-bar .logout-btn {
-            background: none;
-            border: 1px solid #ddd;
-            padding: 4px 12px;
-            border-radius: 6px;
+            background: #fff;
+            border: 2px solid #e74c3c;
+            padding: 6px 14px;
+            border-radius: 8px;
             font-size: 0.75rem;
+            font-weight: 600;
             cursor: pointer;
-            color: #888;
+            color: #e74c3c;
             transition: all 0.2s;
         }
 
-        .user-bar .logout-btn:hover { background: #f8f8f8; color: #e74c3c; border-color: #e74c3c; }
+        .user-bar .logout-btn:hover { background: #e74c3c; color: #fff; }
     </style>
 </head>
 <body>
@@ -1274,7 +1303,11 @@
 
 <!-- USER BAR -->
 <div class="user-bar" id="user-bar" style="display:none">
-    <span class="user-email" id="user-email"></span>
+    <div class="user-avatar" id="user-avatar"></div>
+    <div class="user-info">
+        <span class="user-name" id="user-name"></span>
+        <span class="user-email" id="user-email"></span>
+    </div>
     <button class="logout-btn" onclick="logoutUser()">Çıkış Yap</button>
 </div>
 
@@ -3135,7 +3168,11 @@
             document.getElementById('login-screen').classList.add('hidden');
             document.body.classList.add('logged-in');
             document.getElementById('user-bar').style.display = 'flex';
-            document.getElementById('user-email').textContent = user.email || user.displayName || 'Kullanıcı';
+            const displayName = user.displayName || user.email.split('@')[0];
+            const initial = displayName.charAt(0).toUpperCase();
+            document.getElementById('user-avatar').textContent = initial;
+            document.getElementById('user-name').textContent = displayName;
+            document.getElementById('user-email').textContent = user.email;
             renderAll();
         } else {
             // Çıkış yapıldı

@@ -1387,6 +1387,17 @@
     </div>
 </div>
 
+<!-- PENDING MATCH RESULT MODAL -->
+<div class="modal-overlay" id="pending-modal">
+    <div class="modal" style="max-width:700px">
+        <div class="modal-header" style="background:linear-gradient(135deg,#e67e22,#d35400)">
+            <h2 id="pending-modal-title">Maç Sonucu Gir</h2>
+            <button class="modal-close" onclick="closePendingModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="pending-modal-body"></div>
+    </div>
+</div>
+
 <!-- NOTIFICATION -->
 <div class="notification" id="notification"></div>
 
@@ -1836,25 +1847,127 @@
         return document.body.classList.contains('control-mode');
     }
 
+    let pendingMatchId = null;
+    let pendingEventCounter = 0;
+
     function editPendingMatch(matchId) {
         if (!isControlMode()) return;
         const m = matches.find(x => x.id === matchId);
         if (!m || !m.pending) return;
+        pendingMatchId = matchId;
+        pendingEventCounter = 0;
 
-        const s1 = prompt('Takım 1 Skor:', '0');
-        if (s1 === null) return;
-        const s2 = prompt('Takım 2 Skor:', '0');
-        if (s2 === null) return;
+        document.getElementById('pending-modal-title').textContent = `Hafta ${m.week} — Sonuç Gir (${m.serieMatch ? m.serieMatch + '/' + m.serieTotal : ''})`;
 
-        m.score1 = parseInt(s1) || 0;
-        m.score2 = parseInt(s2) || 0;
+        const t1Players = (m.team1Players || []).map(id => players.find(x => x.id === id)).filter(Boolean);
+        const t2Players = (m.team2Players || []).map(id => players.find(x => x.id === id)).filter(Boolean);
+
+        document.getElementById('pending-modal-body').innerHTML = `
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+                <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 1 Skor</label>
+                    <input type="number" id="pending-score1" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
+                </div>
+                <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 2 Skor</label>
+                    <input type="number" id="pending-score2" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
+                </div>
+            </div>
+
+            <div style="margin-bottom:12px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 1 Kadrosu</label>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                    ${t1Players.map(p => `<span style="padding:4px 10px;background:#e3f2fd;border-radius:6px;font-size:0.8rem;font-weight:600;color:#1565c0">${p.name}</span>`).join('')}
+                </div>
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 2 Kadrosu</label>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                    ${t2Players.map(p => `<span style="padding:4px 10px;background:#fce4ec;border-radius:6px;font-size:0.8rem;font-weight:600;color:#c62828">${p.name}</span>`).join('')}
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Gol & Asist Olayları</label>
+                <button class="btn btn-secondary" onclick="addPendingEvent()" style="margin-bottom:8px">+ Olay Ekle</button>
+                <div id="pending-event-list"></div>
+            </div>
+
+            <button class="save-match-btn" onclick="savePendingMatch()">Sonucu Kaydet</button>
+        `;
+
+        document.getElementById('pending-modal').classList.add('show');
+    }
+
+    function addPendingEvent() {
+        pendingEventCounter++;
+        const m = matches.find(x => x.id === pendingMatchId);
+        if (!m) return;
+
+        const allIds = [...(m.team1Players || []), ...(m.team2Players || [])];
+        const matchPlayers = players.filter(p => allIds.includes(p.id));
+        const t1Set = new Set(m.team1Players || []);
+
+        const opts = matchPlayers.map(p => `<option value="${p.id}">${p.name} (${t1Set.has(p.id) ? 'T1' : 'T2'})</option>`).join('');
+
+        const html = `
+            <div class="event-row" id="pending-event-${pendingEventCounter}">
+                <select>
+                    <option value="goal">Gol</option>
+                    <option value="assist">Asist</option>
+                </select>
+                <select>${opts}</select>
+                <input type="number" min="0" value="1" style="width:60px" placeholder="Adet">
+                <button class="remove-event" onclick="document.getElementById('pending-event-${pendingEventCounter}').remove()">&#10005;</button>
+            </div>
+        `;
+        document.getElementById('pending-event-list').insertAdjacentHTML('beforeend', html);
+    }
+
+    function savePendingMatch() {
+        const m = matches.find(x => x.id === pendingMatchId);
+        if (!m) return;
+
+        m.score1 = parseInt(document.getElementById('pending-score1').value) || 0;
+        m.score2 = parseInt(document.getElementById('pending-score2').value) || 0;
+
+        // Olayları topla
+        const rawEvents = [];
+        document.querySelectorAll('#pending-event-list .event-row').forEach(row => {
+            const selects = row.querySelectorAll('select');
+            const input = row.querySelector('input');
+            rawEvents.push({
+                type: selects[0].value,
+                playerId: parseInt(selects[1].value),
+                count: parseInt(input.value) || 1
+            });
+        });
+
+        // Birleştir
+        const eventMap = {};
+        rawEvents.forEach(ev => {
+            const key = `${ev.playerId}_${ev.type}`;
+            if (eventMap[key]) eventMap[key].count += ev.count;
+            else eventMap[key] = { ...ev };
+        });
+        m.events = Object.values(eventMap);
         m.pending = false;
 
         saveData('9d_matches', matches);
         recalcPlayerStats();
         renderAll();
-        notify('Maç sonucu girildi!');
+        closePendingModal();
+        notify('Maç sonucu kaydedildi!');
     }
+
+    function closePendingModal() {
+        document.getElementById('pending-modal').classList.remove('show');
+        pendingMatchId = null;
+    }
+
+    document.getElementById('pending-modal').addEventListener('click', function(e) {
+        if (e.target === this) closePendingModal();
+    });
 
     function moveMatch(matchId, direction) {
         if (!isControlMode()) return;
@@ -1901,6 +2014,12 @@
             notify('Lütfen en az bir takıma oyuncu seçin!');
             return;
         }
+
+        // Her takımda en az 1 kaleci zorunlu
+        const t1HasGk = team1Players.some(id => goalkeeperIds.includes(id));
+        const t2HasGk = team2Players.some(id => goalkeeperIds.includes(id));
+        if (!t1HasGk) { notify('Takım 1\'de en az bir kaleci olmalı!'); return; }
+        if (!t2HasGk) { notify('Takım 2\'de en az bir kaleci olmalı!'); return; }
 
         const rawEvents = getCurrentEvents();
         const eventMap = {};

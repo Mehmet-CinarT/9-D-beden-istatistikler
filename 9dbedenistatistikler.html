@@ -1950,7 +1950,7 @@
 
         // Okul maçlarına tarih sırasına göre dinamik hafta numarası ata
         let weekCounter = 0;
-        const weekMap = {};
+        window.weekMap = {}; const weekMap = window.weekMap;
         [...matches]
             .filter(m => m.location !== 'Halısaha')
             .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0))
@@ -3658,8 +3658,10 @@
 
             const select = document.getElementById('poll-match-select');
             select.innerHTML = '<option value="">-- Maç Seçin --</option>';
-            availableMatches.forEach(m => {
-                const label = `${m.team1} ${m.score1}-${m.score2} ${m.team2} (${m.date || '-'}) ${m.location || ''}`;
+            availableMatches.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).forEach(m => {
+                const wm = window.weekMap || {};
+                const weekLabel = m.location === 'Halısaha' ? 'Halısaha' : ('Hafta ' + (wm[m.id] || '?'));
+                const label = `${weekLabel} | ${m.team1} ${m.score1}-${m.score2} ${m.team2} (${m.date || '-'})`;
                 select.innerHTML += `<option value="${m.id}">${label}</option>`;
             });
 

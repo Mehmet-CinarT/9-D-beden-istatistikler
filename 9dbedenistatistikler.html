@@ -1598,30 +1598,35 @@
     // Kaleci ID'leri
     const goalkeeperIds = players.filter(p => p.positions[0] === 'KL').map(p => p.id);
 
+    const MAX_TEAM_SIZE = 6;
+
     function syncTeamSelection() {
         const t1Checked = new Set(
             [...document.querySelectorAll('input[name="team1"]:checked')].map(c => c.value)
         );
+        const t1Count = t1Checked.size;
 
         // Takım 1'de kaç kaleci var?
         const t1GkCount = [...t1Checked].filter(id => goalkeeperIds.includes(parseInt(id))).length;
 
-        // Takım 1'de zaten 1 kaleci varsa diğer kalecileri devre dışı bırak
+        // Takım 1: kaleci limiti + 6 kişi limiti
         document.querySelectorAll('input[name="team1"]').forEach(cb => {
             const pid = parseInt(cb.value);
-            if (goalkeeperIds.includes(pid) && !cb.checked && t1GkCount >= 1) {
+            const isGk = goalkeeperIds.includes(pid);
+
+            if (cb.checked) {
+                cb.disabled = false;
+                cb.closest('.player-checkbox-item').style.opacity = '1';
+            } else if ((isGk && t1GkCount >= 1) || t1Count >= MAX_TEAM_SIZE) {
                 cb.disabled = true;
                 cb.closest('.player-checkbox-item').style.opacity = '0.4';
-            } else if (!goalkeeperIds.includes(pid) || cb.checked) {
+            } else {
                 cb.disabled = false;
                 cb.closest('.player-checkbox-item').style.opacity = '1';
             }
         });
 
         // Takım 2 checkboxlarını güncelle
-        const t2Remaining = players.filter(p => !t1Checked.has(String(p.id)));
-        const t2GkCount = t2Remaining.filter(p => goalkeeperIds.includes(p.id)).length;
-
         document.querySelectorAll('input[name="team2"]').forEach(cb => {
             const pid = parseInt(cb.value);
             if (t1Checked.has(cb.value)) {
@@ -1635,20 +1640,28 @@
             }
         });
 
-        // Takım 2'de de 1 kaleciden fazla seçilmesin
-        let t2CheckedGk = 0;
-        document.querySelectorAll('input[name="team2"]:checked').forEach(cb => {
-            if (goalkeeperIds.includes(parseInt(cb.value))) t2CheckedGk++;
-        });
-        if (t2CheckedGk > 1) {
-            // Fazla kalecileri kaldır (ilki kalsın)
+        // Takım 2: kaleci limiti + 6 kişi limiti
+        const t2Checked = [...document.querySelectorAll('input[name="team2"]:checked')];
+        const t2Count = t2Checked.length;
+        let t2GkCount = t2Checked.filter(cb => goalkeeperIds.includes(parseInt(cb.value))).length;
+
+        // Fazla kalecileri kaldır
+        if (t2GkCount > 1) {
             let kept = 0;
-            document.querySelectorAll('input[name="team2"]:checked').forEach(cb => {
+            t2Checked.forEach(cb => {
                 if (goalkeeperIds.includes(parseInt(cb.value))) {
                     kept++;
                     if (kept > 1) cb.checked = false;
                 }
             });
+        }
+
+        // Takım 2'de 6'dan fazla varsa sondan kaldır
+        const t2Final = [...document.querySelectorAll('input[name="team2"]:checked')];
+        if (t2Final.length > MAX_TEAM_SIZE) {
+            for (let i = t2Final.length - 1; i >= MAX_TEAM_SIZE; i--) {
+                t2Final[i].checked = false;
+            }
         }
     }
 

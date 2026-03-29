@@ -3897,6 +3897,7 @@
     // Onay bekleyen sayısını güncelle
     // Duyurulardan onay/red
     function approveFromNotif(notifId) {
+        if (!isControlMode()) { notify('Onay vermek için kontrolcü modunda olmalısınız!', true); return; }
         db.ref('9d_pending_edits').once('value', snap => {
             const edits = snap.val() || {};
             const pending = Object.entries(edits).find(([,e]) => e.status === 'pending');
@@ -3915,6 +3916,7 @@
     }
 
     function rejectFromNotif(notifId) {
+        if (!isControlMode()) { notify('Onay vermek için kontrolcü modunda olmalısınız!', true); return; }
         db.ref('9d_pending_edits').once('value', snap => {
             const edits = snap.val() || {};
             const pending = Object.entries(edits).find(([,e]) => e.status === 'pending');
@@ -4499,7 +4501,24 @@
             const list = Object.entries(notifs).sort(([,a],[,b]) => new Date(b.date) - new Date(a.date));
 
             const visibleNotifs = list.slice(0, duyurularShown);
-            container.innerHTML = visibleNotifs.map(([id, n]) => {
+            const currentUser = auth.currentUser;
+            const currentEmail = currentUser ? currentUser.email : '';
+            const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(currentEmail);
+            const isAdminMode = isControlMode();
+
+            container.innerHTML = visibleNotifs.filter(([id, n]) => {
+                // Onay bekleyen duyuruları sadece kontrolcüler ve isteği gönderen kişi görebilir
+                const isPending = n.text.includes('Onay bekliyor');
+                if (isPending) {
+                    return isSuperAdmin || (currentUser && n.createdBy === currentEmail);
+                }
+                // Onaylanmış/reddedilmiş duyuruları sadece kontrolcüler ve isteği gönderen görebilir
+                const isEditNotif = n.text.includes('mevki değişikliği');
+                if (isEditNotif) {
+                    return isSuperAdmin || (currentUser && n.createdBy === currentEmail);
+                }
+                return true;
+            }).map(([id, n]) => {
                 const isRead = readIds.includes(id);
                 const isPendingEdit = n.text.includes('Onay bekliyor');
                 const isApproved = n.text.includes('Onaylandı');
@@ -4508,14 +4527,14 @@
                 const isAnket = n.text.includes('anket');
 
                 let approvalButtons = '';
-                const currentUser = auth.currentUser;
                 if (isPendingEdit) {
-                    if (SUPER_ADMIN_EMAILS.includes((currentUser || {}).email)) {
+                    // Sadece kontrolcü modunda (gözlemci modunda değil) onay/red butonları
+                    if (isAdminMode && isSuperAdmin) {
                         approvalButtons = '<div style="display:flex;gap:6px;margin-top:6px">' +
                             '<button onclick="event.stopPropagation();approveFromNotif(\'' + id + '\')" style="flex:1;padding:6px;background:#2ecc71;color:#fff;border:none;border-radius:6px;font-weight:600;font-size:0.7rem;cursor:pointer">Onayla</button>' +
                             '<button onclick="event.stopPropagation();rejectFromNotif(\'' + id + '\')" style="flex:1;padding:6px;background:#e74c3c;color:#fff;border:none;border-radius:6px;font-weight:600;font-size:0.7rem;cursor:pointer">Reddet</button>' +
                             '</div>';
-                    } else if (currentUser && n.createdBy === currentUser.email) {
+                    } else if (currentUser && n.createdBy === currentEmail) {
                         approvalButtons = '<div style="margin-top:6px">' +
                             '<button onclick="event.stopPropagation();withdrawPendingEdit(\'' + id + '\')" style="width:100%;padding:6px;background:#f39c12;color:#fff;border:none;border-radius:6px;font-weight:600;font-size:0.7rem;cursor:pointer">Geri Çek</button>' +
                             '</div>';

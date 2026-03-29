@@ -742,19 +742,6 @@
             background: #e03040;
         }
 
-        .match-form-layout {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .match-form-left, .match-form-right {
-            display: flex !important;
-            flex-direction: column;
-            gap: 16px;
-        }
-
         .save-match-btn {
             width: 100%;
             padding: 14px;
@@ -988,8 +975,6 @@
             .match-team .team-name { font-size: 0.95rem; }
 
             .form-section { padding: 18px; }
-            .form-step { padding: 14px; }
-            .match-form-layout { grid-template-columns: 1fr; }
             .player-checkbox-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 
             .modal { width: 95%; max-height: 90vh; }
@@ -1283,48 +1268,37 @@
     <div id="tab-maclar" class="tab-content">
         <div class="form-section control-only">
             <h2>Yeni Maç Ekle</h2>
-            <div class="form-subtitle">Maç bilgilerini girin</div>
             <input type="hidden" id="match-team1" value="Takım 1">
             <input type="hidden" id="match-team2" value="Takım 2">
 
-            <div class="match-form-layout">
-                <!-- SOL: Takımlar -->
-                <div class="match-form-left">
-                    <div class="form-step">
-                        <div class="form-step-title"><span class="step-num">1</span> Takım 1 Oyuncuları</div>
-                        <div class="player-checkbox-grid" id="team1-players"></div>
-                    </div>
-                    <div class="form-step">
-                        <div class="form-step-title"><span class="step-num">2</span> Takım 2 Oyuncuları</div>
-                        <div class="player-checkbox-grid" id="team2-players"></div>
-                    </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Takım 1 Skor</label>
+                    <input type="number" id="match-score1" min="0" value="0">
                 </div>
+                <div class="form-group">
+                    <label>Takım 2 Skor</label>
+                    <input type="number" id="match-score2" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Tarih</label>
+                    <input type="date" id="match-date">
+                </div>
+            </div>
 
-                <!-- SAĞ: Skor, Tarih, Olaylar -->
-                <div class="match-form-right">
-                    <div class="form-step">
-                        <div class="form-step-title"><span class="step-num">3</span> Skor ve Tarih</div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>T1 Skor</label>
-                                <input type="number" id="match-score1" min="0" value="0">
-                            </div>
-                            <div class="form-group">
-                                <label>T2 Skor</label>
-                                <input type="number" id="match-score2" min="0" value="0">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Tarih</label>
-                            <input type="date" id="match-date">
-                        </div>
-                    </div>
-                    <div class="form-step">
-                        <div class="form-step-title"><span class="step-num">4</span> Gol & Asist Olayları</div>
-                        <button class="btn btn-secondary" onclick="addEvent()" style="margin-bottom:10px;width:100%">+ Olay Ekle</button>
-                        <div class="event-list" id="event-list"></div>
-                    </div>
-                </div>
+            <div class="form-group" style="margin-bottom:12px">
+                <label>Takım 1 Oyuncuları</label>
+                <div class="player-checkbox-grid" id="team1-players"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px">
+                <label>Takım 2 Oyuncuları</label>
+                <div class="player-checkbox-grid" id="team2-players"></div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:12px">
+                <label>Gol & Asist Olayları</label>
+                <button class="btn btn-secondary" onclick="addEvent()" style="margin-bottom:8px">+ Olay Ekle</button>
+                <div class="event-list" id="event-list"></div>
             </div>
 
             <button class="save-match-btn" onclick="saveMatch()">Maçı Kaydet</button>

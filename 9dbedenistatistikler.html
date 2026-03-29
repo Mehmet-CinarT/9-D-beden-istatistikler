@@ -1288,9 +1288,30 @@
             Google ile Giriş Yap
         </button>
 
+        <div class="auth-toggle" id="forgot-link">
+            <a onclick="showForgotPassword()" style="color:#e67e22;font-weight:600;cursor:pointer;font-size:0.8rem">Şifremi Unuttum</a>
+        </div>
+
         <div class="auth-toggle">
             <span id="auth-toggle-text">Hesabınız yok mu?</span>
             <a onclick="toggleAuthMode()" id="auth-toggle-link">Kayıt Ol</a>
+        </div>
+    </div>
+
+    <!-- ŞİFRE SIFIRLAMA EKRANI -->
+    <div class="login-box" id="forgot-screen" style="display:none">
+        <h1>Şifre Sıfırlama</h1>
+        <p>E-posta adresinizi girin, şifre sıfırlama bağlantısı göndereceğiz.</p>
+
+        <div class="auth-error" id="forgot-error"></div>
+        <div id="forgot-success" style="display:none;background:#e8f5e9;color:#2e7d32;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;margin-bottom:12px"></div>
+
+        <input type="email" id="forgot-email" class="auth-input" placeholder="E-posta adresi" onkeydown="if(event.key==='Enter')sendResetEmail()">
+
+        <button class="auth-btn auth-btn-primary" onclick="sendResetEmail()">Şifre Sıfırlama Maili Gönder</button>
+
+        <div class="auth-toggle">
+            <a onclick="hideForgotPassword()" style="color:#1E90FF;font-weight:600;cursor:pointer">Giriş Ekranına Dön</a>
         </div>
     </div>
 </div>
@@ -3144,6 +3165,46 @@
                     else showAuthError('Giriş hatası: ' + err.message);
                 });
         }
+    }
+
+    function showForgotPassword() {
+        document.getElementById('forgot-screen').style.display = 'block';
+        document.getElementById('forgot-screen').previousElementSibling.style.display = 'none';
+        document.getElementById('forgot-success').style.display = 'none';
+        document.getElementById('forgot-error').classList.remove('show');
+        document.getElementById('forgot-email').value = document.getElementById('auth-email').value || '';
+        document.getElementById('forgot-email').focus();
+    }
+
+    function hideForgotPassword() {
+        document.getElementById('forgot-screen').style.display = 'none';
+        document.getElementById('forgot-screen').previousElementSibling.style.display = 'block';
+    }
+
+    function sendResetEmail() {
+        const email = document.getElementById('forgot-email').value.trim();
+        if (!email) {
+            const el = document.getElementById('forgot-error');
+            el.textContent = 'Lütfen e-posta adresinizi girin!';
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+            return;
+        }
+
+        auth.sendPasswordResetEmail(email)
+            .then(() => {
+                document.getElementById('forgot-success').style.display = 'block';
+                document.getElementById('forgot-success').textContent = 'Şifre sıfırlama maili gönderildi! E-postanızı kontrol edin.';
+                document.getElementById('forgot-error').classList.remove('show');
+            })
+            .catch(err => {
+                const el = document.getElementById('forgot-error');
+                if (err.code === 'auth/user-not-found') el.textContent = 'Bu e-posta ile kayıtlı hesap bulunamadı!';
+                else if (err.code === 'auth/invalid-email') el.textContent = 'Geçersiz e-posta adresi!';
+                else el.textContent = 'Hata: ' + err.message;
+                el.classList.add('show');
+                setTimeout(() => el.classList.remove('show'), 4000);
+            });
     }
 
     function googleSignIn() {

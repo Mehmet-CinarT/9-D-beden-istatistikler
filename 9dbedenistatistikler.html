@@ -1373,6 +1373,9 @@
                 <div class="auth-only" onclick="openFeedbackPanel();closeUserMenu()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#333" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='none'">
                     <span style="font-size:1.1rem">&#128172;</span> Geri Bildirimler
                 </div>
+                <div class="auth-only" onclick="openPendingEditsPanel();closeUserMenu()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#333;position:relative" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='none'">
+                    <span style="font-size:1.1rem">&#9998;</span> Onay Bekleyenler <span id="pending-edits-badge" style="background:#e74c3c;color:#fff;font-size:0.6rem;font-weight:800;padding:1px 6px;border-radius:8px;margin-left:4px;display:none">0</span>
+                </div>
                 <div id="mode-toggle-item" style="display:none">
                     <div onclick="toggleViewMode()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#e67e22" onmouseover="this.style.background='#fff3e0'" onmouseout="this.style.background='none'">
                         <span style="font-size:1.1rem" id="mode-toggle-icon">&#128065;</span> <span id="mode-toggle-text">Gözlemci Moduna Geç</span>
@@ -1406,6 +1409,17 @@
             <button class="modal-close" onclick="document.getElementById('theme-modal').classList.remove('show')">&times;</button>
         </div>
         <div class="modal-body" id="theme-modal-body"></div>
+    </div>
+</div>
+
+<!-- PENDING EDITS MODAL -->
+<div class="modal-overlay" id="pending-edits-modal">
+    <div class="modal" style="max-width:550px">
+        <div class="modal-header" style="background:linear-gradient(135deg,#e67e22,#d35400)">
+            <h2>Onay Bekleyen Değişiklikler</h2>
+            <button class="modal-close" onclick="document.getElementById('pending-edits-modal').classList.remove('show')">&times;</button>
+        </div>
+        <div class="modal-body" id="pending-edits-body"></div>
     </div>
 </div>
 
@@ -3741,18 +3755,134 @@
     function savePlayerInfo(playerId) {
         const checkedPos = [...document.querySelectorAll('input[name="edit-pos"]:checked')].map(c => c.value);
         const foot = document.getElementById('edit-foot').value;
+        const p = players.find(x => x.id === playerId);
+        if (!p) return;
 
         if (checkedPos.length === 0) { notify('En az bir mevki seçin!', true); return; }
 
-        db.ref('9d_player_edits/' + playerId).set({
-            positions: checkedPos,
-            foot: foot
-        }).then(() => {
-            notify('Bilgilerin güncellendi!');
-            document.getElementById('profile-modal').classList.remove('show');
-            renderPerformansim();
+        // Mevki değişti mi kontrol et
+        const posChanged = JSON.stringify(checkedPos.sort()) !== JSON.stringify([...p.positions].sort());
+
+        if (posChanged && !isControlMode()) {
+            // Onay isteği oluştur
+            const user = auth.currentUser;
+            db.ref('9d_pending_edits').push({
+                playerId: playerId,
+                playerName: p.name,
+                requestedBy: user ? user.email : 'Bilinmeyen',
+                requestedByUid: user ? user.uid : '',
+                oldPositions: p.positions,
+                newPositions: checkedPos,
+                foot: foot,
+                date: new Date().toISOString(),
+                status: 'pending'
+            }).then(() => {
+                // Ayak değişikliğini hemen uygula
+                db.ref('9d_player_edits/' + playerId + '/foot').set(foot);
+                createNotification(p.name + ' mevki değişikliği talep etti: ' + checkedPos.join(', ') + ' (Onay bekliyor)');
+                notify('Mevki değişikliği onay için gönderildi! Ayak bilgisi güncellendi.');
+                document.getElementById('profile-modal').classList.remove('show');
+                renderPerformansim();
+            });
+        } else {
+            // Kontrolcü veya mevki değişmedi → direkt uygula
+            db.ref('9d_player_edits/' + playerId).set({
+                positions: checkedPos,
+                foot: foot
+            }).then(() => {
+                notify('Bilgilerin güncellendi!');
+                document.getElementById('profile-modal').classList.remove('show');
+                renderPerformansim();
+            });
+        }
+    }
+
+    // ===== ONAY BEKLEYEN DEĞİŞİKLİKLER =====
+    function openPendingEditsPanel() {
+        document.getElementById('pending-edits-modal').classList.add('show');
+        loadPendingEdits();
+    }
+
+    document.getElementById('pending-edits-modal').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+    });
+
+    function loadPendingEdits() {
+        db.ref('9d_pending_edits').once('value', snap => {
+            const edits = snap.val();
+            const body = document.getElementById('pending-edits-body');
+            if (!edits) {
+                body.innerHTML = '<p style="text-align:center;color:#aaa;padding:20px">Onay bekleyen değişiklik yok</p>';
+                return;
+            }
+
+            const pending = Object.entries(edits).filter(([,e]) => e.status === 'pending').sort(([,a],[,b]) => new Date(b.date) - new Date(a.date));
+            if (pending.length === 0) {
+                body.innerHTML = '<p style="text-align:center;color:#aaa;padding:20px">Onay bekleyen değişiklik yok</p>';
+                return;
+            }
+
+            body.innerHTML = pending.map(([key, e]) => `
+                <div style="padding:14px;background:#fff8f0;border-radius:10px;margin-bottom:10px;border-left:4px solid #e67e22">
+                    <div style="font-weight:700;font-size:0.9rem;color:#333">${e.playerName}</div>
+                    <div style="font-size:0.75rem;color:#888;margin-top:2px">Talep eden: ${e.requestedBy}</div>
+                    <div style="font-size:0.75rem;color:#888">${e.date ? new Date(e.date).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</div>
+                    <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
+                        <span style="font-size:0.8rem;color:#999;text-decoration:line-through">${(e.oldPositions || []).join(', ')}</span>
+                        <span style="font-size:0.9rem">→</span>
+                        <span style="font-size:0.8rem;color:#e67e22;font-weight:700">${(e.newPositions || []).join(', ')}</span>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:10px">
+                        <button onclick="approvePendingEdit('${key}')" style="flex:1;padding:8px;background:#2ecc71;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:0.8rem;cursor:pointer">Onayla</button>
+                        <button onclick="rejectPendingEdit('${key}')" style="flex:1;padding:8px;background:#e74c3c;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:0.8rem;cursor:pointer">Reddet</button>
+                    </div>
+                </div>
+            `).join('');
         });
     }
+
+    function approvePendingEdit(key) {
+        db.ref('9d_pending_edits/' + key).once('value', snap => {
+            const edit = snap.val();
+            if (!edit) return;
+            // Mevkiyi uygula
+            db.ref('9d_player_edits/' + edit.playerId + '/positions').set(edit.newPositions);
+            db.ref('9d_pending_edits/' + key + '/status').set('approved');
+            createNotification(edit.playerName + ' mevki değişikliği onaylandı: ' + edit.newPositions.join(', '));
+            notify('Mevki değişikliği onaylandı!');
+            loadPendingEdits();
+        });
+    }
+
+    function rejectPendingEdit(key) {
+        db.ref('9d_pending_edits/' + key).once('value', snap => {
+            const edit = snap.val();
+            if (!edit) return;
+            db.ref('9d_pending_edits/' + key + '/status').set('rejected');
+            createNotification(edit.playerName + ' mevki değişikliği reddedildi');
+            notify('Mevki değişikliği reddedildi!');
+            loadPendingEdits();
+        });
+    }
+
+    // Onay bekleyen sayısını güncelle
+    function updatePendingEditsBadge() {
+        db.ref('9d_pending_edits').once('value', snap => {
+            const edits = snap.val();
+            const badge = document.getElementById('pending-edits-badge');
+            if (!edits) { badge.style.display = 'none'; return; }
+            const count = Object.values(edits).filter(e => e.status === 'pending').length;
+            if (count > 0) {
+                badge.style.display = 'inline';
+                badge.textContent = count;
+            } else {
+                badge.style.display = 'none';
+            }
+        });
+    }
+
+    // Periyodik güncelleme
+    db.ref('9d_pending_edits').on('value', () => { updatePendingEditsBadge(); });
 
     // ===== KULLANICI-OYUNCU BAĞLAMA =====
     function getLinkedPlayerId() {

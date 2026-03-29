@@ -1488,7 +1488,7 @@
         const totalAssists = players.reduce((s, p) => s + p.assists, 0);
         document.getElementById('overview-stats').innerHTML = `
             <div class="stat-card"><div class="number">${players.length}</div><div class="label">Toplam Oyuncu</div></div>
-            <div class="stat-card"><div class="number">${matches.length}</div><div class="label">Toplam Maç</div></div>
+            <div class="stat-card"><div class="number">${matches.filter(m => !m.pending).length}</div><div class="label">Toplam Maç</div></div>
             <div class="stat-card"><div class="number">${totalGoals}</div><div class="label">Toplam Gol</div></div>
             <div class="stat-card"><div class="number">${totalAssists}</div><div class="label">Toplam Asist</div></div>
         `;
@@ -1613,7 +1613,7 @@
                         </div>
                     </div>
                     ${isPending ? `
-                        <div style="text-align:center;padding:20px 0;color:#e67e22;font-weight:700;font-size:1.1rem">Henüz Oynanmadı</div>
+                        <div style="text-align:center;padding:20px 0;color:#999;font-weight:700;font-size:1.1rem">Oynanmadı</div>
                         <div style="display:flex;justify-content:flex-end;margin-top:8px">
                             <div style="display:flex;gap:6px;align-items:center" class="control-only">
                                 <button onclick="event.stopPropagation();editPendingMatch(${m.id})" style="background:#e67e22;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Sonuç Gir</button>

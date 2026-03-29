@@ -1629,7 +1629,10 @@
     <!-- ===== DUYURULAR ===== -->
     <div id="tab-duyurular" class="tab-content">
         <div class="table-wrapper">
-            <h2 style="padding:20px 24px 12px;color:#1E90FF">Duyurular</h2>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 12px">
+                <h2 style="color:#1E90FF;margin:0">Duyurular</h2>
+                <button class="auth-only" onclick="clearAllNotifications()" style="background:#ff4757;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer">Tümünü Temizle</button>
+            </div>
             <div id="duyurular-list" style="padding:0 24px 20px"></div>
         </div>
     </div>
@@ -3767,6 +3770,16 @@
             const unread = Object.keys(notifs).filter(id => !readIds.includes(id)).length;
             badge.textContent = unread;
             badge.style.background = unread > 0 ? '#e74c3c' : '#aaa';
+        });
+    }
+
+    function clearAllNotifications() {
+        if (!isControlMode()) return;
+        if (!confirm('Tüm duyurular silinecek. Emin misiniz?')) return;
+        db.ref('9d_notifications').remove().then(() => {
+            notify('Tüm duyurular temizlendi!');
+            renderDuyurular();
+            updateNotifBadge();
         });
     }
 

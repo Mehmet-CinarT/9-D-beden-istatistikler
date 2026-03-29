@@ -9,6 +9,37 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
+        /* ===== CSS VARIABLES ===== */
+        :root {
+            --primary: #1E90FF;
+            --primary-dark: #0066cc;
+            --primary-light: #e8f2ff;
+            --bg: #f0f4f8;
+            --card-bg: #fff;
+            --text: #333;
+            --text-secondary: #777;
+            --text-muted: #aaa;
+            --border: #eee;
+            --shadow: rgba(0,0,0,0.06);
+            --shadow-lg: rgba(0,0,0,0.12);
+            --glass-bg: rgba(255,255,255,0.85);
+            --glass-border: rgba(255,255,255,0.3);
+        }
+
+        body.dark-mode {
+            --bg: #0f1923;
+            --card-bg: #1a2733;
+            --text: #e0e0e0;
+            --text-secondary: #999;
+            --text-muted: #666;
+            --border: #2a3a4a;
+            --shadow: rgba(0,0,0,0.2);
+            --shadow-lg: rgba(0,0,0,0.4);
+            --glass-bg: rgba(26,39,51,0.9);
+            --glass-border: rgba(255,255,255,0.08);
+            --primary-light: #1a2f44;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -17,75 +48,116 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
+            background-color: var(--bg);
+            color: var(--text);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes countUp { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+        @keyframes bounce { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+        @keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes slideUpModal { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .fade-in { animation: fadeIn 0.4s ease; }
+        .bounce-in { animation: bounce 0.4s ease; }
+
+        /* Ripple effect */
+        .ripple-btn { position: relative; overflow: hidden; }
+        .ripple-btn::after {
+            content: '';
+            position: absolute;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            transform: scale(0);
+            pointer-events: none;
+        }
+        .ripple-btn:active::after { animation: ripple 0.5s linear; }
+
+        /* Skeleton loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--border) 25%, var(--primary-light) 50%, var(--border) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
         }
 
         /* ===== HEADER ===== */
         header {
-            background: linear-gradient(135deg, #1E90FF, #0066cc);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff;
-            padding: 20px 0;
+            padding: 12px 0;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(30, 144, 255, 0.25);
             position: sticky;
             top: 0;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
         header h1 {
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         header p {
-            font-size: 0.9rem;
-            opacity: 0.85;
-            margin-top: 4px;
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-top: 2px;
         }
 
         /* ===== NAV TABS ===== */
         .nav-tabs {
             display: flex;
             justify-content: center;
-            gap: 4px;
-            background: #fff;
-            padding: 10px 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            gap: 6px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 10px 16px;
+            box-shadow: 0 2px 12px var(--shadow);
             flex-wrap: wrap;
+            border-bottom: 1px solid var(--border);
         }
 
         .nav-tabs button {
-            padding: 10px 24px;
-            border: 2px solid transparent;
+            padding: 8px 18px;
+            border: none;
             background: transparent;
-            color: #555;
-            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 20px;
             transition: all 0.3s ease;
+            position: relative;
         }
 
         .nav-tabs button:hover {
-            background: #e8f2ff;
-            color: #1E90FF;
+            background: var(--primary-light);
+            color: var(--primary);
         }
 
         .nav-tabs button.active {
-            background: #1E90FF;
+            background: var(--primary);
             color: #fff;
-            border-color: #1E90FF;
+            box-shadow: 0 2px 10px rgba(30,144,255,0.3);
         }
 
         /* ===== MAIN CONTENT ===== */
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 24px 16px;
+            padding: 20px 14px;
             min-height: calc(100vh - 200px);
         }
+
+        .tab-content { animation: fadeIn 0.3s ease; }
 
         .tab-content {
             display: none;
@@ -98,50 +170,55 @@
         /* ===== CARDS ===== */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
             margin-bottom: 24px;
         }
 
         .stat-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px 16px;
             text-align: center;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            border-top: 4px solid #1E90FF;
-            transition: transform 0.2s;
+            box-shadow: 0 2px 16px var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeIn 0.5s ease;
         }
 
         .stat-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow-lg);
         }
 
         .stat-card .number {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 800;
-            color: #1E90FF;
+            color: var(--primary);
+            animation: countUp 0.6s ease;
         }
 
         .stat-card .label {
-            font-size: 0.85rem;
-            color: #777;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
             margin-top: 4px;
         }
 
         /* ===== TABLE ===== */
         .table-wrapper {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 2px 16px var(--shadow);
             overflow-x: auto;
             margin-bottom: 24px;
+            border: 1px solid var(--border);
+            animation: fadeIn 0.4s ease;
         }
 
         .table-wrapper h2 {
             padding: 20px 24px 12px;
-            font-size: 1.2rem;
-            color: #1E90FF;
+            font-size: 1.15rem;
+            color: var(--primary);
         }
 
         table {
@@ -150,32 +227,32 @@
         }
 
         thead {
-            background: #1E90FF;
+            background: var(--primary);
             color: #fff;
         }
 
         thead th {
-            padding: 14px 16px;
+            padding: 12px 14px;
             text-align: left;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         tbody tr {
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border);
             transition: background 0.2s;
             cursor: pointer;
         }
 
         tbody tr:hover {
-            background: #f0f7ff;
+            background: var(--primary-light);
         }
 
         tbody td {
-            padding: 12px 16px;
-            font-size: 0.9rem;
+            padding: 11px 14px;
+            font-size: 0.85rem;
         }
 
         tbody td:first-child {
@@ -191,6 +268,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
             z-index: 2000;
             justify-content: center;
             align-items: center;
@@ -201,42 +279,38 @@
         }
 
         .modal {
-            background: #fff;
-            border-radius: 16px;
+            background: var(--card-bg);
+            border-radius: 20px;
             width: 90%;
             max-width: 600px;
             max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             animation: modalIn 0.3s ease;
-        }
-
-        @keyframes modalIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            border: 1px solid var(--border);
         }
 
         .modal-header {
-            background: linear-gradient(135deg, #1E90FF, #0066cc);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff;
-            padding: 24px;
-            border-radius: 16px 16px 0 0;
+            padding: 20px 24px;
+            border-radius: 20px 20px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .modal-header h2 {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
         }
 
         .modal-close {
             background: rgba(255,255,255,0.2);
             border: none;
             color: #fff;
-            font-size: 1.5rem;
-            width: 36px;
-            height: 36px;
+            font-size: 1.3rem;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -250,60 +324,68 @@
         }
 
         .modal-body {
-            padding: 24px;
+            padding: 20px;
         }
 
         .player-info-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
         .info-item {
-            background: #f0f7ff;
-            border-radius: 10px;
-            padding: 16px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            padding: 14px;
             text-align: center;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
         }
 
+        .info-item:hover { transform: scale(1.03); }
+
         .info-item .info-value {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             font-weight: 800;
-            color: #1E90FF;
+            color: var(--primary);
         }
 
         .info-item .info-label {
-            font-size: 0.8rem;
-            color: #777;
-            margin-top: 4px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
         }
 
         .player-positions {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
+            gap: 6px;
+            margin-top: 8px;
         }
 
         .position-tag {
-            background: #e8f2ff;
-            color: #1E90FF;
-            padding: 6px 14px;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
+            border: 1px solid var(--border);
         }
 
         /* ===== MATCH CARDS ===== */
         .match-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            padding: 24px;
-            margin-bottom: 16px;
-            border-left: 5px solid #1E90FF;
-            transition: transform 0.2s;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 2px 16px var(--shadow);
+            padding: 20px;
+            margin-bottom: 14px;
+            border-left: 4px solid var(--primary);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeIn 0.4s ease;
         }
 
         .match-card:hover {
@@ -347,10 +429,10 @@
         .score-display {
             font-size: 2rem;
             font-weight: 900;
-            color: #1E90FF;
-            background: #e8f2ff;
+            color: var(--primary);
+            background: var(--primary-light);
             padding: 8px 20px;
-            border-radius: 12px;
+            border-radius: 14px;
             min-width: 100px;
             text-align: center;
         }
@@ -384,11 +466,12 @@
 
         /* ===== TEAM BUILDER ===== */
         .builder-section {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 2px 16px var(--shadow);
             padding: 24px;
             margin-bottom: 24px;
+            border: 1px solid var(--border);
         }
 
         .builder-section h2 {
@@ -458,10 +541,10 @@
         }
 
         .team-box {
-            background: #f8fbff;
-            border-radius: 12px;
-            padding: 20px;
-            border: 2px solid #e0ecff;
+            background: var(--primary-light);
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid var(--border);
         }
 
         .team-box h3 {
@@ -488,7 +571,7 @@
             padding: 10px 12px;
             border-radius: 8px;
             margin-bottom: 6px;
-            background: #fff;
+            background: var(--card-bg);
             border: 1px solid #eee;
         }
 
@@ -513,10 +596,11 @@
         }
 
         .king-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 2px 16px var(--shadow);
             overflow: hidden;
+            border: 1px solid var(--border);
         }
 
         .king-card-header {
@@ -581,11 +665,12 @@
 
         /* ===== ADD MATCH FORM ===== */
         .form-section {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 28px;
+            background: var(--card-bg);
+            border-radius: 18px;
+            box-shadow: 0 4px 20px var(--shadow);
+            padding: 24px;
             margin-bottom: 24px;
+            border: 1px solid var(--border);
         }
 
         .form-section h2 {
@@ -679,8 +764,8 @@
             align-items: center;
             gap: 8px;
             padding: 10px 14px;
-            background: #fff;
-            border: 2px solid #eee;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s;
@@ -712,10 +797,10 @@
             margin-bottom: 8px;
             align-items: center;
             flex-wrap: wrap;
-            background: #fff;
+            background: var(--card-bg);
             padding: 8px 12px;
             border-radius: 8px;
-            border: 1px solid #eee;
+            border: 1px solid var(--border);
         }
 
         .event-row select, .event-row input {
@@ -783,17 +868,18 @@
         /* ===== NOTIFICATION ===== */
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 16px;
+            right: 16px;
             background: #2ecc71;
             color: #fff;
-            padding: 14px 24px;
-            border-radius: 10px;
+            padding: 12px 20px;
+            border-radius: 12px;
             font-weight: 600;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-size: 0.85rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.2);
             z-index: 3000;
             transform: translateX(400px);
-            transition: transform 0.4s ease;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
         .notification.show {
@@ -999,28 +1085,28 @@
 
         /* Mobil (480px ve altı) */
         @media (max-width: 480px) {
-            header { padding: 14px 0; }
-            header h1 { font-size: 1.1rem; letter-spacing: 0; }
-            header p { font-size: 0.7rem; }
+            header { padding: 10px 0; }
+            header h1 { font-size: 1rem; letter-spacing: 0; }
+            header p { display: none; }
 
             .nav-tabs {
                 padding: 6px 4px;
-                gap: 2px;
+                gap: 3px;
                 overflow-x: auto;
                 justify-content: flex-start;
                 -webkit-overflow-scrolling: touch;
             }
             .nav-tabs button {
-                padding: 7px 10px;
+                padding: 6px 12px;
                 font-size: 0.7rem;
                 white-space: nowrap;
                 flex-shrink: 0;
             }
 
-            .container { padding: 12px 6px; }
+            .container { padding: 12px 8px; }
 
             .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .stat-card { padding: 12px 8px; border-radius: 10px; }
+            .stat-card { padding: 12px 8px; border-radius: 12px; }
             .stat-card .number { font-size: 1.4rem; }
             .stat-card .label { font-size: 0.7rem; }
 
@@ -1028,18 +1114,13 @@
             thead th { padding: 8px 6px; font-size: 0.7rem; }
             tbody td { padding: 8px 6px; font-size: 0.75rem; }
 
-            .match-card { padding: 12px; margin-bottom: 10px; }
+            .match-card { padding: 12px; margin-bottom: 10px; border-radius: 12px; }
             .match-score { gap: 10px; padding: 10px 0; }
             .score-display { font-size: 1.3rem; padding: 5px 10px; min-width: 65px; }
             .match-team .team-name { font-size: 0.85rem; }
             .match-detail-tag { font-size: 0.7rem; padding: 3px 7px; }
 
-            .form-section { padding: 14px; border-radius: 12px; }
-            .form-step { padding: 12px; margin-bottom: 10px; }
-            .form-step-title { font-size: 0.8rem; }
-            .form-row { gap: 8px; }
-            .form-group { min-width: 100px; }
-            .form-group input, .form-group select { padding: 10px 12px; font-size: 0.85rem; }
+            .form-section { padding: 14px; border-radius: 14px; }
             .player-checkbox-grid { grid-template-columns: 1fr; }
             .player-checkbox-item { padding: 10px 12px; font-size: 0.82rem; }
 
@@ -1047,11 +1128,20 @@
             .event-row select, .event-row input { padding: 6px 8px; font-size: 0.8rem; }
             .save-match-btn { padding: 12px; font-size: 0.9rem; }
 
-            .modal { width: 98%; border-radius: 12px; }
-            .modal-header { padding: 14px; border-radius: 12px 12px 0 0; }
+            /* Slide-up modal on mobile */
+            .modal {
+                width: 100%;
+                max-width: 100%;
+                max-height: 90vh;
+                border-radius: 20px 20px 0 0;
+                position: fixed;
+                bottom: 0;
+                animation: slideUpModal 0.3s ease;
+            }
+            .modal-header { border-radius: 20px 20px 0 0; padding: 14px 16px; }
             .modal-header h2 { font-size: 1rem; }
             .modal-body { padding: 14px; }
-            .info-item { padding: 12px; }
+            .info-item { padding: 10px; }
             .info-item .info-value { font-size: 1.2rem; }
             .info-item .info-label { font-size: 0.7rem; }
 
@@ -1059,41 +1149,54 @@
             .pitch-player .pitch-name { font-size: 0.45rem; max-width: 45px; padding: 1px 4px; }
             .pitch-player .pitch-dot { width: 22px; height: 22px; font-size: 0.5rem; }
 
-            .team-box { padding: 14px; }
+            .team-box { padding: 12px; }
             .team-player-item { padding: 8px 10px; }
             .team-player-item .player-name { font-size: 0.8rem; }
 
             .king-card-header { padding: 12px 16px; font-size: 0.95rem; }
             .king-item { padding: 8px 10px; }
 
-            .login-box { padding: 24px 16px; width: 95%; }
+            .login-box { padding: 24px 16px; width: 95%; border-radius: 20px; }
             .login-box h1 { font-size: 1.1rem; }
-            .login-btn { padding: 12px; }
-            .login-btn .login-btn-title { font-size: 0.9rem; }
 
-            .notification { top: 10px; right: 10px; padding: 10px 16px; font-size: 0.85rem; }
+            .notification { top: 10px; right: 10px; left: 10px; padding: 10px 16px; font-size: 0.85rem; }
+
+            .user-bar { padding: 6px 10px; }
         }
         /* ===== LOGIN SCREEN ===== */
         .login-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #1E90FF, #0052a3);
+            background: linear-gradient(135deg, #1E90FF 0%, #0052a3 50%, #003d7a 100%);
             z-index: 5000;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
+        .login-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="30" r="15" fill="rgba(255,255,255,0.03)"/><circle cx="80" cy="70" r="20" fill="rgba(255,255,255,0.03)"/><circle cx="50" cy="10" r="10" fill="rgba(255,255,255,0.02)"/></svg>');
+            background-size: 200px;
+        }
+
         .login-overlay.hidden { display: none; }
 
         .login-box {
-            background: #fff;
-            border-radius: 20px;
-            padding: 40px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 36px;
             width: 90%;
-            max-width: 420px;
+            max-width: 400px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             text-align: center;
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.5s ease;
         }
 
         .login-box h1 {
@@ -1213,20 +1316,25 @@
         body.admin-mode .match-card .auth-only { display: flex !important; }
 
         .user-bar {
-            background: linear-gradient(135deg, #f8fbff, #e8f2ff);
-            padding: 10px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
             gap: 12px;
             font-size: 0.8rem;
-            color: #666;
+            color: var(--text-secondary);
             border-bottom: 2px solid #d0e4ff;
+            position: relative;
+            z-index: 1100;
         }
 
         .user-bar .user-avatar {
             width: 32px;
             height: 32px;
+            min-width: 32px;
+            min-height: 32px;
             border-radius: 50%;
             background: linear-gradient(135deg, #1E90FF, #0066cc);
             color: #fff;
@@ -1235,6 +1343,7 @@
             justify-content: center;
             font-weight: 800;
             font-size: 0.85rem;
+            overflow: hidden;
         }
 
         .user-bar .user-info {
@@ -1359,10 +1468,10 @@
         </div>
 
         <!-- DROPDOWN MENU -->
-        <div id="user-menu" style="display:none;position:absolute;top:100%;right:0;margin-top:8px;background:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.15);width:260px;z-index:2000;overflow:hidden">
+        <div id="user-menu" style="display:none;position:absolute;top:100%;right:0;margin-top:8px;background:var(--card-bg);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.25);width:260px;z-index:9999;overflow:hidden;border:1px solid var(--border)">
             <!-- Profil Başlık -->
             <div style="padding:18px 16px;background:linear-gradient(135deg,#f8fbff,#e8f2ff);border-bottom:1px solid #eee;text-align:center">
-                <div id="menu-avatar" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#1E90FF,#0066cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;margin:0 auto 8px"></div>
+                <div id="menu-avatar" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#1E90FF,#0066cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;margin:0 auto 8px;overflow:hidden"></div>
                 <div id="menu-name" style="font-weight:700;font-size:0.95rem;color:#333"></div>
                 <div id="menu-email" style="font-size:0.75rem;color:#888"></div>
                 <span id="menu-role" style="display:inline-block;margin-top:4px;font-size:0.65rem;padding:2px 10px;border-radius:6px;font-weight:700"></span>
@@ -4808,17 +4917,37 @@
     function openThemeSettings() {
         closeUserMenu();
         const currentSize = localStorage.getItem('9d_fontsize') || 'normal';
+        const isDark = document.body.classList.contains('dark-mode');
         document.getElementById('theme-modal-body').innerHTML = `
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:10px;font-size:0.85rem">Yazı Boyutu</label>
+            <div style="margin-bottom:20px">
+                <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:10px;font-size:0.85rem">Tema</label>
                 <div style="display:flex;gap:8px">
-                    <button onclick="setFontSize('small')" style="flex:1;padding:10px;border:2px solid ${currentSize==='small'?'#1E90FF':'#ddd'};border-radius:8px;background:${currentSize==='small'?'#e8f2ff':'#fff'};cursor:pointer;font-size:0.8rem;font-weight:600">Küçük</button>
-                    <button onclick="setFontSize('normal')" style="flex:1;padding:10px;border:2px solid ${currentSize==='normal'?'#1E90FF':'#ddd'};border-radius:8px;background:${currentSize==='normal'?'#e8f2ff':'#fff'};cursor:pointer;font-size:0.9rem;font-weight:600">Normal</button>
-                    <button onclick="setFontSize('large')" style="flex:1;padding:10px;border:2px solid ${currentSize==='large'?'#1E90FF':'#ddd'};border-radius:8px;background:${currentSize==='large'?'#e8f2ff':'#fff'};cursor:pointer;font-size:1rem;font-weight:600">Büyük</button>
+                    <button onclick="setDarkMode(false)" style="flex:1;padding:12px;border:2px solid ${!isDark?'var(--primary)':'var(--border)'};border-radius:10px;background:${!isDark?'var(--primary-light)':'var(--card-bg)'};cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--text)">&#9728; Açık</button>
+                    <button onclick="setDarkMode(true)" style="flex:1;padding:12px;border:2px solid ${isDark?'var(--primary)':'var(--border)'};border-radius:10px;background:${isDark?'var(--primary-light)':'var(--card-bg)'};cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--text)">&#127769; Koyu</button>
+                </div>
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:10px;font-size:0.85rem">Yazı Boyutu</label>
+                <div style="display:flex;gap:8px">
+                    <button onclick="setFontSize('small')" style="flex:1;padding:10px;border:2px solid ${currentSize==='small'?'var(--primary)':'var(--border)'};border-radius:10px;background:${currentSize==='small'?'var(--primary-light)':'var(--card-bg)'};cursor:pointer;font-size:0.8rem;font-weight:600;color:var(--text)">Küçük</button>
+                    <button onclick="setFontSize('normal')" style="flex:1;padding:10px;border:2px solid ${currentSize==='normal'?'var(--primary)':'var(--border)'};border-radius:10px;background:${currentSize==='normal'?'var(--primary-light)':'var(--card-bg)'};cursor:pointer;font-size:0.9rem;font-weight:600;color:var(--text)">Normal</button>
+                    <button onclick="setFontSize('large')" style="flex:1;padding:10px;border:2px solid ${currentSize==='large'?'var(--primary)':'var(--border)'};border-radius:10px;background:${currentSize==='large'?'var(--primary-light)':'var(--card-bg)'};cursor:pointer;font-size:1rem;font-weight:600;color:var(--text)">Büyük</button>
                 </div>
             </div>
         `;
         document.getElementById('theme-modal').classList.add('show');
+    }
+
+    function setDarkMode(enabled) {
+        if (enabled) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('9d_darkmode', 'true');
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('9d_darkmode', 'false');
+        }
+        openThemeSettings();
+        notify(enabled ? 'Koyu tema aktif' : 'Açık tema aktif');
     }
 
     function setFontSize(size) {
@@ -4829,11 +4958,12 @@
         notify('Yazı boyutu değiştirildi!');
     }
 
-    // Sayfa açılınca kayıtlı font boyutunu uygula
+    // Sayfa açılınca kayıtlı tema ve font boyutunu uygula
     (function() {
         const size = localStorage.getItem('9d_fontsize') || 'normal';
         const sizes = { small: '14px', normal: '16px', large: '18px' };
         document.body.style.fontSize = sizes[size] || '16px';
+        if (localStorage.getItem('9d_darkmode') === 'true') document.body.classList.add('dark-mode');
     })();
 
     // ===== FEEDBACK PANEL =====

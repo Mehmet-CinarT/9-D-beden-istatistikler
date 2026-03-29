@@ -977,6 +977,7 @@
 
             .form-section { padding: 18px; }
             .player-checkbox-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+            footer > div:first-child { grid-template-columns: 1fr !important; }
 
             .modal { width: 95%; max-height: 90vh; }
             .modal-header { padding: 18px; }
@@ -1554,6 +1555,41 @@
         <div id="teams-result"></div>
     </div>
 </div>
+
+<!-- FOOTER -->
+<footer style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:40px 20px 24px;margin-top:40px">
+    <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px">
+        <!-- İletişim -->
+        <div>
+            <h3 style="font-size:1rem;margin-bottom:12px;color:#1E90FF">İletişim</h3>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:0.85rem">
+                <a href="tel:+905380670641" style="color:#ccc;text-decoration:none;display:flex;align-items:center;gap:8px">
+                    <span style="font-size:1.1rem">&#128222;</span> 0538 067 06 41
+                </a>
+                <a href="mailto:mehmetcinartursak497@gmail.com" style="color:#ccc;text-decoration:none;display:flex;align-items:center;gap:8px">
+                    <span style="font-size:1.1rem">&#9993;</span> mehmetcinartursak497@gmail.com
+                </a>
+            </div>
+        </div>
+
+        <!-- Geri Bildirim -->
+        <div>
+            <h3 style="font-size:1rem;margin-bottom:12px;color:#1E90FF">Geri Bildirim</h3>
+            <textarea id="feedback-text" placeholder="Görüş, öneri veya şikayetinizi yazın..." style="width:100%;height:80px;padding:10px;border:none;border-radius:8px;background:#2a2a4a;color:#fff;font-size:0.8rem;resize:none"></textarea>
+            <button onclick="sendFeedback()" style="margin-top:8px;padding:8px 20px;background:#1E90FF;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:0.8rem;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='#0066cc'" onmouseout="this.style.background='#1E90FF'">Gönder</button>
+        </div>
+
+        <!-- Hakkında -->
+        <div>
+            <h3 style="font-size:1rem;margin-bottom:12px;color:#1E90FF">Hakkında</h3>
+            <p style="font-size:0.8rem;color:#999;line-height:1.6">9/D sınıfı beden eğitimi derslerindeki futbol maçlarını ve oyuncu istatistiklerini takip eden web uygulaması.</p>
+        </div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #333;font-size:0.75rem;color:#666">
+        &copy; 2026 9/D Maçlar ve İstatistikler. Tüm hakları saklıdır.
+    </div>
+</footer>
 
 <!-- PLAYER MODAL -->
 <div class="modal-overlay" id="player-modal">
@@ -3410,6 +3446,20 @@
 
     function isControlMode() {
         return document.body.classList.contains('admin-mode');
+    }
+
+    // ===== FEEDBACK =====
+    function sendFeedback() {
+        const text = document.getElementById('feedback-text').value.trim();
+        if (!text) { notify('Lütfen geri bildirim yazın!', true); return; }
+        const user = auth.currentUser;
+        db.ref('9d_feedbacks').push({
+            text: text,
+            email: user ? user.email : 'Anonim',
+            date: new Date().toISOString()
+        });
+        document.getElementById('feedback-text').value = '';
+        notify('Geri bildiriminiz gönderildi, teşekkürler!');
     }
 
     // Init

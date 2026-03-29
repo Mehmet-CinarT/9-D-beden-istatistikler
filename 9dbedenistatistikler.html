@@ -1333,6 +1333,7 @@
 
 <!-- USER BAR -->
 <div class="user-bar" id="user-bar" style="display:none">
+    <button class="auth-only" onclick="openAdminPanel()" style="background:none;border:2px solid #1E90FF;color:#1E90FF;padding:6px 14px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='#1E90FF';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#1E90FF'">Kullanıcılar</button>
     <div class="user-avatar" id="user-avatar"></div>
     <div class="user-info">
         <div style="display:flex;align-items:center;gap:6px">
@@ -1342,6 +1343,19 @@
         <span class="user-email" id="user-email"></span>
     </div>
     <button class="logout-btn" onclick="logoutUser()">Çıkış Yap</button>
+</div>
+
+<!-- ADMIN PANEL MODAL -->
+<div class="modal-overlay" id="admin-modal">
+    <div class="modal" style="max-width:600px">
+        <div class="modal-header" style="background:linear-gradient(135deg,#1E90FF,#0052a3)">
+            <h2>Kullanıcı Yönetimi</h2>
+            <button class="modal-close" onclick="closeAdminPanel()">&times;</button>
+        </div>
+        <div class="modal-body" id="admin-modal-body">
+            <div style="text-align:center;color:#aaa;padding:20px">Yükleniyor...</div>
+        </div>
+    </div>
 </div>
 
 <!-- NAV TABS -->
@@ -3249,43 +3263,132 @@
     }
 
     // Auth state dinle
-    const ADMIN_EMAILS = ['mehmetcinartursak497@gmail.com'];
+    const SUPER_ADMIN_EMAILS = ['mehmetcinartursak497@gmail.com'];
+
+    // Kullanıcı bilgisini Firebase'e kaydet
+    function saveUserToDb(user) {
+        db.ref('9d_users/' + user.uid).update({
+            email: user.email,
+            displayName: user.displayName || user.email.split('@')[0],
+            lastLogin: new Date().toISOString(),
+        });
+        // Eğer rol atanmamışsa varsayılan ata
+        db.ref('9d_users/' + user.uid + '/role').once('value', snap => {
+            if (!snap.val()) {
+                const role = SUPER_ADMIN_EMAILS.includes(user.email) ? 'admin' : 'observer';
+                db.ref('9d_users/' + user.uid + '/role').set(role);
+            }
+        });
+    }
+
+    function getUserRole(uid, callback) {
+        // Süper admin her zaman admin
+        db.ref('9d_users/' + uid).once('value', snap => {
+            const data = snap.val();
+            if (data && SUPER_ADMIN_EMAILS.includes(data.email)) {
+                callback('admin');
+            } else if (data && data.role) {
+                callback(data.role);
+            } else {
+                callback('observer');
+            }
+        });
+    }
 
     auth.onAuthStateChanged(user => {
-        // Loading ekranını kaldır ve body'yi göster
         document.getElementById('loading-screen').style.display = 'none';
         document.body.style.visibility = 'visible';
 
         if (user) {
-            // Giriş yapıldı
-            document.getElementById('login-screen').style.display = 'none';
-            document.body.classList.add('logged-in');
+            saveUserToDb(user);
 
-            // Admin mi gözlemci mi?
-            const isAdmin = ADMIN_EMAILS.includes(user.email);
-            if (isAdmin) {
-                document.body.classList.add('admin-mode');
-            } else {
-                document.body.classList.remove('admin-mode');
-            }
+            getUserRole(user.uid, role => {
+                document.getElementById('login-screen').style.display = 'none';
+                document.body.classList.add('logged-in');
 
-            document.getElementById('user-bar').style.display = 'flex';
-            const displayName = user.displayName || user.email.split('@')[0];
-            const initial = displayName.charAt(0).toUpperCase();
-            document.getElementById('user-avatar').textContent = initial;
-            document.getElementById('user-name').textContent = displayName;
-            document.getElementById('user-email').textContent = user.email;
-            document.getElementById('user-role').textContent = isAdmin ? 'Kontrolcü' : 'Gözlemci';
-            document.getElementById('user-role').style.color = isAdmin ? '#2ecc71' : '#f39c12';
-            renderAll();
+                if (role === 'admin') {
+                    document.body.classList.add('admin-mode');
+                } else {
+                    document.body.classList.remove('admin-mode');
+                }
+
+                document.getElementById('user-bar').style.display = 'flex';
+                const displayName = user.displayName || user.email.split('@')[0];
+                const initial = displayName.charAt(0).toUpperCase();
+                document.getElementById('user-avatar').textContent = initial;
+                document.getElementById('user-name').textContent = displayName;
+                document.getElementById('user-email').textContent = user.email;
+                document.getElementById('user-role').textContent = role === 'admin' ? 'Kontrolcü' : 'Gözlemci';
+                document.getElementById('user-role').style.color = role === 'admin' ? '#2ecc71' : '#f39c12';
+                renderAll();
+            });
         } else {
-            // Çıkış yapıldı
             document.getElementById('login-screen').style.display = 'flex';
             document.body.classList.remove('logged-in');
             document.body.classList.remove('admin-mode');
             document.getElementById('user-bar').style.display = 'none';
         }
     });
+
+    // ===== ADMIN PANEL =====
+    function openAdminPanel() {
+        if (!isControlMode()) return;
+        document.getElementById('admin-modal').classList.add('show');
+        loadUsers();
+    }
+
+    function closeAdminPanel() {
+        document.getElementById('admin-modal').classList.remove('show');
+    }
+
+    document.getElementById('admin-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeAdminPanel();
+    });
+
+    function loadUsers() {
+        db.ref('9d_users').once('value', snap => {
+            const users = snap.val();
+            if (!users) {
+                document.getElementById('admin-modal-body').innerHTML = '<p style="color:#aaa;text-align:center">Henüz kullanıcı yok</p>';
+                return;
+            }
+
+            let html = '<div style="display:flex;flex-direction:column;gap:10px">';
+            Object.entries(users).forEach(([uid, u]) => {
+                const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(u.email);
+                const roleColor = u.role === 'admin' ? '#2ecc71' : '#f39c12';
+                const roleText = u.role === 'admin' ? 'Kontrolcü' : 'Gözlemci';
+
+                html += `
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f8f8f8;border-radius:10px;border:1px solid #eee">
+                        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1E90FF,#0066cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem">${(u.displayName || '?')[0].toUpperCase()}</div>
+                        <div style="flex:1">
+                            <div style="font-weight:700;font-size:0.9rem;color:#333">${u.displayName || 'İsimsiz'}</div>
+                            <div style="font-size:0.75rem;color:#888">${u.email}</div>
+                            <div style="font-size:0.65rem;color:#aaa;margin-top:2px">Son giriş: ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('tr-TR') : '-'}</div>
+                        </div>
+                        <span style="font-size:0.7rem;padding:3px 10px;border-radius:8px;font-weight:700;color:${roleColor};background:${u.role === 'admin' ? '#e8f5e9' : '#fff3e0'}">${roleText}</span>
+                        ${isSuperAdmin ? '<span style="font-size:0.6rem;color:#999">Sabit</span>' : `
+                            <select onchange="changeUserRole('${uid}', this.value)" style="padding:4px 8px;border:2px solid #ddd;border-radius:6px;font-size:0.75rem">
+                                <option value="observer" ${u.role !== 'admin' ? 'selected' : ''}>Gözlemci</option>
+                                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Kontrolcü</option>
+                            </select>
+                        `}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            document.getElementById('admin-modal-body').innerHTML = html;
+        });
+    }
+
+    function changeUserRole(uid, newRole) {
+        if (!isControlMode()) return;
+        db.ref('9d_users/' + uid + '/role').set(newRole).then(() => {
+            notify('Kullanıcı yetkisi güncellendi!');
+            loadUsers();
+        });
+    }
 
     function isControlMode() {
         return document.body.classList.contains('admin-mode');

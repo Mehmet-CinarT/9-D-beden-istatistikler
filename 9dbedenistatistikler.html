@@ -2115,8 +2115,8 @@
         document.getElementById('modal-player-name').textContent = p.name;
 
         const playerMatches = matches.filter(m =>
-            (m.team1Players || []).includes(id) || (m.team2Players || []).includes(id)
-        );
+            !m.pending && ((m.team1Players || []).includes(id) || (m.team2Players || []).includes(id))
+        ).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
         const wins = playerMatches.filter(m => {
             const inTeam1 = (m.team1Players || []).includes(id);
@@ -2149,7 +2149,7 @@
             </div>
             <h3 style="color:#1E90FF;margin:16px 0 12px">Son Maçlar</h3>
             ${playerMatches.length === 0 ? '<p style="color:#aaa">Henüz maç yok</p>' :
-            playerMatches.slice(-5).reverse().map(m => {
+            playerMatches.slice(0, 5).map(m => {
                 const inTeam1 = (m.team1Players || []).includes(id);
                 const won = inTeam1 ? m.score1 > m.score2 : m.score2 > m.score1;
                 const draw = m.score1 === m.score2;

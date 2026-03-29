@@ -1686,7 +1686,7 @@
                             <div class="score-display">${m.score1} - ${m.score2}</div>
                             <div class="match-team"><div class="team-name">${m.team2}</div></div>
                         </div>
-                        <div class="match-details">${eventsHtml || '<span style="display:inline-block;padding:4px 10px;background:#fde8e8;color:#c62828;border-radius:6px;font-size:0.75rem;font-weight:600">Bu maçta yaşanan olaylar kayıt altına alınmamıştır.</span>'}</div>
+                        <div class="match-details">${(m.events && m.events.length > 0 && !isPending) ? eventsHtml : '<span style="display:inline-block;padding:6px 12px;background:#fde8e8;color:#c62828;border-radius:8px;font-size:0.78rem;font-weight:600;width:100%">Bu maçta yaşanan olaylar kayıt altına alınmamıştır.</span>'}</div>
                         ${tournamentSummary}
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
                             <span style="font-size:0.75rem;color:#aaa">Detaylar için tıkla</span>

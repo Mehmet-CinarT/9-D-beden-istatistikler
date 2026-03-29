@@ -1578,22 +1578,6 @@
                     `;
                 }
             }
-            // 1. maçta da toplam bilgisi göster (eğer 2. maç oynanmışsa)
-            if (m.serieId && m.serieMatch === 1 && !isPending) {
-                const match2 = matches.find(x => x.serieId === m.serieId && x.serieMatch === 2);
-                if (match2 && !match2.pending) {
-                    const totalT1 = m.score1 + match2.score1;
-                    const totalT2 = m.score2 + match2.score2;
-                    const winner = totalT1 > totalT2 ? m.team1 : totalT2 > totalT1 ? m.team2 : null;
-                    tournamentSummary = `
-                        <div style="margin-top:12px;padding:12px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:10px;text-align:center">
-                            <div style="font-size:0.8rem;color:#e67e22;font-weight:700;margin-bottom:6px">Turnuva Toplam Sonucu</div>
-                            <div style="font-size:1.3rem;font-weight:900;color:#333">${m.team1} <span style="color:#e67e22">${totalT1} - ${totalT2}</span> ${m.team2}</div>
-                            <div style="margin-top:6px;font-size:0.85rem;font-weight:700;color:${winner ? '#2ecc71' : '#f39c12'}">${winner ? winner + ' Turu Geçti!' : 'Eşitlik - Uzatma Gerekli'}</div>
-                        </div>
-                    `;
-                }
-            }
 
             const cardStyle = isPending ? 'border-left:5px solid #e67e22;opacity:0.8' : '';
 

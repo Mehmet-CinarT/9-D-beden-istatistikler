@@ -1642,22 +1642,51 @@
         <!-- Anket Oluşturma (sadece kontrolcü) -->
         <div class="form-section auth-only" style="border-top:4px solid #9b59b6">
             <h2 style="color:#9b59b6">Yeni Anket Oluştur</h2>
-            <div style="margin-bottom:12px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Anket Başlığı</label>
-                <input type="text" id="poll-title" placeholder="örn: Hafta sonu maç yapılsın mı?" class="auth-input" style="margin-bottom:0">
-            </div>
-            <div style="margin-bottom:12px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Anket Konusu / Açıklaması</label>
-                <textarea id="poll-desc" placeholder="Anketin konusunu açıklayın..." style="width:100%;height:60px;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem;resize:none"></textarea>
-            </div>
-            <div style="margin-bottom:12px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Şıklar</label>
-                <div id="poll-options-list"></div>
-                <div style="display:flex;gap:8px;margin-top:8px">
-                    <input type="text" id="poll-new-option" placeholder="Şık ekle..." style="flex:1;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem" onkeydown="if(event.key==='Enter')addPollOption()">
-                    <button class="btn btn-secondary" onclick="addPollOption()" style="padding:10px 14px">+ Ekle</button>
+
+            <!-- Anket Türü -->
+            <div style="margin-bottom:14px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Anket Türü</label>
+                <div style="display:flex;gap:8px">
+                    <button id="poll-type-mvp" onclick="setPollType('mvp')" style="flex:1;padding:12px;border:2px solid #9b59b6;border-radius:10px;background:#9b59b6;color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.2s">MVP Anketi</button>
+                    <button id="poll-type-other" onclick="setPollType('other')" style="flex:1;padding:12px;border:2px solid #ddd;border-radius:10px;background:#fff;color:#666;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.2s">Diğer Anket</button>
                 </div>
             </div>
+
+            <!-- MVP: Maç Seçimi -->
+            <div id="poll-mvp-section">
+                <div style="margin-bottom:12px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Maç Seçin</label>
+                    <select id="poll-match-select" onchange="onMvpMatchSelect()" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
+                        <option value="">-- Maç Seçin --</option>
+                    </select>
+                </div>
+                <div id="poll-mvp-preview" style="display:none;padding:14px;background:#f3e5f5;border-radius:10px;margin-bottom:12px">
+                    <div style="font-weight:700;color:#9b59b6;font-size:0.9rem" id="mvp-preview-title"></div>
+                    <div style="font-size:0.8rem;color:#666;margin-top:4px" id="mvp-preview-desc"></div>
+                    <div style="font-size:0.75rem;color:#999;margin-top:6px" id="mvp-preview-players"></div>
+                </div>
+            </div>
+
+            <!-- Diğer: Manuel Form -->
+            <div id="poll-other-section" style="display:none">
+                <div style="margin-bottom:12px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Anket Başlığı</label>
+                    <input type="text" id="poll-title" placeholder="örn: Hafta sonu maç yapılsın mı?" class="auth-input" style="margin-bottom:0">
+                </div>
+                <div style="margin-bottom:12px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Anket Konusu / Açıklaması</label>
+                    <textarea id="poll-desc" placeholder="Anketin konusunu açıklayın..." style="width:100%;height:60px;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem;resize:none"></textarea>
+                </div>
+                <div style="margin-bottom:12px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Şıklar</label>
+                    <div id="poll-options-list"></div>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <input type="text" id="poll-new-option" placeholder="Şık ekle..." style="flex:1;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem" onkeydown="if(event.key==='Enter')addPollOption()">
+                        <button class="btn btn-secondary" onclick="addPollOption()" style="padding:10px 14px">+ Ekle</button>
+                    </div>
+                </div>
+            </div>
+
             <button class="save-match-btn" style="background:linear-gradient(135deg,#9b59b6,#8e44ad)" onclick="createPoll()">Anketi Yayınla</button>
         </div>
 
@@ -3602,6 +3631,66 @@
 
     // ===== ANKETLER =====
     let pollOptions = [];
+    let pollType = 'mvp';
+    let selectedMvpMatchId = null;
+
+    function setPollType(type) {
+        pollType = type;
+        document.getElementById('poll-type-mvp').style.background = type === 'mvp' ? '#9b59b6' : '#fff';
+        document.getElementById('poll-type-mvp').style.color = type === 'mvp' ? '#fff' : '#666';
+        document.getElementById('poll-type-mvp').style.borderColor = type === 'mvp' ? '#9b59b6' : '#ddd';
+        document.getElementById('poll-type-other').style.background = type === 'other' ? '#9b59b6' : '#fff';
+        document.getElementById('poll-type-other').style.color = type === 'other' ? '#fff' : '#666';
+        document.getElementById('poll-type-other').style.borderColor = type === 'other' ? '#9b59b6' : '#ddd';
+        document.getElementById('poll-mvp-section').style.display = type === 'mvp' ? 'block' : 'none';
+        document.getElementById('poll-other-section').style.display = type === 'other' ? 'block' : 'none';
+        if (type === 'mvp') loadMvpMatchOptions();
+    }
+
+    function loadMvpMatchOptions() {
+        // MVP anketi açılmamış maçları listele
+        db.ref('9d_polls').once('value', pollSnap => {
+            const polls = pollSnap.val() || {};
+            const mvpMatchIds = new Set(Object.values(polls).filter(p => p.type === 'mvp' && p.matchId).map(p => p.matchId));
+
+            const playedMatches = matches.filter(m => !m.pending);
+            const availableMatches = playedMatches.filter(m => !mvpMatchIds.has(String(m.id)));
+
+            const select = document.getElementById('poll-match-select');
+            select.innerHTML = '<option value="">-- Maç Seçin --</option>';
+            availableMatches.forEach(m => {
+                const label = `${m.team1} ${m.score1}-${m.score2} ${m.team2} (${m.date || '-'}) ${m.location || ''}`;
+                select.innerHTML += `<option value="${m.id}">${label}</option>`;
+            });
+
+            if (availableMatches.length === 0) {
+                select.innerHTML = '<option value="">Tüm maçlara MVP anketi açılmış</option>';
+            }
+
+            document.getElementById('poll-mvp-preview').style.display = 'none';
+            selectedMvpMatchId = null;
+        });
+    }
+
+    function onMvpMatchSelect() {
+        const matchId = parseInt(document.getElementById('poll-match-select').value);
+        if (!matchId) { document.getElementById('poll-mvp-preview').style.display = 'none'; selectedMvpMatchId = null; return; }
+
+        selectedMvpMatchId = matchId;
+        const m = matches.find(x => x.id === matchId);
+        if (!m) return;
+
+        const allIds = [...(m.team1Players || []), ...(m.team2Players || [])];
+        const playerNames = allIds.map(id => { const p = findPlayer(id, m); return p ? p.name : null; }).filter(Boolean);
+
+        const title = `${m.team1} ${m.score1}-${m.score2} ${m.team2} Maçında (${m.date || '-'}) MVP Oyuncusu Kimdi?`;
+        const desc = 'Maçın en iyi oynayan oyuncusu seçilir.';
+
+        document.getElementById('mvp-preview-title').textContent = title;
+        document.getElementById('mvp-preview-desc').textContent = desc;
+        document.getElementById('mvp-preview-players').textContent = 'Şıklar: ' + playerNames.join(', ');
+        document.getElementById('poll-mvp-preview').style.display = 'block';
+    }
 
     function addPollOption() {
         const input = document.getElementById('poll-new-option');
@@ -3629,18 +3718,39 @@
 
     function createPoll() {
         if (!isControlMode()) return;
-        const title = document.getElementById('poll-title').value.trim();
-        const desc = document.getElementById('poll-desc').value.trim();
-        if (!title) { notify('Lütfen anket başlığı girin!', true); return; }
-        if (pollOptions.length < 2) { notify('En az 2 şık ekleyin!', true); return; }
+
+        let title, desc, options, matchId = null;
+
+        if (pollType === 'mvp') {
+            if (!selectedMvpMatchId) { notify('Lütfen bir maç seçin!', true); return; }
+            const m = matches.find(x => x.id === selectedMvpMatchId);
+            if (!m) return;
+
+            matchId = String(selectedMvpMatchId);
+            title = `${m.team1} ${m.score1}-${m.score2} ${m.team2} Maçında (${m.date || '-'}) MVP Oyuncusu Kimdi?`;
+            desc = 'Maçın en iyi oynayan oyuncusu seçilir.';
+
+            const allIds = [...(m.team1Players || []), ...(m.team2Players || [])];
+            const playerNames = allIds.map(id => { const p = findPlayer(id, m); return p ? p.name : null; }).filter(Boolean);
+            if (playerNames.length < 2) { notify('Maçta yeterli oyuncu yok!', true); return; }
+            options = playerNames;
+        } else {
+            title = document.getElementById('poll-title').value.trim();
+            desc = document.getElementById('poll-desc').value.trim();
+            if (!title) { notify('Lütfen anket başlığı girin!', true); return; }
+            if (pollOptions.length < 2) { notify('En az 2 şık ekleyin!', true); return; }
+            options = [...pollOptions];
+        }
 
         const user = auth.currentUser;
         const pollId = Date.now();
         const poll = {
             id: pollId,
+            type: pollType,
+            matchId: matchId,
             title: title,
             description: desc,
-            options: pollOptions.map(opt => ({ text: opt, votes: {} })),
+            options: options.map(opt => ({ text: opt, votes: {} })),
             createdBy: user ? user.email : 'Bilinmeyen',
             createdAt: new Date().toISOString(),
             active: true
@@ -3650,10 +3760,14 @@
             notify('Anket yayınlandı!');
             createNotification(`Yeni anket: "${title}"`);
             // Reset
-            document.getElementById('poll-title').value = '';
-            document.getElementById('poll-desc').value = '';
-            pollOptions = [];
-            renderPollOptions();
+            if (pollType === 'other') {
+                document.getElementById('poll-title').value = '';
+                document.getElementById('poll-desc').value = '';
+                pollOptions = [];
+                renderPollOptions();
+            }
+            selectedMvpMatchId = null;
+            if (pollType === 'mvp') loadMvpMatchOptions();
             renderPolls();
         });
     }
@@ -3773,6 +3887,14 @@
         });
     }
 
+    function deleteSingleNotif(id) {
+        if (!isControlMode()) return;
+        db.ref('9d_notifications/' + id).remove().then(() => {
+            renderDuyurular();
+            updateNotifBadge();
+        });
+    }
+
     function clearAllNotifications() {
         if (!isControlMode()) return;
         if (!confirm('Tüm duyurular silinecek. Emin misiniz?')) return;
@@ -3797,12 +3919,13 @@
             container.innerHTML = list.map(([id, n]) => {
                 const isRead = readIds.includes(id);
                 return `
-                    <div onclick="${n.text.includes('anket') ? "document.querySelectorAll('.nav-tabs button').forEach(b=>{b.classList.remove('active')});document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-anketler').classList.add('active');renderPolls();" : ''}" style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:${isRead ? '#f8f8f8' : '#e8f5e9'};border-radius:10px;margin-bottom:8px;border-left:4px solid ${isRead ? '#ddd' : '#2ecc71'};transition:all 0.2s;cursor:${n.text.includes('anket') ? 'pointer' : 'default'}"
+                    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:${isRead ? '#f8f8f8' : '#e8f5e9'};border-radius:10px;margin-bottom:8px;border-left:4px solid ${isRead ? '#ddd' : '#2ecc71'};transition:all 0.2s">
                         <div style="width:36px;height:36px;border-radius:50%;background:${isRead ? '#ddd' : '#2ecc71'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">${isRead ? '&#9989;' : '&#128227;'}</div>
-                        <div style="flex:1">
+                        <div style="flex:1;cursor:${n.text.includes('anket') ? 'pointer' : 'default'}" onclick="${n.text.includes('anket') ? "document.querySelectorAll('.nav-tabs button').forEach(b=>{b.classList.remove('active')});document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-anketler').classList.add('active');renderPolls();" : ''}">
                             <div style="font-size:0.9rem;color:#333;font-weight:${isRead ? '400' : '700'}">${n.text}</div>
                             <div style="font-size:0.7rem;color:#aaa;margin-top:4px">${n.date ? new Date(n.date).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</div>
                         </div>
+                        <button class="auth-only" onclick="event.stopPropagation();deleteSingleNotif('${id}')" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:1.1rem;padding:0;line-height:1;transition:color 0.2s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='#ccc'" title="Sil">&times;</button>
                     </div>
                 `;
             }).join('');

@@ -1561,6 +1561,40 @@
             const locBadge = m.location ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;background:#f3e5f5;color:#7b1fa2;font-weight:600">${m.location}</span>` : '';
             const serieBadge = m.serieMatch ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;background:#fce4ec;color:#c62828;font-weight:600">${m.serieMatch}/${m.serieTotal}</span>` : '';
 
+            // Turnuva toplam sonucu (2. maçta göster)
+            let tournamentSummary = '';
+            if (m.serieId && m.serieMatch === 2 && !isPending) {
+                const match1 = matches.find(x => x.serieId === m.serieId && x.serieMatch === 1);
+                if (match1 && !match1.pending) {
+                    const totalT1 = match1.score1 + m.score1;
+                    const totalT2 = match1.score2 + m.score2;
+                    const winner = totalT1 > totalT2 ? m.team1 : totalT2 > totalT1 ? m.team2 : null;
+                    tournamentSummary = `
+                        <div style="margin-top:12px;padding:12px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:10px;text-align:center">
+                            <div style="font-size:0.8rem;color:#e67e22;font-weight:700;margin-bottom:6px">Turnuva Toplam Sonucu</div>
+                            <div style="font-size:1.3rem;font-weight:900;color:#333">${m.team1} <span style="color:#e67e22">${totalT1} - ${totalT2}</span> ${m.team2}</div>
+                            <div style="margin-top:6px;font-size:0.85rem;font-weight:700;color:${winner ? '#2ecc71' : '#f39c12'}">${winner ? winner + ' Turu Geçti!' : 'Eşitlik - Uzatma Gerekli'}</div>
+                        </div>
+                    `;
+                }
+            }
+            // 1. maçta da toplam bilgisi göster (eğer 2. maç oynanmışsa)
+            if (m.serieId && m.serieMatch === 1 && !isPending) {
+                const match2 = matches.find(x => x.serieId === m.serieId && x.serieMatch === 2);
+                if (match2 && !match2.pending) {
+                    const totalT1 = m.score1 + match2.score1;
+                    const totalT2 = m.score2 + match2.score2;
+                    const winner = totalT1 > totalT2 ? m.team1 : totalT2 > totalT1 ? m.team2 : null;
+                    tournamentSummary = `
+                        <div style="margin-top:12px;padding:12px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:10px;text-align:center">
+                            <div style="font-size:0.8rem;color:#e67e22;font-weight:700;margin-bottom:6px">Turnuva Toplam Sonucu</div>
+                            <div style="font-size:1.3rem;font-weight:900;color:#333">${m.team1} <span style="color:#e67e22">${totalT1} - ${totalT2}</span> ${m.team2}</div>
+                            <div style="margin-top:6px;font-size:0.85rem;font-weight:700;color:${winner ? '#2ecc71' : '#f39c12'}">${winner ? winner + ' Turu Geçti!' : 'Eşitlik - Uzatma Gerekli'}</div>
+                        </div>
+                    `;
+                }
+            }
+
             const cardStyle = isPending ? 'border-left:5px solid #e67e22;opacity:0.8' : '';
 
             return `
@@ -1590,6 +1624,7 @@
                             <div class="match-team"><div class="team-name">${m.team2}</div></div>
                         </div>
                         <div class="match-details">${eventsHtml}</div>
+                        ${tournamentSummary}
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
                             <span style="font-size:0.75rem;color:#aaa">Detaylar için tıkla</span>
                             <div style="display:flex;gap:6px;align-items:center" class="control-only">

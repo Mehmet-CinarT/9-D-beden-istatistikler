@@ -3358,8 +3358,18 @@
                 return;
             }
 
+            // Sırala: süper admin en üstte, sonra kontrolcüler, sonra gözlemciler
+            const userList = Object.entries(users).sort(([,a], [,b]) => {
+                const aSuper = SUPER_ADMIN_EMAILS.includes(a.email) ? 0 : 1;
+                const bSuper = SUPER_ADMIN_EMAILS.includes(b.email) ? 0 : 1;
+                if (aSuper !== bSuper) return aSuper - bSuper;
+                const aAdmin = a.role === 'admin' ? 0 : 1;
+                const bAdmin = b.role === 'admin' ? 0 : 1;
+                return aAdmin - bAdmin;
+            });
+
             let html = '<div style="display:flex;flex-direction:column;gap:10px">';
-            Object.entries(users).forEach(([uid, u]) => {
+            userList.forEach(([uid, u]) => {
                 const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(u.email);
                 const isAdmin = u.role === 'admin';
 

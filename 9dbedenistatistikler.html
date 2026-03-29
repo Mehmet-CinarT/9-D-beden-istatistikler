@@ -1271,32 +1271,32 @@
             <input type="hidden" id="match-team1" value="Takım 1">
             <input type="hidden" id="match-team2" value="Takım 2">
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Takım 1 Skor</label>
-                    <input type="number" id="match-score1" min="0" value="0">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+                <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 1 Skor</label>
+                    <input type="number" id="match-score1" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
-                <div class="form-group">
-                    <label>Takım 2 Skor</label>
-                    <input type="number" id="match-score2" min="0" value="0">
+                <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 2 Skor</label>
+                    <input type="number" id="match-score2" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
-                <div class="form-group">
-                    <label>Tarih</label>
-                    <input type="date" id="match-date">
+                <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Tarih</label>
+                    <input type="date" id="match-date" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
             </div>
 
-            <div class="form-group" style="margin-bottom:12px">
-                <label>Takım 1 Oyuncuları</label>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Takım 1 Oyuncuları</label>
                 <div class="player-checkbox-grid" id="team1-players"></div>
             </div>
-            <div class="form-group" style="margin-bottom:12px">
-                <label>Takım 2 Oyuncuları</label>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Takım 2 Oyuncuları</label>
                 <div class="player-checkbox-grid" id="team2-players"></div>
             </div>
 
-            <div class="form-group" style="margin-bottom:12px">
-                <label>Gol & Asist Olayları</label>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Gol & Asist Olayları</label>
                 <button class="btn btn-secondary" onclick="addEvent()" style="margin-bottom:8px">+ Olay Ekle</button>
                 <div class="event-list" id="event-list"></div>
             </div>

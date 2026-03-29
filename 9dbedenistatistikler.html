@@ -3874,7 +3874,12 @@
             const pending = Object.entries(edits).find(([,e]) => e.status === 'pending');
             if (pending) {
                 approvePendingEdit(pending[0]);
-                deleteSingleNotif(notifId);
+                // Duyuru metnini güncelle
+                db.ref('9d_notifications/' + notifId + '/text').once('value', tSnap => {
+                    const txt = tSnap.val() || '';
+                    db.ref('9d_notifications/' + notifId + '/text').set(txt.replace('(Onay bekliyor)', '(Onaylandı)'));
+                    renderDuyurular();
+                });
             } else {
                 notify('Onay bekleyen istek bulunamadı!', true);
             }
@@ -3887,14 +3892,17 @@
             const pending = Object.entries(edits).find(([,e]) => e.status === 'pending');
             if (pending) {
                 rejectPendingEdit(pending[0]);
-                deleteSingleNotif(notifId);
+                db.ref('9d_notifications/' + notifId + '/text').once('value', tSnap => {
+                    const txt = tSnap.val() || '';
+                    db.ref('9d_notifications/' + notifId + '/text').set(txt.replace('(Onay bekliyor)', '(Reddedildi)'));
+                    renderDuyurular();
+                });
             } else {
                 notify('Onay bekleyen istek bulunamadı!', true);
             }
         });
     }
 
-    // Gözlemci kendi onay isteğini geri çekebilir
     function withdrawPendingEdit(notifId) {
         const user = auth.currentUser;
         if (!user) return;
@@ -3903,9 +3911,12 @@
             const myPending = Object.entries(edits).find(([,e]) => e.status === 'pending' && e.requestedByUid === user.uid);
             if (myPending) {
                 db.ref('9d_pending_edits/' + myPending[0]).remove();
-                deleteSingleNotif(notifId);
+                db.ref('9d_notifications/' + notifId + '/text').once('value', tSnap => {
+                    const txt = tSnap.val() || '';
+                    db.ref('9d_notifications/' + notifId + '/text').set(txt.replace('(Onay bekliyor)', '(Geri çekildi)'));
+                    renderDuyurular();
+                });
                 notify('Onay isteği geri çekildi!');
-                renderDuyurular();
             }
         });
     }
@@ -4463,20 +4474,22 @@
             container.innerHTML = visibleNotifs.map(([id, n]) => {
                 const isRead = readIds.includes(id);
                 const isPendingEdit = n.text.includes('Onay bekliyor');
+                const isApproved = n.text.includes('Onaylandı');
+                const isRejected = n.text.includes('Reddedildi');
+                const isWithdrawn = n.text.includes('Geri çekildi');
                 const isAnket = n.text.includes('anket');
 
-                // Onay bekleyen duyuru için butonlar
                 let approvalButtons = '';
                 const currentUser = auth.currentUser;
                 if (isPendingEdit) {
                     if (SUPER_ADMIN_EMAILS.includes((currentUser || {}).email)) {
-                        approvalButtons = '<div style="display:flex;gap:8px;margin-top:8px">' +
-                            '<button onclick="event.stopPropagation();approveFromNotif(\'' + id + '\')" style="flex:1;padding:8px;background:#2ecc71;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:0.8rem;cursor:pointer">Onaylıyorum</button>' +
-                            '<button onclick="event.stopPropagation();rejectFromNotif(\'' + id + '\')" style="flex:1;padding:8px;background:#e74c3c;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:0.8rem;cursor:pointer">Onaylamıyorum</button>' +
+                        approvalButtons = '<div style="display:flex;gap:6px;margin-top:6px">' +
+                            '<button onclick="event.stopPropagation();approveFromNotif(\'' + id + '\')" style="flex:1;padding:6px;background:#2ecc71;color:#fff;border:none;border-radius:6px;font-weight:600;font-size:0.7rem;cursor:pointer">Onayla</button>' +
+                            '<button onclick="event.stopPropagation();rejectFromNotif(\'' + id + '\')" style="flex:1;padding:6px;background:#e74c3c;color:#fff;border:none;border-radius:6px;font-weight:600;font-size:0.7rem;cursor:pointer">Reddet</button>' +
                             '</div>';
                     } else if (currentUser && n.createdBy === currentUser.email) {
-                        approvalButtons = '<div style="margin-top:8px">' +
-                            '<button onclick="event.stopPropagation();withdrawPendingEdit(\'' + id + '\')" style="width:100%;padding:8px;background:#f39c12;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:0.8rem;cursor:pointer">İsteği Geri Çek</button>' +
+                        approvalButtons = '<div style="margin-top:6px">' +
+                            '<button onclick="event.stopPropagation();withdrawPendingEdit(\'' + id + '\')" style="width:100%;padding:6px;background:#f39c12;color:#fff;border:none;border-radius:6px;font-weight:600;font-size:0.7rem;cursor:pointer">Geri Çek</button>' +
                             '</div>';
                     }
                 }

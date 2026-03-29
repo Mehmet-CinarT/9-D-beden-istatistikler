@@ -3375,10 +3375,23 @@
     const SUPER_ADMIN_EMAILS = ['mehmetcinartursak497@gmail.com'];
 
     // Kullanıcı bilgisini Firebase'e kaydet
+    // Özel isim atamaları
+    const FIXED_NAMES = {
+        'mcinartursak@gmail.com': 'Mehmet Çınar'
+    };
+
     function saveUserToDb(user) {
+        const fixedName = FIXED_NAMES[user.email];
+        const displayName = fixedName || user.displayName || user.email.split('@')[0];
+
+        // Sabit ismi varsa Firebase Auth profilini de güncelle
+        if (fixedName && user.displayName !== fixedName) {
+            user.updateProfile({ displayName: fixedName });
+        }
+
         db.ref('9d_users/' + user.uid).update({
             email: user.email,
-            displayName: user.displayName || user.email.split('@')[0],
+            displayName: displayName,
             lastLogin: new Date().toISOString(),
         });
         // Eğer rol atanmamışsa varsayılan ata
@@ -3580,8 +3593,20 @@
         const newName = document.getElementById('profile-name').value.trim();
         const user = auth.currentUser;
         if (!user) return;
+        if (!newName) { notify('Lütfen bir ad girin!', true); return; }
 
-        if (newName) {
+        // Aynı isim kontrolü
+        db.ref('9d_users').once('value', snap => {
+            const users = snap.val() || {};
+            const duplicate = Object.entries(users).find(([uid, u]) =>
+                uid !== user.uid && u.displayName && u.displayName.toLowerCase() === newName.toLowerCase()
+            );
+
+            if (duplicate) {
+                notify('Bu isim zaten kullanılıyor! Farklı bir isim seçin.', true);
+                return;
+            }
+
             user.updateProfile({ displayName: newName }).then(() => {
                 db.ref('9d_users/' + user.uid + '/displayName').set(newName);
                 document.getElementById('user-name').textContent = newName;
@@ -3590,7 +3615,7 @@
                 notify('Profil güncellendi!');
                 document.getElementById('profile-modal').classList.remove('show');
             }).catch(err => notify('Hata: ' + err.message, true));
-        }
+        });
     }
 
     function changePassword() {

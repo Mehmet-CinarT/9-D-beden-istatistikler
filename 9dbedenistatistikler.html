@@ -1337,6 +1337,16 @@
                 <div id="extra-match-players"></div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
                     <input type="text" id="extra-match-name" placeholder="Oyuncu adı" style="flex:1;min-width:120px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem">
+                    <select id="extra-match-pos" style="padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem">
+                        <option value="SNT">SNT</option>
+                        <option value="MOO">MOO</option>
+                        <option value="MO">MO</option>
+                        <option value="STP" selected>STP</option>
+                        <option value="MDO">MDO</option>
+                        <option value="KL">KL</option>
+                        <option value="SLK">SLK</option>
+                        <option value="SĞK">SĞK</option>
+                    </select>
                     <select id="extra-match-team" style="padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem">
                         <option value="1">Takım 1</option>
                         <option value="2">Takım 2</option>
@@ -1478,7 +1488,7 @@
         if (p) return p;
         if (match && match.extraPlayers) {
             const ep = match.extraPlayers.find(x => x.id === id);
-            if (ep) return { id: ep.id, name: ep.name, positions: ['?'], foot: '-', goals: 0, assists: 0, matches: 0 };
+            if (ep) return { id: ep.id, name: ep.name, positions: [ep.position || 'MO'], foot: '-', goals: 0, assists: 0, matches: 0 };
         }
         return null;
     }
@@ -1788,6 +1798,7 @@
         }
 
         const nameInput = document.getElementById('extra-match-name');
+        const posSelect = document.getElementById('extra-match-pos');
         const teamSelect = document.getElementById('extra-match-team');
         const rawName = nameInput.value.trim();
         if (!rawName) { notify('Lütfen oyuncu adı girin!', true); return; }
@@ -1797,6 +1808,7 @@
         extraMatchPlayers.push({
             id: extraMatchIdCounter,
             name: name,
+            position: posSelect.value,
             team: parseInt(teamSelect.value),
             isExtra: true
         });
@@ -1817,6 +1829,7 @@
         container.innerHTML = extraMatchPlayers.map(p => `
             <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border-radius:6px;margin-bottom:4px;border:1px solid #eee">
                 <span style="flex:1;font-weight:600;font-size:0.85rem">${p.name}</span>
+                <span style="font-size:0.7rem;padding:2px 8px;border-radius:6px;font-weight:600;background:#f0f4f8;color:#555">${p.position}</span>
                 <span style="font-size:0.7rem;padding:2px 8px;border-radius:6px;font-weight:600;background:${p.team===1?'#e3f2fd;color:#1565c0':'#fce4ec;color:#c62828'}">Takım ${p.team}</span>
                 <button onclick="removeExtraMatchPlayer(${p.id})" style="background:#ff4757;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem">Sil</button>
             </div>
@@ -2181,7 +2194,7 @@
         extraMatchPlayers.forEach(ep => {
             if (ep.team === 1) team1Players.push(ep.id);
             else team2Players.push(ep.id);
-            extraNames.push({ id: ep.id, name: ep.name, team: ep.team });
+            extraNames.push({ id: ep.id, name: ep.name, position: ep.position, team: ep.team });
         });
 
         if (team1Players.length === 0 && team2Players.length === 0) {

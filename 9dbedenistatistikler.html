@@ -3441,6 +3441,8 @@
                 document.getElementById('user-name').textContent = displayName;
                 document.getElementById('user-email').textContent = user.email;
                 document.getElementById('user-role').textContent = role === 'admin' ? 'Kontrolcü' : 'Gözlemci';
+                // Profil fotoğrafını yükle
+                refreshAllAvatars();
                 document.getElementById('user-role').style.color = role === 'admin' ? '#2ecc71' : '#f39c12';
                 updateMenuProfile();
                 renderAll();
@@ -3503,7 +3505,10 @@
 
                 html += `
                     <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border-radius:12px;border:2px solid ${isAdmin ? '#d4edda' : '#f0f0f0'};transition:all 0.2s">
-                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,${isAdmin ? '#2ecc71,#27ae60' : '#1E90FF,#0066cc'});color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.9rem;flex-shrink:0">${(u.displayName || '?')[0].toUpperCase()}</div>
+                        ${u.photoURL
+                            ? `<img src="${u.photoURL}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ${isAdmin ? '#2ecc71' : '#1E90FF'}">`
+                            : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,${isAdmin ? '#2ecc71,#27ae60' : '#1E90FF,#0066cc'});color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.9rem;flex-shrink:0">${(u.displayName || '?')[0].toUpperCase()}</div>`
+                        }
                         <div style="flex:1;min-width:0">
                             <div style="font-weight:700;font-size:0.9rem;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.displayName || 'İsimsiz'}</div>
                             <div style="font-size:0.73rem;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.email}</div>
@@ -3567,26 +3572,107 @@
         const user = auth.currentUser;
         if (!user) return;
 
-        document.getElementById('profile-modal-body').innerHTML = `
-            <div style="text-align:center;margin-bottom:20px">
-                <div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#1E90FF,#0066cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem;margin:0 auto">${(user.displayName || user.email[0])[0].toUpperCase()}</div>
-            </div>
-            <div style="margin-bottom:14px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Görünen Ad</label>
-                <input type="text" id="profile-name" value="${user.displayName || ''}" placeholder="Adınızı girin" class="auth-input">
-            </div>
-            <div style="margin-bottom:14px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">E-posta</label>
-                <input type="email" value="${user.email}" disabled class="auth-input" style="background:#f0f0f0;color:#888">
-            </div>
-            <button class="auth-btn auth-btn-primary" onclick="saveProfile()">Kaydet</button>
-            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Şifre Değiştir</label>
-                <input type="password" id="profile-new-password" placeholder="Yeni şifre (en az 6 karakter)" class="auth-input">
-                <button class="auth-btn" style="background:#e67e22;color:#fff" onclick="changePassword()">Şifreyi Güncelle</button>
-            </div>
-        `;
-        document.getElementById('profile-modal').classList.add('show');
+        db.ref('9d_users/' + user.uid + '/photoURL').once('value', snap => {
+            const photoURL = snap.val();
+            const avatarHtml = photoURL
+                ? `<img src="${photoURL}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #1E90FF;margin:0 auto;display:block">`
+                : `<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1E90FF,#0066cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:2rem;margin:0 auto">${(user.displayName || user.email[0])[0].toUpperCase()}</div>`;
+
+            document.getElementById('profile-modal-body').innerHTML = `
+                <div style="text-align:center;margin-bottom:16px">
+                    ${avatarHtml}
+                    <label for="photo-upload" style="display:inline-block;margin-top:8px;padding:6px 16px;background:#e8f2ff;color:#1E90FF;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:background 0.2s" onmouseover="this.style.background='#d0e4ff'" onmouseout="this.style.background='#e8f2ff'">Fotoğraf Değiştir</label>
+                    <input type="file" id="photo-upload" accept="image/*" onchange="handlePhotoUpload(this)" style="display:none">
+                    ${photoURL ? '<div><a onclick="removePhoto()" style="font-size:0.75rem;color:#e74c3c;cursor:pointer;margin-top:4px;display:inline-block">Fotoğrafı Kaldır</a></div>' : ''}
+                </div>
+                <div style="margin-bottom:14px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Görünen Ad</label>
+                    <input type="text" id="profile-name" value="${user.displayName || ''}" placeholder="Adınızı girin" class="auth-input">
+                </div>
+                <div style="margin-bottom:14px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">E-posta</label>
+                    <input type="email" value="${user.email}" disabled class="auth-input" style="background:#f0f0f0;color:#888">
+                </div>
+                <button class="auth-btn auth-btn-primary" onclick="saveProfile()">Kaydet</button>
+                <div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Şifre Değiştir</label>
+                    <input type="password" id="profile-new-password" placeholder="Yeni şifre (en az 6 karakter)" class="auth-input">
+                    <button class="auth-btn" style="background:#e67e22;color:#fff" onclick="changePassword()">Şifreyi Güncelle</button>
+                </div>
+            `;
+            document.getElementById('profile-modal').classList.add('show');
+        });
+    }
+
+    function handlePhotoUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 200 * 1024) { notify('Fotoğraf en fazla 200KB olmalı!', true); return; }
+        if (!file.type.startsWith('image/')) { notify('Lütfen bir resim dosyası seçin!', true); return; }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Resmi küçült
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const size = 150;
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                // Kare kırp
+                const min = Math.min(img.width, img.height);
+                const sx = (img.width - min) / 2;
+                const sy = (img.height - min) / 2;
+                ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+                const base64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                const user = auth.currentUser;
+                db.ref('9d_users/' + user.uid + '/photoURL').set(base64).then(() => {
+                    notify('Profil fotoğrafı güncellendi!');
+                    refreshAllAvatars();
+                    openProfileSettings();
+                });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removePhoto() {
+        const user = auth.currentUser;
+        db.ref('9d_users/' + user.uid + '/photoURL').remove().then(() => {
+            notify('Profil fotoğrafı kaldırıldı!');
+            refreshAllAvatars();
+            openProfileSettings();
+        });
+    }
+
+    function refreshAllAvatars() {
+        const user = auth.currentUser;
+        if (!user) return;
+        db.ref('9d_users/' + user.uid + '/photoURL').once('value', snap => {
+            const photo = snap.val();
+            const name = user.displayName || user.email[0];
+            const initial = name[0].toUpperCase();
+
+            // User bar avatar
+            const barAvatar = document.getElementById('user-avatar');
+            if (photo) {
+                barAvatar.innerHTML = `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+            } else {
+                barAvatar.textContent = initial;
+                barAvatar.innerHTML = initial;
+            }
+
+            // Menu avatar
+            const menuAvatar = document.getElementById('menu-avatar');
+            if (photo) {
+                menuAvatar.innerHTML = `<img src="${photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+            } else {
+                menuAvatar.textContent = initial;
+            }
+        });
     }
 
     function saveProfile() {

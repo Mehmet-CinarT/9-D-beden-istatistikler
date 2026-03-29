@@ -3861,7 +3861,18 @@
     function getReadNotifIds() {
         const user = auth.currentUser;
         if (!user) return [];
-        const stored = localStorage.getItem('9d_read_notifs_' + user.uid);
+        const key = '9d_read_notifs_' + user.uid;
+        const clearedKey = '9d_notifs_cleared_seen_' + user.uid;
+        // Temizlenme kontrolü
+        db.ref('9d_notifs_cleared').once('value', snap => {
+            const clearedAt = snap.val();
+            const seenAt = parseInt(localStorage.getItem(clearedKey) || '0');
+            if (clearedAt && clearedAt > seenAt) {
+                localStorage.removeItem(key);
+                localStorage.setItem(clearedKey, String(clearedAt));
+            }
+        });
+        const stored = localStorage.getItem(key);
         return stored ? JSON.parse(stored) : [];
     }
 
@@ -3899,9 +3910,14 @@
 
     function clearAllNotifications() {
         if (!isControlMode()) return;
-        if (!confirm('Tüm duyurular silinecek. Emin misiniz?')) return;
+        if (!confirm('Tüm duyurular herkes için silinecek. Emin misiniz?')) return;
         db.ref('9d_notifications').remove().then(() => {
-            notify('Tüm duyurular temizlendi!');
+            // Tüm kullanıcıların okunma verisini sıfırla
+            const user = auth.currentUser;
+            if (user) localStorage.removeItem('9d_read_notifs_' + user.uid);
+            // Firebase'e temizlenme zamanını kaydet (diğer kullanıcılar da sıfırlansın)
+            db.ref('9d_notifs_cleared').set(Date.now());
+            notify('Tüm duyurular herkes için temizlendi!');
             renderDuyurular();
             updateNotifBadge();
         });

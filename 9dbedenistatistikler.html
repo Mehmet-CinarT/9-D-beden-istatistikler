@@ -1527,6 +1527,7 @@
         matches.forEach(m => {
             if (m.pending) return;
             if (m.location === 'Halısaha') return; // Ana tabloda sadece okul maçları
+            if (!m.events || m.events.length === 0) return; // Olayları kayıt altına alınmamış maçları sayma
             const allPlayerIds = [...(m.team1Players || []), ...(m.team2Players || [])];
             allPlayerIds.forEach(pid => {
                 const p = players.find(x => x.id === pid);

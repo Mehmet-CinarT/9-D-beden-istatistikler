@@ -1442,6 +1442,7 @@
     <button onclick="switchTab('kadro')" class="auth-only">Kadro Kurucu</button>
     <button onclick="switchTab('duyurular')" style="position:relative">Duyurular <span id="notif-badge" style="position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:50%;font-size:0.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;color:#fff;background:#e74c3c">0</span></button>
     <button onclick="switchTab('anketler')">Anketler</button>
+    <button onclick="switchTab('performansim')" id="performansim-tab" style="display:none">Performansım</button>
 </div>
 
 <div class="container">
@@ -1702,6 +1703,11 @@
         </div>
         <div id="polls-list"></div>
     </div>
+
+    <!-- ===== PERFORMANSIM ===== -->
+    <div id="tab-performansim" class="tab-content">
+        <div id="performansim-content"></div>
+    </div>
 </div>
 
 <!-- FOOTER -->
@@ -1869,6 +1875,9 @@
         if (tab === 'anketler') {
             renderPolls();
             if (pollType === 'mvp') loadMvpMatchOptions();
+        }
+        if (tab === 'performansim') {
+            renderPerformansim();
         }
         renderAll();
     }
@@ -2683,6 +2692,12 @@
     function openPlayerModal(id, filter) {
         const p = players.find(x => x.id === id);
         if (!p) return;
+        // Bağlı kullanıcı kendi oyuncusuna tıklayamaz
+        const linkedId = parseInt(getLinkedPlayerId());
+        if (linkedId === id && !isControlMode()) {
+            notify('Kendi istatistiklerini Performansım sekmesinden görebilirsin!');
+            return;
+        }
         currentPlayerModalId = id;
         const activeFilter = filter || 'genel';
 
@@ -2713,10 +2728,11 @@
                 <strong>Kullanılan Ayak:</strong> ${p.foot}
             </div>
 
-            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
                 <button onclick="openPlayerModal(${id},'genel')" style="${btnStyle('genel')}">Genel</button>
                 <button onclick="openPlayerModal(${id},'okul')" style="${btnStyle('okul')}">Okul</button>
                 <button onclick="openPlayerModal(${id},'halisaha')" style="${btnStyle('halisaha')}">Halısaha</button>
+                ${isControlMode() ? `<button onclick="openLinkUserModal(${id})" style="margin-left:auto;padding:6px 14px;border:2px solid #e67e22;border-radius:8px;background:#fff;color:#e67e22;font-size:0.75rem;font-weight:700;cursor:pointer">Kullanıcı Bağla</button>` : ''}
             </div>
 
             ${filteredMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem;text-align:center;padding:16px">Bu kategoride henüz maç yok</p>' : renderStatsGrid(stats)}
@@ -3554,6 +3570,7 @@
                 refreshAllAvatars();
                 document.getElementById('user-role').style.color = role === 'admin' ? '#2ecc71' : '#f39c12';
                 // Süper adminlere mod değiştirme butonu göster
+                checkLinkedPlayer();
                 if (SUPER_ADMIN_EMAILS.includes(user.email)) {
                     document.getElementById('mode-toggle-item').style.display = 'block';
                 } else {
@@ -3679,6 +3696,150 @@
         closeUserMenu();
         renderAll();
         notify(viewingAsObserver ? 'Gözlemci moduna geçildi' : 'Kontrolcü moduna geçildi');
+    }
+
+    // ===== KULLANICI-OYUNCU BAĞLAMA =====
+    function getLinkedPlayerId() {
+        const user = auth.currentUser;
+        if (!user) return null;
+        // Senkron okuma için localStorage cache
+        return localStorage.getItem('9d_linked_player_' + user.uid) || null;
+    }
+
+    function checkLinkedPlayer() {
+        const user = auth.currentUser;
+        if (!user) return;
+        db.ref('9d_user_links/' + user.uid).once('value', snap => {
+            const playerId = snap.val();
+            if (playerId) {
+                localStorage.setItem('9d_linked_player_' + user.uid, playerId);
+                document.getElementById('performansim-tab').style.display = 'inline-block';
+            } else {
+                localStorage.removeItem('9d_linked_player_' + user.uid);
+                document.getElementById('performansim-tab').style.display = 'none';
+            }
+        });
+    }
+
+    function openLinkUserModal(playerId) {
+        if (!isControlMode()) return;
+        const p = players.find(x => x.id === playerId);
+        if (!p) return;
+
+        db.ref('9d_users').once('value', snap => {
+            const users = snap.val() || {};
+            db.ref('9d_user_links').once('value', linkSnap => {
+                const links = linkSnap.val() || {};
+                // Zaten bağlı olan kullanıcıları göster
+                const linkedUid = Object.entries(links).find(([uid, pid]) => pid == playerId);
+
+                let html = `<h3 style="color:#e67e22;margin-bottom:12px">${p.name} - Kullanıcı Bağla</h3>`;
+                if (linkedUid) {
+                    const linkedUser = users[linkedUid[0]];
+                    html += `<div style="padding:10px 14px;background:#fff3e0;border-radius:8px;margin-bottom:12px;font-size:0.85rem">Şu an bağlı: <strong>${linkedUser ? linkedUser.displayName || linkedUser.email : 'Bilinmeyen'}</strong> <button onclick="unlinkUser('${linkedUid[0]}',${playerId})" style="margin-left:8px;background:#e74c3c;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:0.75rem;cursor:pointer">Bağlantıyı Kaldır</button></div>`;
+                }
+
+                html += '<div style="display:flex;flex-direction:column;gap:6px">';
+                Object.entries(users).forEach(([uid, u]) => {
+                    const alreadyLinked = links[uid];
+                    const isCurrent = linkedUid && linkedUid[0] === uid;
+                    html += `
+                        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${isCurrent ? '#fff3e0' : '#f8f8f8'};border-radius:8px;border:1px solid ${isCurrent ? '#e67e22' : '#eee'}">
+                            <div style="flex:1">
+                                <div style="font-weight:600;font-size:0.85rem">${u.displayName || 'İsimsiz'}</div>
+                                <div style="font-size:0.7rem;color:#888">${u.email}</div>
+                            </div>
+                            ${isCurrent ? '<span style="font-size:0.75rem;color:#e67e22;font-weight:700">Bağlı</span>' :
+                            alreadyLinked ? `<span style="font-size:0.7rem;color:#aaa">Başka oyuncuya bağlı</span>` :
+                            `<button onclick="linkUser('${uid}',${playerId})" style="background:#e67e22;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Bağla</button>`}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                document.getElementById('modal-body').innerHTML = html;
+            });
+        });
+    }
+
+    function linkUser(uid, playerId) {
+        db.ref('9d_user_links/' + uid).set(playerId).then(() => {
+            notify('Kullanıcı oyuncuya bağlandı!');
+            closeModal();
+        });
+    }
+
+    function unlinkUser(uid, playerId) {
+        db.ref('9d_user_links/' + uid).remove().then(() => {
+            notify('Bağlantı kaldırıldı!');
+            closeModal();
+        });
+    }
+
+    // Performansım sekmesini render et
+    function renderPerformansim() {
+        const user = auth.currentUser;
+        if (!user) return;
+        const linkedId = parseInt(getLinkedPlayerId());
+        if (!linkedId) {
+            document.getElementById('performansim-content').innerHTML = '<div style="text-align:center;padding:40px;color:#aaa">Hesabınıza bağlı oyuncu yok</div>';
+            return;
+        }
+
+        const p = players.find(x => x.id === linkedId);
+        if (!p) {
+            document.getElementById('performansim-content').innerHTML = '<div style="text-align:center;padding:40px;color:#aaa">Bağlı oyuncu bulunamadı</div>';
+            return;
+        }
+
+        const allPlayerMatches = matches.filter(m =>
+            !m.pending && ((m.team1Players || []).includes(linkedId) || (m.team2Players || []).includes(linkedId))
+        ).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        const okulMatches = allPlayerMatches.filter(m => m.location !== 'Halısaha');
+        const haliMatches = allPlayerMatches.filter(m => m.location === 'Halısaha');
+        const genelStats = calcStats(allPlayerMatches, linkedId);
+        const okulStats = calcStats(okulMatches, linkedId);
+        const haliStats = calcStats(haliMatches, linkedId);
+
+        document.getElementById('performansim-content').innerHTML = `
+            <div style="background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);padding:28px;margin-bottom:20px;border-top:4px solid #1E90FF">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+                    <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#1E90FF,#0066cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.5rem">${p.name[0]}</div>
+                    <div>
+                        <h2 style="margin:0;color:#333">${p.name}</h2>
+                        <div style="display:flex;gap:6px;margin-top:4px">${p.positions.map(pos => `<span class="position-tag">${pos}</span>`).join('')}</div>
+                    </div>
+                </div>
+
+                <h3 style="color:#1E90FF;margin:16px 0 8px">Genel Performans</h3>
+                ${renderStatsGrid(genelStats)}
+
+                <h3 style="color:#1E90FF;margin:20px 0 8px">Okul Performansı</h3>
+                ${okulMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz okul maçı yok</p>' : renderStatsGrid(okulStats)}
+
+                <h3 style="color:#2e7d32;margin:20px 0 8px">Halısaha Performansı</h3>
+                ${haliMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz halısaha maçı yok</p>' : renderStatsGrid(haliStats)}
+
+                <h3 style="color:#1E90FF;margin:20px 0 12px">Son 5 Maç</h3>
+                ${allPlayerMatches.length === 0 ? '<p style="color:#aaa">Henüz maç yok</p>' :
+                allPlayerMatches.slice(0, 5).map(m => {
+                    const inTeam1 = (m.team1Players || []).includes(linkedId);
+                    const won = inTeam1 ? m.score1 > m.score2 : m.score2 > m.score1;
+                    const draw = m.score1 === m.score2;
+                    const resultColor = draw ? '#f39c12' : (won ? '#2ecc71' : '#e74c3c');
+                    const resultText = draw ? 'B' : (won ? 'G' : 'M');
+                    const mGoals = (m.events || []).filter(e => e.playerId === linkedId && e.type === 'goal').reduce((s, e) => s + (e.count || 1), 0);
+                    const mAssists = (m.events || []).filter(e => e.playerId === linkedId && e.type === 'assist').reduce((s, e) => s + (e.count || 1), 0);
+                    const locTag = m.location === 'Halısaha' ? '<span style="font-size:0.6rem;padding:1px 5px;border-radius:5px;background:#e8f5e9;color:#2e7d32;font-weight:700">HS</span>' : '';
+                    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#f8f8f8;border-radius:8px;margin-bottom:6px">' +
+                        '<span style="width:28px;height:28px;border-radius:50%;background:' + resultColor + ';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem">' + resultText + '</span>' +
+                        '<div style="flex:1"><div style="display:flex;align-items:center;gap:6px">' + m.team1 + ' <strong>' + m.score1 + ' - ' + m.score2 + '</strong> ' + m.team2 + ' ' + locTag + '</div>' +
+                        '<div style="font-size:0.7rem;color:#aaa;margin-top:2px">' + (m.date || '') + '</div></div>' +
+                        '<span style="font-size:0.8rem;color:#666">' + mGoals + 'G ' + mAssists + 'A</span></div>';
+                }).join('')}
+            </div>
+        `;
     }
 
     // ===== ANKETLER =====

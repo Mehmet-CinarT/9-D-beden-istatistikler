@@ -3,8 +3,8 @@
 ## Proje Özeti
 9-D sınıfı beden eğitimi derslerindeki futbol maçlarını, oyuncu istatistiklerini ve kadro dengeleme sistemini yöneten tek sayfalık (SPA) bir web uygulaması.
 
-**Canlı Site:** https://mehmet-cinart.github.io/9-D-beden-istatistikler/9dbedenistatistikler.html
-**GitHub:** https://github.com/Mehmet-CinarT/9-D-beden-istatistikler
+**Canlı Site:** https://mehmet-cinart.github.io/9-D-mac_istatistikleri/9dbedenistatistikler.html
+**GitHub:** https://github.com/Mehmet-CinarT/9-D-mac_istatistikleri
 **Renk Şeması:** Beyaz (#FFFFFF) + Mavi (#1E90FF)
 
 ---
@@ -221,3 +221,17 @@ Tüm stiller `<style>` etiketi içinde, harici dosya yok. Ana bölümler:
 - Excel dosyalarını okumak için `openpyxl` Python paketi kullanılabilir
 - GitHub push için `git push origin main` yeterli
 - Firebase API key'i client-side'da açık, bu normal (güvenlik Rules ile sağlanır)
+
+---
+
+## Otomatik Commit & Push Kuralı
+
+**Her değişiklikten sonra otomatik olarak commit atılıp push edilmeli.**
+
+Değişiklik yapıldığında şu adımlar izlenir:
+1. `git add` ile değişen dosyalar eklenir
+2. Türkçe ve açıklayıcı bir commit mesajı yazılır
+3. `git push origin main` ile GitHub'a gönderilir
+
+Remote URL: `https://github.com/Mehmet-CinarT/9-D-mac_istatistikleri.git`
+Branch: `main`

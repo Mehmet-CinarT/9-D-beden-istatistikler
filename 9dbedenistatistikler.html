@@ -3800,7 +3800,30 @@
     const origSwitchTab = switchTab;
 
     // Firebase'den duyuruları dinle
-    db.ref('9d_notifications').on('value', () => {
+    // Duyuru dinleme - yeni eklenenler için popup göster
+    let notifInitialized = false;
+    let lastNotifCount = 0;
+
+    db.ref('9d_notifications').on('value', (snap) => {
+        const notifs = snap.val();
+        const currentCount = notifs ? Object.keys(notifs).length : 0;
+
+        if (notifInitialized && currentCount > lastNotifCount) {
+            // Yeni duyuru geldi - en son eklenen duyuruyu bul
+            const latest = Object.values(notifs).sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+            if (latest) {
+                const user = auth.currentUser;
+                // Kendim oluşturduysam gösterme
+                if (!user || latest.createdBy !== user.email) {
+                    if (latest.text.includes('anket')) notify('Yeni anket eklendi!');
+                    else if (latest.text.includes('maç')) notify('Yeni maç eklendi!');
+                    else notify(latest.text);
+                }
+            }
+        }
+
+        lastNotifCount = currentCount;
+        if (!notifInitialized) notifInitialized = true;
         updateNotifBadge();
     });
 

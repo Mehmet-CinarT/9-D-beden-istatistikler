@@ -1320,6 +1320,19 @@
                 <div class="player-checkbox-grid" id="team2-players"></div>
             </div>
 
+            <div style="margin-bottom:16px;padding:14px;background:#f0f7ff;border:2px solid #d0e4ff;border-radius:10px">
+                <label style="display:block;font-weight:600;color:#1E90FF;margin-bottom:8px;font-size:0.85rem">Ekstra Oyuncu (Opsiyonel)</label>
+                <div id="extra-match-players"></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+                    <input type="text" id="extra-match-name" placeholder="Oyuncu adı" style="flex:1;min-width:120px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem">
+                    <select id="extra-match-team" style="padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem">
+                        <option value="1">Takım 1</option>
+                        <option value="2">Takım 2</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="addExtraMatchPlayer()" style="padding:10px 14px">Ekle</button>
+                </div>
+            </div>
+
             <div style="margin-bottom:16px">
                 <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Gol & Asist Olayları</label>
                 <button class="btn btn-secondary" onclick="addEvent()" style="margin-bottom:8px">+ Olay Ekle</button>
@@ -1447,6 +1460,17 @@
 
     // ===== NOTIFICATION =====
     // Kısa isim: ilk adı aynı olanlar İlk Harf + 2. isim, diğerleri sadece ilk isim
+    // Oyuncuyu ID ile bul (ekstra oyuncuları da kontrol et)
+    function findPlayer(id, match) {
+        const p = players.find(x => x.id === id);
+        if (p) return p;
+        if (match && match.extraPlayers) {
+            const ep = match.extraPlayers.find(x => x.id === id);
+            if (ep) return { id: ep.id, name: ep.name, positions: ['?'], foot: '-', goals: 0, assists: 0, matches: 0 };
+        }
+        return null;
+    }
+
     function getShortName(player) {
         const parts = player.name.split(' ');
         const firstName = parts[0];
@@ -1715,6 +1739,44 @@
 
     const MAX_TEAM_SIZE = 6;
 
+    // Ekstra oyuncu sistemi (maç ekleme)
+    let extraMatchPlayers = [];
+    let extraMatchIdCounter = 200;
+
+    function addExtraMatchPlayer() {
+        const nameInput = document.getElementById('extra-match-name');
+        const teamSelect = document.getElementById('extra-match-team');
+        const name = nameInput.value.trim();
+        if (!name) { notify('Lütfen oyuncu adı girin!'); return; }
+
+        extraMatchIdCounter++;
+        extraMatchPlayers.push({
+            id: extraMatchIdCounter,
+            name: name,
+            team: parseInt(teamSelect.value),
+            isExtra: true
+        });
+        nameInput.value = '';
+        renderExtraMatchPlayers();
+    }
+
+    function removeExtraMatchPlayer(id) {
+        extraMatchPlayers = extraMatchPlayers.filter(p => p.id !== id);
+        renderExtraMatchPlayers();
+    }
+
+    function renderExtraMatchPlayers() {
+        const container = document.getElementById('extra-match-players');
+        if (extraMatchPlayers.length === 0) { container.innerHTML = ''; return; }
+        container.innerHTML = extraMatchPlayers.map(p => `
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border-radius:6px;margin-bottom:4px;border:1px solid #eee">
+                <span style="flex:1;font-weight:600;font-size:0.85rem">${p.name}</span>
+                <span style="font-size:0.7rem;padding:2px 8px;border-radius:6px;font-weight:600;background:${p.team===1?'#e3f2fd;color:#1565c0':'#fce4ec;color:#c62828'}">Takım ${p.team}</span>
+                <button onclick="removeExtraMatchPlayer(${p.id})" style="background:#ff4757;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem">Sil</button>
+            </div>
+        `).join('');
+    }
+
     function syncTeamSelection() {
         const t1Checked = new Set(
             [...document.querySelectorAll('input[name="team1"]:checked')].map(c => c.value)
@@ -1867,8 +1929,12 @@
         const t1Players = matchPlayers.filter(p => t1Checked.includes(p.id));
         const t2Players = matchPlayers.filter(p => t2Checked.includes(p.id));
 
-        const t1Opts = t1Players.map(p => `<option value="${p.id}">${p.name} (T1)</option>`).join('');
-        const t2Opts = t2Players.map(p => `<option value="${p.id}">${p.name} (T2)</option>`).join('');
+        // Ekstra oyuncuları da ekle
+        const extraT1 = extraMatchPlayers.filter(p => p.team === 1);
+        const extraT2 = extraMatchPlayers.filter(p => p.team === 2);
+
+        const t1Opts = [...t1Players.map(p => `<option value="${p.id}">${p.name} (T1)</option>`), ...extraT1.map(p => `<option value="${p.id}">${p.name} (T1-Ekstra)</option>`)].join('');
+        const t2Opts = [...t2Players.map(p => `<option value="${p.id}">${p.name} (T2)</option>`), ...extraT2.map(p => `<option value="${p.id}">${p.name} (T2-Ekstra)</option>`)].join('');
         const playerOptions = t1Opts + t2Opts;
 
         const eid = eventCounter;
@@ -2061,6 +2127,14 @@
         const team1Players = [...document.querySelectorAll('input[name="team1"]:checked')].map(c => parseInt(c.value));
         const team2Players = [...document.querySelectorAll('input[name="team2"]:checked')].map(c => parseInt(c.value));
 
+        // Ekstra oyuncuları ekle
+        const extraNames = [];
+        extraMatchPlayers.forEach(ep => {
+            if (ep.team === 1) team1Players.push(ep.id);
+            else team2Players.push(ep.id);
+            extraNames.push({ id: ep.id, name: ep.name, team: ep.team });
+        });
+
         if (team1Players.length === 0 && team2Players.length === 0) {
             notify('Lütfen en az bir takıma oyuncu seçin!');
             return;
@@ -2093,7 +2167,7 @@
             team1, team2, score1, score2, date,
             location, matchType,
             serieId, serieMatch: matchType === 'Turnuva' ? 1 : null, serieTotal: matchType === 'Turnuva' ? 2 : null,
-            team1Players, team2Players, events
+            team1Players, team2Players, events, extraPlayers: extraNames
         };
 
         matches.push(match);
@@ -2112,7 +2186,7 @@
                 team1, team2, score1: 0, score2: 0, date: date2,
                 location, matchType: 'Turnuva',
                 serieId, serieMatch: 2, serieTotal: 2,
-                team1Players, team2Players, events: [],
+                team1Players, team2Players, events: [], extraPlayers: extraNames,
                 pending: true // oynanmamış
             };
             matches.push(match2);
@@ -2134,6 +2208,8 @@
         document.getElementById('event-list').innerHTML = '';
         document.querySelectorAll('input[name="team1"], input[name="team2"]').forEach(c => { c.checked = false; c.disabled = false; c.closest('.player-checkbox-item').style.opacity = '1'; });
         document.querySelectorAll('input[name="team2"]').forEach(cb => { cb.disabled = true; });
+        extraMatchPlayers = [];
+        renderExtraMatchPlayers();
     }
 
     // ===== PLAYER MODAL =====

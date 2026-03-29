@@ -1573,7 +1573,7 @@
             const result = isPending ? `<span style="color:#e67e22;font-weight:700">Oynanmadı</span>` :
                            m.score1 > m.score2 ? `<span style="color:#2ecc71;font-weight:700">${m.team1} Kazandı</span>` :
                            m.score2 > m.score1 ? `<span style="color:#2ecc71;font-weight:700">${m.team2} Kazandı</span>` :
-                           `<span style="color:#f39c12;font-weight:700">Berabere</span>`;
+                           `<span style="background:#e0e0e0;color:#666;font-weight:700;padding:2px 8px;border-radius:6px">X</span>`;
 
             // Tür ve yer etiketleri
             const typeBadge = m.matchType ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;font-weight:600;background:${m.matchType==='Turnuva'?'#fff3e0;color:#e67e22':m.matchType==='Lig'?'#e8f5e9;color:#2e7d32':'#e3f2fd;color:#1565c0'}">${m.matchType}</span>` : '';
@@ -2170,8 +2170,8 @@
                 const inTeam1 = (m.team1Players || []).includes(id);
                 const won = inTeam1 ? m.score1 > m.score2 : m.score2 > m.score1;
                 const draw = m.score1 === m.score2;
-                const resultColor = draw ? '#f39c12' : (won ? '#2ecc71' : '#e74c3c');
-                const resultText = draw ? 'B' : (won ? 'G' : 'M');
+                const resultColor = draw ? '#999' : (won ? '#2ecc71' : '#e74c3c');
+                const resultText = draw ? 'X' : (won ? 'G' : 'M');
                 const matchGoals = (m.events || []).filter(e => e.playerId === id && e.type === 'goal').reduce((s, e) => s + (e.count || 1), 0);
                 const matchAssists = (m.events || []).filter(e => e.playerId === id && e.type === 'assist').reduce((s, e) => s + (e.count || 1), 0);
                 // Turnuva etiketi ve toplam skor
@@ -2305,7 +2305,7 @@
         const t2Players = (m.team2Players || []).map(id => players.find(x => x.id === id)).filter(Boolean);
 
         const resultText = m.score1 > m.score2 ? `${m.team1} Kazandı` :
-                          m.score2 > m.score1 ? `${m.team2} Kazandı` : 'Berabere';
+                          m.score2 > m.score1 ? `${m.team2} Kazandı` : 'Berabere (X)';
         const resultColor = m.score1 > m.score2 ? '#2ecc71' : m.score2 > m.score1 ? '#2ecc71' : '#f39c12';
 
         // Gol/Asist olayları - aynı oyuncunun gol ve asistini birleştir

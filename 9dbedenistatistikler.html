@@ -2951,7 +2951,7 @@
                         <h4 style="border-left:4px solid #1E90FF;padding-left:8px">${m.team1}</h4>
                         ${t1Players.length === 0 ? '<div style="color:#aaa;font-size:0.85rem">Oyuncu seçilmemiş</div>' :
                         t1Players.map(p => `
-                            <div class="match-team-player">
+                            <div class="match-team-player" onclick="closeMatchModal();openPlayerModal(${p.id})" style="cursor:pointer" onmouseover="this.style.background='#e8f2ff'" onmouseout="this.style.background='#fff'">
                                 <span>${p.name}</span>
                                 <span class="mtp-pos">${p.positions[0]}</span>
                             </div>
@@ -2961,7 +2961,7 @@
                         <h4 style="border-left:4px solid #e74c3c;padding-left:8px">${m.team2}</h4>
                         ${t2Players.length === 0 ? '<div style="color:#aaa;font-size:0.85rem">Oyuncu seçilmemiş</div>' :
                         t2Players.map(p => `
-                            <div class="match-team-player">
+                            <div class="match-team-player" onclick="closeMatchModal();openPlayerModal(${p.id})" style="cursor:pointer" onmouseover="this.style.background='#e8f2ff'" onmouseout="this.style.background='#fff'">
                                 <span>${p.name}</span>
                                 <span class="mtp-pos">${p.positions[0]}</span>
                             </div>

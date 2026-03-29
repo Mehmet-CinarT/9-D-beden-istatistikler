@@ -1611,7 +1611,7 @@
         function renderMatchCard(m) {
             const isPending = m.pending;
             const eventsHtml = isPending ? '' : (m.events || []).map(ev => {
-                const p = players.find(x => x.id === ev.playerId);
+                const p = findPlayer(ev.playerId, m);
                 const pName = p ? p.name : 'Bilinmeyen';
                 if (ev.type === 'goal') return `<span class="match-detail-tag goal">&#9917; ${pName} (${ev.count || 1} gol)</span>`;
                 if (ev.type === 'assist') return `<span class="match-detail-tag assist">&#127919; ${pName} (${ev.count || 1} asist)</span>`;
@@ -1775,8 +1775,10 @@
     function addExtraMatchPlayer() {
         const nameInput = document.getElementById('extra-match-name');
         const teamSelect = document.getElementById('extra-match-team');
-        const name = nameInput.value.trim();
-        if (!name) { notify('Lütfen oyuncu adı girin!'); return; }
+        const rawName = nameInput.value.trim();
+        if (!rawName) { notify('Lütfen oyuncu adı girin!'); return; }
+        // İlk harfleri büyük yap
+        const name = rawName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 
         extraMatchIdCounter++;
         extraMatchPlayers.push({
@@ -2005,8 +2007,8 @@
 
         document.getElementById('pending-modal-title').textContent = `Hafta ${m.week} — Sonuç Gir (${m.serieMatch ? m.serieMatch + '/' + m.serieTotal : ''})`;
 
-        const t1Players = (m.team1Players || []).map(id => players.find(x => x.id === id)).filter(Boolean);
-        const t2Players = (m.team2Players || []).map(id => players.find(x => x.id === id)).filter(Boolean);
+        const t1Players = (m.team1Players || []).map(id => findPlayer(id, m)).filter(Boolean);
+        const t2Players = (m.team2Players || []).map(id => findPlayer(id, m)).filter(Boolean);
 
         document.getElementById('pending-modal-body').innerHTML = `
             <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
@@ -2421,8 +2423,8 @@
 
         document.getElementById('match-modal-title').textContent = `Hafta ${m.week || '-'} — ${m.team1} vs ${m.team2}`;
 
-        const t1Players = (m.team1Players || []).map(id => players.find(x => x.id === id)).filter(Boolean);
-        const t2Players = (m.team2Players || []).map(id => players.find(x => x.id === id)).filter(Boolean);
+        const t1Players = (m.team1Players || []).map(id => findPlayer(id, m)).filter(Boolean);
+        const t2Players = (m.team2Players || []).map(id => findPlayer(id, m)).filter(Boolean);
 
         const resultText = m.score1 > m.score2 ? `${m.team1} Kazandı` :
                           m.score2 > m.score1 ? `${m.team2} Kazandı` : 'Berabere';
@@ -2437,7 +2439,7 @@
         });
 
         const eventsHtml = Object.entries(playerEventMap).map(([pid, stats]) => {
-            const p = players.find(x => x.id === parseInt(pid));
+            const p = findPlayer(parseInt(pid), m);
             const name = p ? p.name : 'Bilinmeyen';
             const parts = [];
             if (stats.goals > 0) parts.push(`${stats.goals} Gol`);

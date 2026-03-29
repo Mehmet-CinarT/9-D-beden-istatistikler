@@ -1436,6 +1436,7 @@
     <button onclick="switchTab('krallik')">Gol & Asist Krallığı</button>
     <button onclick="switchTab('kadro')" class="auth-only">Kadro Kurucu</button>
     <button onclick="switchTab('duyurular')" style="position:relative">Duyurular <span id="notif-badge" style="position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:50%;font-size:0.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;color:#fff;background:#e74c3c">0</span></button>
+    <button onclick="switchTab('anketler')">Anketler</button>
 </div>
 
 <div class="container">
@@ -1632,6 +1633,34 @@
             <div id="duyurular-list" style="padding:0 24px 20px"></div>
         </div>
     </div>
+
+    <!-- ===== ANKETLER ===== -->
+    <div id="tab-anketler" class="tab-content">
+        <!-- Anket Oluşturma (sadece kontrolcü) -->
+        <div class="form-section auth-only" style="border-top:4px solid #9b59b6">
+            <h2 style="color:#9b59b6">Yeni Anket Oluştur</h2>
+            <div style="margin-bottom:12px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Anket Başlığı</label>
+                <input type="text" id="poll-title" placeholder="örn: Hafta sonu maç yapılsın mı?" class="auth-input" style="margin-bottom:0">
+            </div>
+            <div style="margin-bottom:12px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Anket Konusu / Açıklaması</label>
+                <textarea id="poll-desc" placeholder="Anketin konusunu açıklayın..." style="width:100%;height:60px;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem;resize:none"></textarea>
+            </div>
+            <div style="margin-bottom:12px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Şıklar</label>
+                <div id="poll-options-list"></div>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <input type="text" id="poll-new-option" placeholder="Şık ekle..." style="flex:1;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem" onkeydown="if(event.key==='Enter')addPollOption()">
+                    <button class="btn btn-secondary" onclick="addPollOption()" style="padding:10px 14px">+ Ekle</button>
+                </div>
+            </div>
+            <button class="save-match-btn" style="background:linear-gradient(135deg,#9b59b6,#8e44ad)" onclick="createPoll()">Anketi Yayınla</button>
+        </div>
+
+        <!-- Anket Listesi -->
+        <div id="polls-list" style="margin-top:20px"></div>
+    </div>
 </div>
 
 <!-- FOOTER -->
@@ -1790,6 +1819,9 @@
         if (tab === 'duyurular') {
             markAllAsRead();
             renderDuyurular();
+        }
+        if (tab === 'anketler') {
+            renderPolls();
         }
         renderAll();
     }
@@ -3565,6 +3597,138 @@
         return document.body.classList.contains('admin-mode');
     }
 
+    // ===== ANKETLER =====
+    let pollOptions = [];
+
+    function addPollOption() {
+        const input = document.getElementById('poll-new-option');
+        const text = input.value.trim();
+        if (!text) { notify('Lütfen şık yazın!', true); return; }
+        pollOptions.push(text);
+        input.value = '';
+        renderPollOptions();
+    }
+
+    function removePollOption(idx) {
+        pollOptions.splice(idx, 1);
+        renderPollOptions();
+    }
+
+    function renderPollOptions() {
+        document.getElementById('poll-options-list').innerHTML = pollOptions.map((opt, i) => `
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f3e5f5;border-radius:8px;margin-bottom:6px">
+                <span style="width:24px;height:24px;border-radius:50%;background:#9b59b6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;flex-shrink:0">${String.fromCharCode(65+i)}</span>
+                <span style="flex:1;font-size:0.85rem;font-weight:600">${opt}</span>
+                <button onclick="removePollOption(${i})" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:1rem;font-weight:700">&times;</button>
+            </div>
+        `).join('');
+    }
+
+    function createPoll() {
+        if (!isControlMode()) return;
+        const title = document.getElementById('poll-title').value.trim();
+        const desc = document.getElementById('poll-desc').value.trim();
+        if (!title) { notify('Lütfen anket başlığı girin!', true); return; }
+        if (pollOptions.length < 2) { notify('En az 2 şık ekleyin!', true); return; }
+
+        const user = auth.currentUser;
+        const pollId = Date.now();
+        const poll = {
+            id: pollId,
+            title: title,
+            description: desc,
+            options: pollOptions.map(opt => ({ text: opt, votes: {} })),
+            createdBy: user ? user.email : 'Bilinmeyen',
+            createdAt: new Date().toISOString(),
+            active: true
+        };
+
+        db.ref('9d_polls/' + pollId).set(poll).then(() => {
+            notify('Anket yayınlandı!');
+            createNotification(`Yeni anket: "${title}"`);
+            // Reset
+            document.getElementById('poll-title').value = '';
+            document.getElementById('poll-desc').value = '';
+            pollOptions = [];
+            renderPollOptions();
+            renderPolls();
+        });
+    }
+
+    function renderPolls() {
+        db.ref('9d_polls').once('value', snap => {
+            const polls = snap.val();
+            const container = document.getElementById('polls-list');
+            if (!polls) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa">Henüz anket yok</div>';
+                return;
+            }
+
+            const user = auth.currentUser;
+            const uid = user ? user.uid : null;
+            const list = Object.values(polls).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            container.innerHTML = list.map(poll => {
+                const totalVotes = poll.options.reduce((s, o) => s + Object.keys(o.votes || {}).length, 0);
+                const userVoted = poll.options.findIndex(o => o.votes && o.votes[uid]);
+
+                return `
+                    <div style="background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);padding:24px;margin-bottom:16px;border-top:4px solid #9b59b6">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                            <h3 style="color:#9b59b6;font-size:1.1rem;margin:0">${poll.title}</h3>
+                            <span style="font-size:0.7rem;color:#aaa;white-space:nowrap">${poll.createdAt ? new Date(poll.createdAt).toLocaleDateString('tr-TR', {day:'numeric',month:'short'}) : ''}</span>
+                        </div>
+                        ${poll.description ? `<p style="color:#666;font-size:0.85rem;margin-bottom:14px">${poll.description}</p>` : ''}
+
+                        <div style="display:flex;flex-direction:column;gap:8px">
+                            ${poll.options.map((opt, i) => {
+                                const voteCount = Object.keys(opt.votes || {}).length;
+                                const pct = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                                const isMyVote = userVoted === i;
+                                const hasVoted = userVoted >= 0;
+
+                                return `
+                                    <div onclick="${hasVoted ? '' : `votePoll('${poll.id}',${i})`}" style="position:relative;padding:12px 16px;border-radius:10px;border:2px solid ${isMyVote ? '#9b59b6' : '#eee'};cursor:${hasVoted ? 'default' : 'pointer'};transition:all 0.2s;overflow:hidden${!hasVoted ? ';' : ''}" ${!hasVoted ? 'onmouseover="this.style.borderColor=\'#9b59b6\'"  onmouseout="this.style.borderColor=\'#eee\'"' : ''}>
+                                        ${hasVoted ? `<div style="position:absolute;top:0;left:0;height:100%;width:${pct}%;background:${isMyVote ? 'rgba(155,89,182,0.15)' : 'rgba(0,0,0,0.03)'};border-radius:8px;transition:width 0.5s"></div>` : ''}
+                                        <div style="position:relative;display:flex;align-items:center;justify-content:space-between">
+                                            <div style="display:flex;align-items:center;gap:10px">
+                                                <span style="width:26px;height:26px;border-radius:50%;background:${isMyVote ? '#9b59b6' : '#f0f0f0'};color:${isMyVote ? '#fff' : '#888'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800">${String.fromCharCode(65+i)}</span>
+                                                <span style="font-weight:${isMyVote ? '700' : '500'};font-size:0.9rem;color:${isMyVote ? '#9b59b6' : '#333'}">${opt.text}</span>
+                                            </div>
+                                            ${hasVoted ? `<span style="font-size:0.8rem;font-weight:700;color:${isMyVote ? '#9b59b6' : '#aaa'}">${pct}% <span style="font-size:0.7rem;font-weight:400">(${voteCount})</span></span>` : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid #eee">
+                            <span style="font-size:0.75rem;color:#aaa">${totalVotes} oy</span>
+                            ${userVoted >= 0 ? '<span style="font-size:0.75rem;color:#9b59b6;font-weight:600">Oyunuz kaydedildi</span>' : '<span style="font-size:0.75rem;color:#888">Oy vermek için bir şıkka tıklayın</span>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        });
+    }
+
+    function votePoll(pollId, optionIdx) {
+        const user = auth.currentUser;
+        if (!user) { notify('Oy vermek için giriş yapın!', true); return; }
+
+        // Daha önce oy vermiş mi kontrol et
+        db.ref('9d_polls/' + pollId + '/options').once('value', snap => {
+            const options = snap.val();
+            const alreadyVoted = options.some(o => o.votes && o.votes[user.uid]);
+            if (alreadyVoted) { notify('Bu ankete zaten oy verdiniz!', true); return; }
+
+            db.ref('9d_polls/' + pollId + '/options/' + optionIdx + '/votes/' + user.uid).set(true).then(() => {
+                notify('Oyunuz kaydedildi!');
+                renderPolls();
+            });
+        });
+    }
+
     // ===== DUYURULAR (NOTIFICATIONS) =====
     function createNotification(text) {
         const user = auth.currentUser;
@@ -3620,7 +3784,7 @@
             container.innerHTML = list.map(([id, n]) => {
                 const isRead = readIds.includes(id);
                 return `
-                    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:${isRead ? '#f8f8f8' : '#e8f5e9'};border-radius:10px;margin-bottom:8px;border-left:4px solid ${isRead ? '#ddd' : '#2ecc71'};transition:all 0.2s">
+                    <div onclick="${n.text.includes('anket') ? "document.querySelectorAll('.nav-tabs button').forEach(b=>{b.classList.remove('active')});document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-anketler').classList.add('active');renderPolls();" : ''}" style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:${isRead ? '#f8f8f8' : '#e8f5e9'};border-radius:10px;margin-bottom:8px;border-left:4px solid ${isRead ? '#ddd' : '#2ecc71'};transition:all 0.2s;cursor:${n.text.includes('anket') ? 'pointer' : 'default'}"
                         <div style="width:36px;height:36px;border-radius:50%;background:${isRead ? '#ddd' : '#2ecc71'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">${isRead ? '&#9989;' : '&#128227;'}</div>
                         <div style="flex:1">
                             <div style="font-size:0.9rem;color:#333;font-weight:${isRead ? '400' : '700'}">${n.text}</div>

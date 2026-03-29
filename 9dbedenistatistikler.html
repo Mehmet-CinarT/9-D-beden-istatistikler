@@ -1561,7 +1561,7 @@
 
             // Tür ve yer etiketleri
             const typeBadge = m.matchType ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;font-weight:600;background:${m.matchType==='Turnuva'?'#fff3e0;color:#e67e22':m.matchType==='Lig'?'#e8f5e9;color:#2e7d32':'#e3f2fd;color:#1565c0'}">${m.matchType}</span>` : '';
-            const locBadge = m.location ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;background:#f3e5f5;color:#7b1fa2;font-weight:600">${m.location}</span>` : '';
+            const locBadge = m.location ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;font-weight:600;background:${m.location==='Halısaha'?'#e8f5e9;color:#2e7d32':'#f3e5f5;color:#7b1fa2'}">${m.location}</span>` : '';
             const serieBadge = m.serieMatch ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;background:#fce4ec;color:#c62828;font-weight:600">${m.serieMatch}/${m.serieTotal}</span>` : '';
 
             // Turnuva toplam sonucu (2. maçta göster)

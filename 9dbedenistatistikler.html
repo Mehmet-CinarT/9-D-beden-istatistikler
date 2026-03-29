@@ -1495,8 +1495,8 @@
     <div id="tab-maclar" class="tab-content">
         <div class="form-section auth-only">
             <h2>Yeni Maç Ekle</h2>
-            <input type="hidden" id="match-team1" value="Takım 1">
-            <input type="hidden" id="match-team2" value="Takım 2">
+            <input type="hidden" id="match-team1" value="Takım A">
+            <input type="hidden" id="match-team2" value="Takım B">
 
             <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
                 <div style="flex:1;min-width:120px">
@@ -1529,31 +1529,31 @@
 
             <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
                 <div style="flex:1;min-width:120px">
-                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 1 Skor</label>
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım A Skor</label>
                     <input type="number" id="match-score1" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
                 <div style="flex:1;min-width:120px">
-                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 2 Skor</label>
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım B Skor</label>
                     <input type="number" id="match-score2" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
             </div>
 
             <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Takım 1 Oyuncuları</label>
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Takım A Oyuncuları</label>
                 <div class="player-checkbox-grid" id="team1-players"></div>
             </div>
             <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Takım 2 Oyuncuları</label>
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Takım B Oyuncuları</label>
                 <div class="player-checkbox-grid" id="team2-players"></div>
             </div>
 
             <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
                 <div style="flex:1;min-width:120px">
-                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 1 Kişi Sayısı</label>
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım A Kişi Sayısı</label>
                     <input type="number" id="match-t1-count" min="4" max="12" value="6" onchange="checkExtraPanel()" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
                 <div style="flex:1;min-width:120px">
-                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 2 Kişi Sayısı</label>
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım B Kişi Sayısı</label>
                     <input type="number" id="match-t2-count" min="4" max="12" value="6" onchange="checkExtraPanel()" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
             </div>
@@ -1575,8 +1575,8 @@
                         <option value="SĞK">SĞK</option>
                     </select>
                     <select id="extra-match-team" style="padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem">
-                        <option value="1">Takım 1</option>
-                        <option value="2">Takım 2</option>
+                        <option value="1">Takım A</option>
+                        <option value="2">Takım B</option>
                     </select>
                     <button class="btn btn-secondary" onclick="addExtraMatchPlayer()" style="padding:10px 14px">Ekle</button>
                 </div>
@@ -1609,9 +1609,9 @@
             <h2>Dengeli Kadro Kurucu</h2>
             <p style="color:#777; margin-bottom:16px;">Oyuncularınızın istatistiklerine göre otomatik olarak dengeli iki takım oluşturur.</p>
             <div class="builder-controls">
-                <label>Takım 1 Kişi Sayısı:</label>
+                <label>Takım A Kişi Sayısı:</label>
                 <input type="number" id="team1-size" min="4" max="6" value="6" onchange="checkExtraPlayers()">
-                <label>Takım 2 Kişi Sayısı:</label>
+                <label>Takım B Kişi Sayısı:</label>
                 <input type="number" id="team2-size" min="4" max="6" value="6" onchange="checkExtraPlayers()">
                 <button class="btn" onclick="buildTeams()">Kadro Oluştur</button>
                 <button class="btn btn-secondary" onclick="buildTeams()">Yeniden Karıştır</button>
@@ -2110,7 +2110,7 @@
         document.getElementById('match-date').value = new Date().toISOString().split('T')[0];
     }
 
-    // Takım 1 seçildiğinde geri kalanları otomatik Takım 2'ye ata
+    // Takım A seçildiğinde geri kalanları otomatik Takım B'ye ata
     // Kaleci ID'leri
     const goalkeeperIds = players.filter(p => p.positions[0] === 'KL').map(p => p.id);
 
@@ -2196,10 +2196,10 @@
         );
         const t1Count = t1Checked.size;
 
-        // Takım 1'de kaç kaleci var?
+        // Takım A'de kaç kaleci var?
         const t1GkCount = [...t1Checked].filter(id => goalkeeperIds.includes(parseInt(id))).length;
 
-        // Takım 1: kaleci limiti + 6 kişi limiti
+        // Takım A: kaleci limiti + 6 kişi limiti
         document.querySelectorAll('input[name="team1"]').forEach(cb => {
             const pid = parseInt(cb.value);
             const isGk = goalkeeperIds.includes(pid);
@@ -2216,7 +2216,7 @@
             }
         });
 
-        // Takım 2 checkboxlarını güncelle
+        // Takım B checkboxlarını güncelle
         document.querySelectorAll('input[name="team2"]').forEach(cb => {
             const pid = parseInt(cb.value);
             if (t1Checked.has(cb.value)) {
@@ -2230,7 +2230,7 @@
             }
         });
 
-        // Takım 2: kaleci limiti + 6 kişi limiti
+        // Takım B: kaleci limiti + 6 kişi limiti
         const t2Checked = [...document.querySelectorAll('input[name="team2"]:checked')];
         const t2Count = t2Checked.length;
         let t2GkCount = t2Checked.filter(cb => goalkeeperIds.includes(parseInt(cb.value))).length;
@@ -2246,7 +2246,7 @@
             });
         }
 
-        // Takım 2'de 6'dan fazla varsa sondan kaldır
+        // Takım B'de 6'dan fazla varsa sondan kaldır
         const t2Final = [...document.querySelectorAll('input[name="team2"]:checked')];
         if (t2Final.length > MAX_TEAM_SIZE) {
             for (let i = t2Final.length - 1; i >= MAX_TEAM_SIZE; i--) {
@@ -2398,23 +2398,23 @@
         document.getElementById('pending-modal-body').innerHTML = `
             <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
                 <div style="flex:1;min-width:120px">
-                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 1 Skor</label>
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım A Skor</label>
                     <input type="number" id="pending-score1" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
                 <div style="flex:1;min-width:120px">
-                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 2 Skor</label>
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım B Skor</label>
                     <input type="number" id="pending-score2" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
             </div>
 
             <div style="margin-bottom:12px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 1 Kadrosu</label>
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım A Kadrosu</label>
                 <div style="display:flex;flex-wrap:wrap;gap:6px">
                     ${t1Players.map(p => `<span style="padding:4px 10px;background:#e3f2fd;border-radius:6px;font-size:0.8rem;font-weight:600;color:#1565c0">${p.name}</span>`).join('')}
                 </div>
             </div>
             <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 2 Kadrosu</label>
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım B Kadrosu</label>
                 <div style="display:flex;flex-wrap:wrap;gap:6px">
                     ${t2Players.map(p => `<span style="padding:4px 10px;background:#fce4ec;border-radius:6px;font-size:0.8rem;font-weight:600;color:#c62828">${p.name}</span>`).join('')}
                 </div>
@@ -2533,8 +2533,8 @@
 
     function saveMatch() {
         if (!isControlMode()) return;
-        const team1 = document.getElementById('match-team1').value.trim() || 'Takım 1';
-        const team2 = document.getElementById('match-team2').value.trim() || 'Takım 2';
+        const team1 = document.getElementById('match-team1').value.trim() || 'Takım A';
+        const team2 = document.getElementById('match-team2').value.trim() || 'Takım B';
         const score1 = parseInt(document.getElementById('match-score1').value) || 0;
         const score2 = parseInt(document.getElementById('match-score2').value) || 0;
         const date = document.getElementById('match-date').value;
@@ -2560,8 +2560,8 @@
         // Her takımda en az 1 kaleci zorunlu
         const t1HasGk = team1Players.some(id => goalkeeperIds.includes(id));
         const t2HasGk = team2Players.some(id => goalkeeperIds.includes(id));
-        if (!t1HasGk) { notify('Takım 1\'de en az bir kaleci olmalı!', true); return; }
-        if (!t2HasGk) { notify('Takım 2\'de en az bir kaleci olmalı!', true); return; }
+        if (!t1HasGk) { notify('Takım A\'de en az bir kaleci olmalı!', true); return; }
+        if (!t2HasGk) { notify('Takım B\'de en az bir kaleci olmalı!', true); return; }
 
         const rawEvents = getCurrentEvents();
         const eventMap = {};
@@ -2763,7 +2763,7 @@
 
     // ===== MATCH DETAIL MODAL =====
     // Saha: yatay, sol kale sol tarafta, sağ kale sağ tarafta
-    // Takım 1: SOL yarı saha (%2-%48), Takım 2: SAĞ yarı saha (%52-%98)
+    // Takım A: SOL yarı saha (%2-%48), Takım B: SAĞ yarı saha (%52-%98)
     // Her takım kendi yarısında, kesinlikle karşı tarafa geçmez
 
     function renderPitchPlayers(teamPlayers, teamKey, color) {
@@ -3297,7 +3297,7 @@
         colWidths.forEach(w => { xml += `  <Column ss:Width="${w}"/>\n`; });
 
         // Başlıklar
-        const headers = ['Hafta', 'Tarih', 'Takım 1', 'Skor 1', 'Skor 2', 'Takım 2', 'Takım 1 Oyuncuları', 'Takım 2 Oyuncuları', 'Gol Atan', 'Gol Sayısı', 'Asist Yapan', 'Asist Sayısı'];
+        const headers = ['Hafta', 'Tarih', 'Takım A', 'Skor 1', 'Skor 2', 'Takım B', 'Takım A Oyuncuları', 'Takım B Oyuncuları', 'Gol Atan', 'Gol Sayısı', 'Asist Yapan', 'Asist Sayısı'];
         xml += '  <Row ss:Height="25">\n';
         headers.forEach(h => {
             xml += `    <Cell ss:StyleID="header"><Data ss:Type="String">${h}</Data></Cell>\n`;

@@ -1894,6 +1894,9 @@
     function getTeamForPlayer(playerId) {
         const t1Checked = [...document.querySelectorAll('input[name="team1"]:checked')].map(c => parseInt(c.value));
         if (t1Checked.includes(playerId)) return 1;
+        // Ekstra oyuncuları da kontrol et
+        const extra = extraMatchPlayers.find(p => p.id === playerId);
+        if (extra) return extra.team;
         return 2;
     }
 

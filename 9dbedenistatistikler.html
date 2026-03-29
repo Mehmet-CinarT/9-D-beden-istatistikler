@@ -1897,6 +1897,21 @@
         return firstName;
     }
 
+    // ===== GÜVENLİK =====
+    // XSS koruması: HTML karakterlerini escape et
+    function esc(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    // Input doğrulama
+    function sanitizeInput(str, maxLen) {
+        if (!str) return '';
+        let s = String(str).trim();
+        if (maxLen) s = s.substring(0, maxLen);
+        return s;
+    }
+
     function notify(msg, isError) {
         const el = document.getElementById('notification');
         el.textContent = msg;
@@ -2214,7 +2229,7 @@
         const nameInput = document.getElementById('extra-match-name');
         const posSelect = document.getElementById('extra-match-pos');
         const teamSelect = document.getElementById('extra-match-team');
-        const rawName = nameInput.value.trim();
+        const rawName = sanitizeInput(nameInput.value, 50);
         if (!rawName) { notify('Lütfen oyuncu adı girin!', true); return; }
         const name = rawName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 
@@ -2591,6 +2606,7 @@
 
     function saveMatch() {
         if (!isControlMode()) return;
+        if (!rateLimit('saveMatch', 3000)) { notify('Çok hızlı! Birkaç saniye bekleyin.', true); return; }
         const team1 = document.getElementById('match-team1').value.trim() || 'Takım A';
         const team2 = document.getElementById('match-team2').value.trim() || 'Takım B';
         const score1 = parseInt(document.getElementById('match-score1').value) || 0;
@@ -4188,7 +4204,7 @@
 
     function addPollOption() {
         const input = document.getElementById('poll-new-option');
-        const text = input.value.trim();
+        const text = sanitizeInput(input.value, 100);
         if (!text) { notify('Lütfen şık yazın!', true); return; }
         pollOptions.push(text);
         input.value = '';
@@ -4212,6 +4228,7 @@
 
     function createPoll() {
         if (!isControlMode()) return;
+        if (!rateLimit('createPoll', 5000)) { notify('Çok hızlı! Birkaç saniye bekleyin.', true); return; }
 
         let title, desc, options, matchId = null;
 
@@ -4229,8 +4246,8 @@
             if (playerNames.length < 2) { notify('Maçta yeterli oyuncu yok!', true); return; }
             options = playerNames;
         } else {
-            title = document.getElementById('poll-title').value.trim();
-            desc = document.getElementById('poll-desc').value.trim();
+            title = sanitizeInput(document.getElementById('poll-title').value, 200);
+            desc = sanitizeInput(document.getElementById('poll-desc').value, 500);
             if (!title) { notify('Lütfen anket başlığı girin!', true); return; }
             if (pollOptions.length < 2) { notify('En az 2 şık ekleyin!', true); return; }
             options = [...pollOptions];
@@ -4387,6 +4404,7 @@
     }
 
     function votePoll(pollId, optionIdx) {
+        if (!rateLimit('vote', 2000)) return;
         const user = auth.currentUser;
         if (!user) { notify('Oy vermek için giriş yapın!', true); return; }
 
@@ -4417,12 +4435,24 @@
     }
 
     // ===== DUYURULAR (NOTIFICATIONS) =====
+    // Rate limiting - aynı işlemi kısa sürede tekrar engelle
+    const rateLimits = {};
+    function rateLimit(action, cooldownMs) {
+        const now = Date.now();
+        if (rateLimits[action] && now - rateLimits[action] < cooldownMs) {
+            return false; // çok hızlı
+        }
+        rateLimits[action] = now;
+        return true;
+    }
+
     function createNotification(text) {
         const user = auth.currentUser;
+        if (!user) return;
         db.ref('9d_notifications').push({
-            text: text,
+            text: sanitizeInput(text, 300),
             date: new Date().toISOString(),
-            createdBy: user ? user.email : 'Sistem'
+            createdBy: user.email
         });
     }
 
@@ -4732,7 +4762,7 @@
     }
 
     function saveProfile() {
-        const newName = document.getElementById('profile-name').value.trim();
+        const newName = sanitizeInput(document.getElementById('profile-name').value, 50);
         const user = auth.currentUser;
         if (!user) return;
         if (!newName) { notify('Lütfen bir ad girin!', true); return; }
@@ -4822,7 +4852,7 @@
                         <span style="font-weight:700;font-size:0.85rem;color:#333">${f.email}</span>
                         <span style="font-size:0.7rem;color:#aaa">${f.date ? new Date(f.date).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
                     </div>
-                    <p style="font-size:0.85rem;color:#555;margin:0">${f.text}</p>
+                    <p style="font-size:0.85rem;color:#555;margin:0">${esc(f.text)}</p>
                     <button onclick="deleteFeedback('${key}')" style="margin-top:6px;background:none;border:none;color:#e74c3c;font-size:0.7rem;cursor:pointer;font-weight:600">Sil</button>
                 </div>
             `).join('');
@@ -4844,7 +4874,8 @@
 
     // ===== FEEDBACK =====
     function sendFeedback() {
-        const text = document.getElementById('feedback-text').value.trim();
+        if (!rateLimit('feedback', 10000)) { notify('Çok hızlı! 10 saniye bekleyin.', true); return; }
+        const text = sanitizeInput(document.getElementById('feedback-text').value, 500);
         if (!text) { notify('Lütfen geri bildirim yazın!', true); return; }
         const user = auth.currentUser;
         db.ref('9d_feedbacks').push({

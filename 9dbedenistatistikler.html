@@ -579,15 +579,53 @@
         /* ===== ADD MATCH FORM ===== */
         .form-section {
             background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 28px;
             margin-bottom: 24px;
         }
 
         .form-section h2 {
             color: #1E90FF;
+            margin-bottom: 8px;
+            font-size: 1.3rem;
+        }
+
+        .form-section .form-subtitle {
+            color: #999;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+        }
+
+        .form-step {
+            background: #f8fbff;
+            border: 2px solid #e0ecff;
+            border-radius: 12px;
+            padding: 18px;
             margin-bottom: 16px;
+        }
+
+        .form-step-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1E90FF;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-step-title .step-num {
+            width: 24px;
+            height: 24px;
+            background: #1E90FF;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
         }
 
         .form-row {
@@ -599,7 +637,7 @@
 
         .form-group {
             flex: 1;
-            min-width: 200px;
+            min-width: 120px;
         }
 
         .form-group label {
@@ -612,20 +650,23 @@
 
         .form-group input, .form-group select {
             width: 100%;
-            padding: 10px 14px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
             font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #fff;
         }
 
         .form-group input:focus, .form-group select:focus {
             border-color: #1E90FF;
+            box-shadow: 0 0 0 3px rgba(30,144,255,0.15);
             outline: none;
         }
 
         .player-checkbox-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 8px;
             margin-top: 8px;
         }
@@ -634,21 +675,28 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
-            background: #f8f8f8;
-            border-radius: 8px;
+            padding: 10px 14px;
+            background: #fff;
+            border: 2px solid #eee;
+            border-radius: 10px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            font-size: 0.85rem;
         }
 
         .player-checkbox-item:hover {
-            background: #e8f2ff;
+            border-color: #1E90FF;
+            background: #f0f7ff;
         }
 
         .player-checkbox-item input[type="checkbox"] {
             accent-color: #1E90FF;
             width: 18px;
             height: 18px;
+        }
+
+        .player-checkbox-item input[type="checkbox"]:checked + span {
+            font-weight: 700;
         }
 
         .event-list {
@@ -661,23 +709,56 @@
             margin-bottom: 8px;
             align-items: center;
             flex-wrap: wrap;
+            background: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #eee;
         }
 
         .event-row select, .event-row input {
             padding: 8px 10px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             font-size: 0.85rem;
+        }
+
+        .event-row select:focus, .event-row input:focus {
+            border-color: #1E90FF;
+            outline: none;
         }
 
         .remove-event {
             background: #ff4757;
             color: #fff;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 8px 12px;
             cursor: pointer;
             font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .remove-event:hover {
+            background: #e03040;
+        }
+
+        .save-match-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1E90FF, #0066cc);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(30,144,255,0.3);
+        }
+
+        .save-match-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30,144,255,0.4);
         }
 
         /* ===== EMPTY STATE ===== */
@@ -858,16 +939,136 @@
         }
 
         /* ===== RESPONSIVE ===== */
+
+        /* Tablet (768px ve altı) */
         @media (max-width: 768px) {
             header h1 { font-size: 1.3rem; }
-            .nav-tabs button { padding: 8px 14px; font-size: 0.8rem; }
+            header p { font-size: 0.8rem; }
+
+            .nav-tabs {
+                padding: 8px 10px;
+                gap: 3px;
+            }
+            .nav-tabs button {
+                padding: 8px 12px;
+                font-size: 0.78rem;
+            }
+
+            .container { padding: 16px 10px; }
+
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-card .number { font-size: 1.6rem; }
+
             .team-display { grid-template-columns: 1fr; }
             .kings-grid { grid-template-columns: 1fr; }
             .player-info-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .match-teams-grid { grid-template-columns: 1fr; }
-            .pitch-player .pitch-name { font-size: 0.5rem; max-width: 60px; }
-            .pitch-player .pitch-dot { width: 28px; height: 28px; font-size: 0.6rem; }
+
+            .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            table { min-width: 500px; }
+            thead th { padding: 10px 8px; font-size: 0.75rem; }
+            tbody td { padding: 10px 8px; font-size: 0.8rem; }
+
+            .match-card { padding: 16px; }
+            .score-display { font-size: 1.5rem; padding: 6px 14px; min-width: 80px; }
+            .match-team .team-name { font-size: 0.95rem; }
+
+            .form-section { padding: 18px; }
+            .form-step { padding: 14px; }
+            .player-checkbox-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+
+            .modal { width: 95%; max-height: 90vh; }
+            .modal-header { padding: 18px; }
+            .modal-header h2 { font-size: 1.1rem; }
+            .modal-body { padding: 18px; }
+
+            .pitch-player .pitch-name { font-size: 0.5rem; max-width: 55px; }
+            .pitch-player .pitch-dot { width: 28px; height: 28px; font-size: 0.55rem; }
+
+            .builder-controls { flex-direction: column; align-items: stretch; }
+            .builder-controls label { margin-top: 4px; }
+            .builder-controls input { width: 100%; }
+
+            .login-box { padding: 28px 20px; }
+            .login-box h1 { font-size: 1.3rem; }
+        }
+
+        /* Mobil (480px ve altı) */
+        @media (max-width: 480px) {
+            header { padding: 14px 0; }
+            header h1 { font-size: 1.1rem; letter-spacing: 0; }
+            header p { font-size: 0.7rem; }
+
+            .nav-tabs {
+                padding: 6px 4px;
+                gap: 2px;
+                overflow-x: auto;
+                justify-content: flex-start;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nav-tabs button {
+                padding: 7px 10px;
+                font-size: 0.7rem;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            .container { padding: 12px 6px; }
+
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .stat-card { padding: 12px 8px; border-radius: 10px; }
+            .stat-card .number { font-size: 1.4rem; }
+            .stat-card .label { font-size: 0.7rem; }
+
+            table { min-width: 420px; }
+            thead th { padding: 8px 6px; font-size: 0.7rem; }
+            tbody td { padding: 8px 6px; font-size: 0.75rem; }
+
+            .match-card { padding: 12px; margin-bottom: 10px; }
+            .match-score { gap: 10px; padding: 10px 0; }
+            .score-display { font-size: 1.3rem; padding: 5px 10px; min-width: 65px; }
+            .match-team .team-name { font-size: 0.85rem; }
+            .match-detail-tag { font-size: 0.7rem; padding: 3px 7px; }
+
+            .form-section { padding: 14px; border-radius: 12px; }
+            .form-step { padding: 12px; margin-bottom: 10px; }
+            .form-step-title { font-size: 0.8rem; }
+            .form-row { gap: 8px; }
+            .form-group { min-width: 100px; }
+            .form-group input, .form-group select { padding: 10px 12px; font-size: 0.85rem; }
+            .player-checkbox-grid { grid-template-columns: 1fr; }
+            .player-checkbox-item { padding: 10px 12px; font-size: 0.82rem; }
+
+            .event-row { gap: 6px; padding: 6px 8px; }
+            .event-row select, .event-row input { padding: 6px 8px; font-size: 0.8rem; }
+            .save-match-btn { padding: 12px; font-size: 0.9rem; }
+
+            .modal { width: 98%; border-radius: 12px; }
+            .modal-header { padding: 14px; border-radius: 12px 12px 0 0; }
+            .modal-header h2 { font-size: 1rem; }
+            .modal-body { padding: 14px; }
+            .info-item { padding: 12px; }
+            .info-item .info-value { font-size: 1.2rem; }
+            .info-item .info-label { font-size: 0.7rem; }
+
+            .pitch-container { border-radius: 8px; }
+            .pitch-player .pitch-name { font-size: 0.45rem; max-width: 45px; padding: 1px 4px; }
+            .pitch-player .pitch-dot { width: 22px; height: 22px; font-size: 0.5rem; }
+
+            .team-box { padding: 14px; }
+            .team-player-item { padding: 8px 10px; }
+            .team-player-item .player-name { font-size: 0.8rem; }
+
+            .king-card-header { padding: 12px 16px; font-size: 0.95rem; }
+            .king-item { padding: 8px 10px; }
+
+            .login-box { padding: 24px 16px; width: 95%; }
+            .login-box h1 { font-size: 1.1rem; }
+            .login-btn { padding: 12px; }
+            .login-btn .login-btn-title { font-size: 0.9rem; }
+
+            .notification { top: 10px; right: 10px; padding: 10px 16px; font-size: 0.85rem; }
         }
         /* ===== LOGIN SCREEN ===== */
         .login-overlay {
@@ -1068,39 +1269,49 @@
     <div id="tab-maclar" class="tab-content">
         <div class="form-section control-only">
             <h2>Yeni Maç Ekle</h2>
+            <div class="form-subtitle">Maç bilgilerini adım adım girin</div>
             <input type="hidden" id="match-team1" value="Takım 1">
             <input type="hidden" id="match-team2" value="Takım 2">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Takım 1 Skor</label>
-                    <input type="number" id="match-score1" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label>Takım 2 Skor</label>
-                    <input type="number" id="match-score2" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label>Tarih</label>
-                    <input type="date" id="match-date">
+
+            <!-- Adım 1: Skor ve Tarih -->
+            <div class="form-step">
+                <div class="form-step-title"><span class="step-num">1</span> Skor ve Tarih</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Takım 1 Skor</label>
+                        <input type="number" id="match-score1" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Takım 2 Skor</label>
+                        <input type="number" id="match-score2" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Tarih</label>
+                        <input type="date" id="match-date">
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group" style="margin-bottom:12px">
-                <label>Takım 1 Oyuncuları</label>
+            <!-- Adım 2: Takım 1 Oyuncuları -->
+            <div class="form-step">
+                <div class="form-step-title"><span class="step-num">2</span> Takım 1 Oyuncuları</div>
                 <div class="player-checkbox-grid" id="team1-players"></div>
             </div>
-            <div class="form-group" style="margin-bottom:12px">
-                <label>Takım 2 Oyuncuları</label>
+
+            <!-- Adım 3: Takım 2 Oyuncuları -->
+            <div class="form-step">
+                <div class="form-step-title"><span class="step-num">3</span> Takım 2 Oyuncuları</div>
                 <div class="player-checkbox-grid" id="team2-players"></div>
             </div>
 
-            <div class="form-group" style="margin-bottom:12px">
-                <label>Gol & Asist Olayları</label>
-                <button class="btn-secondary btn" onclick="addEvent()" style="margin-bottom:8px">+ Olay Ekle</button>
+            <!-- Adım 4: Gol ve Asist -->
+            <div class="form-step">
+                <div class="form-step-title"><span class="step-num">4</span> Gol & Asist Olayları</div>
+                <button class="btn btn-secondary" onclick="addEvent()" style="margin-bottom:10px;width:100%">+ Olay Ekle</button>
                 <div class="event-list" id="event-list"></div>
             </div>
 
-            <button class="btn" onclick="saveMatch()">Maçı Kaydet</button>
+            <button class="save-match-btn" onclick="saveMatch()">Maçı Kaydet</button>
         </div>
 
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
@@ -1177,7 +1388,7 @@
         { id: 8, name: "Ömer Ege Durmuşoğlu", positions: ["STP","MO","MDO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 9, name: "Ertuğrul Gazi Kuzucu", positions: ["STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 10, name: "Eren Kaya", positions: ["STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 11, name: "Boran Mir Şenoğlu", positions: ["KL","STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 11, name: "Boran Mir Şenoğlu", positions: ["KL"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 12, name: "Ege Demir Şen", positions: ["KL"], foot: "Sağ", goals: 0, assists: 0, matches: 0 }
     ];
 
@@ -1394,13 +1605,35 @@
     }
 
     // Takım 1 seçildiğinde geri kalanları otomatik Takım 2'ye ata
+    // Kaleci ID'leri
+    const goalkeeperIds = players.filter(p => p.positions[0] === 'KL').map(p => p.id);
+
     function syncTeamSelection() {
         const t1Checked = new Set(
             [...document.querySelectorAll('input[name="team1"]:checked')].map(c => c.value)
         );
 
+        // Takım 1'de kaç kaleci var?
+        const t1GkCount = [...t1Checked].filter(id => goalkeeperIds.includes(parseInt(id))).length;
+
+        // Takım 1'de zaten 1 kaleci varsa diğer kalecileri devre dışı bırak
+        document.querySelectorAll('input[name="team1"]').forEach(cb => {
+            const pid = parseInt(cb.value);
+            if (goalkeeperIds.includes(pid) && !cb.checked && t1GkCount >= 1) {
+                cb.disabled = true;
+                cb.closest('.player-checkbox-item').style.opacity = '0.4';
+            } else if (!goalkeeperIds.includes(pid) || cb.checked) {
+                cb.disabled = false;
+                cb.closest('.player-checkbox-item').style.opacity = '1';
+            }
+        });
+
         // Takım 2 checkboxlarını güncelle
+        const t2Remaining = players.filter(p => !t1Checked.has(String(p.id)));
+        const t2GkCount = t2Remaining.filter(p => goalkeeperIds.includes(p.id)).length;
+
         document.querySelectorAll('input[name="team2"]').forEach(cb => {
+            const pid = parseInt(cb.value);
             if (t1Checked.has(cb.value)) {
                 cb.checked = false;
                 cb.disabled = true;
@@ -1411,6 +1644,22 @@
                 cb.closest('.player-checkbox-item').style.opacity = '1';
             }
         });
+
+        // Takım 2'de de 1 kaleciden fazla seçilmesin
+        let t2CheckedGk = 0;
+        document.querySelectorAll('input[name="team2"]:checked').forEach(cb => {
+            if (goalkeeperIds.includes(parseInt(cb.value))) t2CheckedGk++;
+        });
+        if (t2CheckedGk > 1) {
+            // Fazla kalecileri kaldır (ilki kalsın)
+            let kept = 0;
+            document.querySelectorAll('input[name="team2"]:checked').forEach(cb => {
+                if (goalkeeperIds.includes(parseInt(cb.value))) {
+                    kept++;
+                    if (kept > 1) cb.checked = false;
+                }
+            });
+        }
     }
 
     // ===== EVENTS (GOAL/ASSIST) =====
@@ -1988,24 +2237,46 @@
         // Özel ID'ler
         const yusufId = 7, omerId = 8, cinarId = 1, fatihId = 2, kaganId = 3;
 
-        // 1. Aşama: Yusuf ve Ömer farklı takımlarda
+        // === KURAL 1: Yusuf ve Ömer bazen aynı bazen farklı takımlarda ===
         const yusuf = available.find(p => p.id === yusufId);
         const omer = available.find(p => p.id === omerId);
         if (yusuf) { team1.push(yusuf); assigned.add(yusufId); }
-        if (omer) { team2.push(omer); assigned.add(omerId); }
-        // Mehmet Çınar: %50 ihtimalle Yusuf'un takımında, %50 karşısında
+        if (omer) {
+            if (Math.random() < 0.5) { team1.push(omer); } else { team2.push(omer); }
+            assigned.add(omerId);
+        }
+
+        // === KURAL 2: Mehmet Çınar %50 Yusuf'la, %50 karşısında ===
         const cinar = available.find(p => p.id === cinarId);
         if (cinar) {
             if (Math.random() < 0.5) { team1.push(cinar); } else { team2.push(cinar); }
             assigned.add(cinarId);
         }
 
-        // 2. Aşama: Stoper dağılımı - Yusuf'un takımına 2 STP daha (toplam 3), diğerine 2
+        // === KURAL 3: Her takımda en fazla 1 kaleci ===
+        const gks = available.filter(p => p.category === 'KL' && !assigned.has(p.id));
+        if (gks.length >= 2) {
+            // Rastgele biri T1, diğeri T2
+            const shuffled = Math.random() < 0.5 ? [gks[0], gks[1]] : [gks[1], gks[0]];
+            if (team1.filter(p => p.category === 'KL').length === 0 && team1.length < t1Size) {
+                team1.push(shuffled[0]); assigned.add(shuffled[0].id);
+            }
+            if (team2.filter(p => p.category === 'KL').length === 0 && team2.length < t2Size) {
+                team2.push(shuffled[1]); assigned.add(shuffled[1].id);
+            }
+        } else if (gks.length === 1) {
+            // Tek kaleci: kalecisi olmayan takıma at
+            const t1HasGk = team1.some(p => p.category === 'KL');
+            const t2HasGk = team2.some(p => p.category === 'KL');
+            if (!t1HasGk && team1.length < t1Size) { team1.push(gks[0]); assigned.add(gks[0].id); }
+            else if (!t2HasGk && team2.length < t2Size) { team2.push(gks[0]); assigned.add(gks[0].id); }
+        }
+
+        // === KURAL 4: Stoperler 3-2 bölüşülür (Yusuf'un takımı 3, Ömer'in 2) ===
         const otherStps = available.filter(p => p.category === 'STP' && !assigned.has(p.id));
-        // Rastgele karıştır (zaten rated karışık)
         let stpToT1 = 0, stpToT2 = 0;
-        const stpTargetT1 = 2; // Yusuf dahil 3 olacak
-        const stpTargetT2 = 2; // Ömer dahil 2 olacak (eğer Ömer STP ise)
+        const stpTargetT1 = 2; // Yusuf dahil 3
+        const stpTargetT2 = 1; // Ömer dahil 2
 
         otherStps.forEach(p => {
             if (stpToT1 < stpTargetT1 && team1.length < t1Size) {
@@ -2015,13 +2286,13 @@
             }
         });
 
-        // 3. Aşama: Her takıma diğer mevkilerden (KL, MO, ST) en az 1 ata
-        ['KL', 'MO', 'ST'].forEach(cat => {
+        // === KURAL 5: Her takımda her mevki kategorisinden en az 1 (MO, ST) ===
+        ['MO', 'ST'].forEach(cat => {
             const catPlayers = available.filter(p => p.category === cat && !assigned.has(p.id));
             if (catPlayers.length === 0) return;
 
-            // Kaleciler ve forvetler: rastgele dağıt (her seferinde farklı kombinasyonlar)
-            if (cat === 'KL' || cat === 'ST') {
+            // Forvetler rastgele dağılsın
+            if (cat === 'ST') {
                 catPlayers.forEach(p => {
                     if (assigned.has(p.id)) return;
                     if (Math.random() < 0.5 && team1.length < t1Size) {
@@ -2044,13 +2315,19 @@
             }
         });
 
-        // 4. Aşama: Kalan oyuncuları güce göre dengeli dağıt
+        // === KURAL 6: Kalan oyuncuları güce göre dengeli dağıt ===
         const remaining = available.filter(p => !assigned.has(p.id));
         remaining.sort((a, b) => b.rating - a.rating);
 
         remaining.forEach(p => {
             if (team1.length >= t1Size) { team2.push(p); return; }
             if (team2.length >= t2Size) { team1.push(p); return; }
+
+            // Kaleci limiti: takımda zaten kaleci varsa başka kaleci ekleme
+            if (p.category === 'KL') {
+                if (team1.filter(x => x.category === 'KL').length === 0 && team1.length < t1Size) { team1.push(p); return; }
+                if (team2.filter(x => x.category === 'KL').length === 0 && team2.length < t2Size) { team2.push(p); return; }
+            }
 
             const t1Avg = team1.length > 0 ? team1.reduce((s, x) => s + x.rating, 0) / team1.length : 0;
             const t2Avg = team2.length > 0 ? team2.reduce((s, x) => s + x.rating, 0) / team2.length : 0;
@@ -2059,7 +2336,7 @@
             else team2.push(p);
         });
 
-        // 5. Aşama: Fatih ve Mehmet Çınar aynı takımdaysa, Kağan'ı ST yap
+        // === KURAL 7: Fatih ve Mehmet Çınar aynı takımdaysa Kağan ST olur ===
         const t1Ids = team1.map(p => p.id);
         const t2Ids = team2.map(p => p.id);
 

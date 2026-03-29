@@ -1626,7 +1626,8 @@
         }
 
         container.innerHTML = sorted.map(renderMatchCard).join('');
-        homeContainer.innerHTML = sorted.slice(0, 2).map(renderMatchCard).join('');
+        const latestTwo = [...matches].filter(m => !m.pending).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).slice(0, 2);
+        homeContainer.innerHTML = latestTwo.map(renderMatchCard).join('');
     }
 
     function renderKings() {

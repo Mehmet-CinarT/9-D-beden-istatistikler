@@ -4171,9 +4171,22 @@
         const user = auth.currentUser;
         if (!user) { notify('Oy vermek için giriş yapın!', true); return; }
 
-        // Daha önce oy vermiş mi kontrol et
-        db.ref('9d_polls/' + pollId + '/options').once('value', snap => {
-            const options = snap.val();
+        // MVP anketinde kendine oy verme kontrolü
+        db.ref('9d_polls/' + pollId).once('value', pollSnap => {
+            const poll = pollSnap.val();
+            if (poll && poll.type === 'mvp') {
+                const linkedId = parseInt(getLinkedPlayerId());
+                if (linkedId) {
+                    const linkedPlayer = players.find(p => p.id === linkedId);
+                    if (linkedPlayer && poll.options[optionIdx] && poll.options[optionIdx].text === linkedPlayer.name) {
+                        notify('MVP oylamasında kendinize oy veremezsiniz!', true);
+                        return;
+                    }
+                }
+            }
+
+            // Daha önce oy vermiş mi kontrol et
+            const options = poll.options;
             const alreadyVoted = options.some(o => o.votes && o.votes[user.uid]);
             if (alreadyVoted) { notify('Bu ankete zaten oy verdiniz!', true); return; }
 

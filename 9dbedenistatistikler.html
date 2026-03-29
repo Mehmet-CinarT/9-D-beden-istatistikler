@@ -1334,16 +1334,84 @@
 
 <!-- USER BAR -->
 <div class="user-bar" id="user-bar" style="display:none">
-    <button class="auth-only" onclick="openAdminPanel()" style="background:none;border:2px solid #1E90FF;color:#1E90FF;padding:6px 14px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='#1E90FF';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#1E90FF'">Kullanıcılar</button>
-    <div class="user-avatar" id="user-avatar"></div>
-    <div class="user-info">
-        <div style="display:flex;align-items:center;gap:6px">
-            <span class="user-name" id="user-name"></span>
-            <span id="user-role" style="font-size:0.65rem;padding:2px 8px;border-radius:6px;font-weight:700;background:#f0f4f8"></span>
+    <div style="flex:1"></div>
+    <div style="position:relative">
+        <div onclick="toggleUserMenu()" style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 8px;border-radius:10px;transition:background 0.2s" onmouseover="this.style.background='rgba(30,144,255,0.08)'" onmouseout="this.style.background='none'">
+            <div class="user-info">
+                <div style="display:flex;align-items:center;gap:6px">
+                    <span class="user-name" id="user-name"></span>
+                    <span id="user-role" style="font-size:0.65rem;padding:2px 8px;border-radius:6px;font-weight:700;background:#f0f4f8"></span>
+                </div>
+                <span class="user-email" id="user-email"></span>
+            </div>
+            <div class="user-avatar" id="user-avatar"></div>
+            <span style="font-size:0.6rem;color:#999">&#9660;</span>
         </div>
-        <span class="user-email" id="user-email"></span>
+
+        <!-- DROPDOWN MENU -->
+        <div id="user-menu" style="display:none;position:absolute;top:100%;right:0;margin-top:8px;background:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.15);width:260px;z-index:2000;overflow:hidden">
+            <!-- Profil Başlık -->
+            <div style="padding:18px 16px;background:linear-gradient(135deg,#f8fbff,#e8f2ff);border-bottom:1px solid #eee;text-align:center">
+                <div id="menu-avatar" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#1E90FF,#0066cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;margin:0 auto 8px"></div>
+                <div id="menu-name" style="font-weight:700;font-size:0.95rem;color:#333"></div>
+                <div id="menu-email" style="font-size:0.75rem;color:#888"></div>
+                <span id="menu-role" style="display:inline-block;margin-top:4px;font-size:0.65rem;padding:2px 10px;border-radius:6px;font-weight:700"></span>
+            </div>
+
+            <!-- Menü Öğeleri -->
+            <div style="padding:8px">
+                <div onclick="openProfileSettings()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#333" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='none'">
+                    <span style="font-size:1.1rem">&#9998;</span> Profili Düzenle
+                </div>
+                <div onclick="openThemeSettings()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#333" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='none'">
+                    <span style="font-size:1.1rem">&#127912;</span> Görünüm
+                </div>
+                <div class="auth-only" onclick="openAdminPanel();closeUserMenu()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#333" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='none'">
+                    <span style="font-size:1.1rem">&#128101;</span> Kullanıcı Yönetimi
+                </div>
+                <div class="auth-only" onclick="openFeedbackPanel();closeUserMenu()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#333" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='none'">
+                    <span style="font-size:1.1rem">&#128172;</span> Geri Bildirimler
+                </div>
+                <div style="height:1px;background:#eee;margin:4px 0"></div>
+                <div onclick="logoutUser()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#e74c3c" onmouseover="this.style.background='#fde8e8'" onmouseout="this.style.background='none'">
+                    <span style="font-size:1.1rem">&#128682;</span> Çıkış Yap
+                </div>
+            </div>
+        </div>
     </div>
-    <button class="logout-btn" onclick="logoutUser()">Çıkış Yap</button>
+</div>
+
+<!-- PROFILE SETTINGS MODAL -->
+<div class="modal-overlay" id="profile-modal">
+    <div class="modal" style="max-width:450px">
+        <div class="modal-header">
+            <h2>Profili Düzenle</h2>
+            <button class="modal-close" onclick="document.getElementById('profile-modal').classList.remove('show')">&times;</button>
+        </div>
+        <div class="modal-body" id="profile-modal-body"></div>
+    </div>
+</div>
+
+<!-- THEME SETTINGS MODAL -->
+<div class="modal-overlay" id="theme-modal">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-header" style="background:linear-gradient(135deg,#9b59b6,#8e44ad)">
+            <h2>Görünüm</h2>
+            <button class="modal-close" onclick="document.getElementById('theme-modal').classList.remove('show')">&times;</button>
+        </div>
+        <div class="modal-body" id="theme-modal-body"></div>
+    </div>
+</div>
+
+<!-- FEEDBACK PANEL MODAL -->
+<div class="modal-overlay" id="feedback-modal">
+    <div class="modal" style="max-width:600px">
+        <div class="modal-header" style="background:linear-gradient(135deg,#e67e22,#d35400)">
+            <h2>Geri Bildirimler</h2>
+            <button class="modal-close" onclick="document.getElementById('feedback-modal').classList.remove('show')">&times;</button>
+        </div>
+        <div class="modal-body" id="feedback-modal-body"></div>
+    </div>
 </div>
 
 <!-- ADMIN PANEL MODAL -->
@@ -3361,6 +3429,7 @@
                 document.getElementById('user-email').textContent = user.email;
                 document.getElementById('user-role').textContent = role === 'admin' ? 'Kontrolcü' : 'Gözlemci';
                 document.getElementById('user-role').style.color = role === 'admin' ? '#2ecc71' : '#f39c12';
+                updateMenuProfile();
                 renderAll();
             });
         } else {
@@ -3446,6 +3515,164 @@
 
     function isControlMode() {
         return document.body.classList.contains('admin-mode');
+    }
+
+    // ===== USER MENU =====
+    function toggleUserMenu() {
+        const menu = document.getElementById('user-menu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function closeUserMenu() {
+        document.getElementById('user-menu').style.display = 'none';
+    }
+
+    // Menü dışına tıklayınca kapat
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('user-menu');
+        const bar = document.getElementById('user-bar');
+        if (menu && !bar.contains(e.target)) menu.style.display = 'none';
+    });
+
+    function updateMenuProfile() {
+        const user = auth.currentUser;
+        if (!user) return;
+        const name = user.displayName || user.email.split('@')[0];
+        document.getElementById('menu-avatar').textContent = name[0].toUpperCase();
+        document.getElementById('menu-name').textContent = name;
+        document.getElementById('menu-email').textContent = user.email;
+        const role = document.getElementById('user-role').textContent;
+        const menuRole = document.getElementById('menu-role');
+        menuRole.textContent = role;
+        menuRole.style.color = role === 'Kontrolcü' ? '#2ecc71' : '#f39c12';
+        menuRole.style.background = role === 'Kontrolcü' ? '#e8f5e9' : '#fff3e0';
+    }
+
+    // ===== PROFILE SETTINGS =====
+    function openProfileSettings() {
+        closeUserMenu();
+        const user = auth.currentUser;
+        if (!user) return;
+
+        document.getElementById('profile-modal-body').innerHTML = `
+            <div style="text-align:center;margin-bottom:20px">
+                <div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#1E90FF,#0066cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem;margin:0 auto">${(user.displayName || user.email[0])[0].toUpperCase()}</div>
+            </div>
+            <div style="margin-bottom:14px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Görünen Ad</label>
+                <input type="text" id="profile-name" value="${user.displayName || ''}" placeholder="Adınızı girin" class="auth-input">
+            </div>
+            <div style="margin-bottom:14px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">E-posta</label>
+                <input type="email" value="${user.email}" disabled class="auth-input" style="background:#f0f0f0;color:#888">
+            </div>
+            <button class="auth-btn auth-btn-primary" onclick="saveProfile()">Kaydet</button>
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Şifre Değiştir</label>
+                <input type="password" id="profile-new-password" placeholder="Yeni şifre (en az 6 karakter)" class="auth-input">
+                <button class="auth-btn" style="background:#e67e22;color:#fff" onclick="changePassword()">Şifreyi Güncelle</button>
+            </div>
+        `;
+        document.getElementById('profile-modal').classList.add('show');
+    }
+
+    function saveProfile() {
+        const newName = document.getElementById('profile-name').value.trim();
+        const user = auth.currentUser;
+        if (!user) return;
+
+        if (newName) {
+            user.updateProfile({ displayName: newName }).then(() => {
+                db.ref('9d_users/' + user.uid + '/displayName').set(newName);
+                document.getElementById('user-name').textContent = newName;
+                document.getElementById('user-avatar').textContent = newName[0].toUpperCase();
+                updateMenuProfile();
+                notify('Profil güncellendi!');
+                document.getElementById('profile-modal').classList.remove('show');
+            }).catch(err => notify('Hata: ' + err.message, true));
+        }
+    }
+
+    function changePassword() {
+        const newPw = document.getElementById('profile-new-password').value;
+        if (newPw.length < 6) { notify('Şifre en az 6 karakter olmalı!', true); return; }
+        auth.currentUser.updatePassword(newPw)
+            .then(() => {
+                notify('Şifre başarıyla güncellendi!');
+                document.getElementById('profile-new-password').value = '';
+            })
+            .catch(err => {
+                if (err.code === 'auth/requires-recent-login') notify('Güvenlik nedeniyle önce çıkış yapıp tekrar giriş yapın!', true);
+                else notify('Hata: ' + err.message, true);
+            });
+    }
+
+    // ===== THEME SETTINGS =====
+    function openThemeSettings() {
+        closeUserMenu();
+        const currentSize = localStorage.getItem('9d_fontsize') || 'normal';
+        document.getElementById('theme-modal-body').innerHTML = `
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;color:#555;margin-bottom:10px;font-size:0.85rem">Yazı Boyutu</label>
+                <div style="display:flex;gap:8px">
+                    <button onclick="setFontSize('small')" style="flex:1;padding:10px;border:2px solid ${currentSize==='small'?'#1E90FF':'#ddd'};border-radius:8px;background:${currentSize==='small'?'#e8f2ff':'#fff'};cursor:pointer;font-size:0.8rem;font-weight:600">Küçük</button>
+                    <button onclick="setFontSize('normal')" style="flex:1;padding:10px;border:2px solid ${currentSize==='normal'?'#1E90FF':'#ddd'};border-radius:8px;background:${currentSize==='normal'?'#e8f2ff':'#fff'};cursor:pointer;font-size:0.9rem;font-weight:600">Normal</button>
+                    <button onclick="setFontSize('large')" style="flex:1;padding:10px;border:2px solid ${currentSize==='large'?'#1E90FF':'#ddd'};border-radius:8px;background:${currentSize==='large'?'#e8f2ff':'#fff'};cursor:pointer;font-size:1rem;font-weight:600">Büyük</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('theme-modal').classList.add('show');
+    }
+
+    function setFontSize(size) {
+        localStorage.setItem('9d_fontsize', size);
+        const sizes = { small: '14px', normal: '16px', large: '18px' };
+        document.body.style.fontSize = sizes[size] || '16px';
+        openThemeSettings(); // Butonu güncelle
+        notify('Yazı boyutu değiştirildi!');
+    }
+
+    // Sayfa açılınca kayıtlı font boyutunu uygula
+    (function() {
+        const size = localStorage.getItem('9d_fontsize') || 'normal';
+        const sizes = { small: '14px', normal: '16px', large: '18px' };
+        document.body.style.fontSize = sizes[size] || '16px';
+    })();
+
+    // ===== FEEDBACK PANEL =====
+    function openFeedbackPanel() {
+        document.getElementById('feedback-modal').classList.add('show');
+        db.ref('9d_feedbacks').once('value', snap => {
+            const feedbacks = snap.val();
+            if (!feedbacks) {
+                document.getElementById('feedback-modal-body').innerHTML = '<p style="text-align:center;color:#aaa">Henüz geri bildirim yok</p>';
+                return;
+            }
+            const list = Object.entries(feedbacks).sort(([,a],[,b]) => new Date(b.date) - new Date(a.date));
+            document.getElementById('feedback-modal-body').innerHTML = list.map(([key, f]) => `
+                <div style="padding:12px;background:#f8f8f8;border-radius:10px;margin-bottom:8px;border-left:4px solid #e67e22">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <span style="font-weight:700;font-size:0.85rem;color:#333">${f.email}</span>
+                        <span style="font-size:0.7rem;color:#aaa">${f.date ? new Date(f.date).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+                    </div>
+                    <p style="font-size:0.85rem;color:#555;margin:0">${f.text}</p>
+                    <button onclick="deleteFeedback('${key}')" style="margin-top:6px;background:none;border:none;color:#e74c3c;font-size:0.7rem;cursor:pointer;font-weight:600">Sil</button>
+                </div>
+            `).join('');
+        });
+    }
+
+    ['profile-modal','theme-modal','feedback-modal'].forEach(id => {
+        document.getElementById(id).addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('show');
+        });
+    });
+
+    function deleteFeedback(key) {
+        db.ref('9d_feedbacks/' + key).remove().then(() => {
+            notify('Geri bildirim silindi!');
+            openFeedbackPanel();
+        });
     }
 
     // ===== FEEDBACK =====

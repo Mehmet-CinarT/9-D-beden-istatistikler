@@ -1273,16 +1273,41 @@
 
             <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
                 <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Yer</label>
+                    <select id="match-location" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
+                        <option value="Okul">Okul</option>
+                        <option value="Halısaha">Halısaha</option>
+                    </select>
+                </div>
+                <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Tür</label>
+                    <select id="match-type" onchange="onMatchTypeChange()" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
+                        <option value="Dostluk">Dostluk Maçı</option>
+                        <option value="Lig">Lig Maçı</option>
+                        <option value="Turnuva">Turnuva Maçı</option>
+                    </select>
+                </div>
+                <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Tarih</label>
+                    <input type="date" id="match-date" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
+                </div>
+            </div>
+
+            <!-- Turnuva: 2. maç tarihi -->
+            <div id="tournament-extra" style="display:none;margin-bottom:16px;padding:14px;background:#fff3e0;border:2px solid #ffe0b2;border-radius:10px">
+                <label style="display:block;font-weight:600;color:#e67e22;margin-bottom:6px;font-size:0.85rem">2. Maç Tarihi (Turnuva - Rövanş)</label>
+                <input type="date" id="match-date2" style="width:100%;max-width:250px;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
+                <div style="font-size:0.75rem;color:#999;margin-top:6px">Turnuva maçları 2 maçtan oluşur. 2. maç otomatik oluşturulur.</div>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+                <div style="flex:1;min-width:120px">
                     <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 1 Skor</label>
                     <input type="number" id="match-score1" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
                 <div style="flex:1;min-width:120px">
                     <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 2 Skor</label>
                     <input type="number" id="match-score2" min="0" value="0" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
-                </div>
-                <div style="flex:1;min-width:120px">
-                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Tarih</label>
-                    <input type="date" id="match-date" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
                 </div>
             </div>
 
@@ -1430,6 +1455,7 @@
     function recalcPlayerStats() {
         players.forEach(p => { p.goals = 0; p.assists = 0; p.matches = 0; });
         matches.forEach(m => {
+            if (m.pending) return; // Oynanmamış maçları sayma
             const allPlayerIds = [...(m.team1Players || []), ...(m.team2Players || [])];
             allPlayerIds.forEach(pid => {
                 const p = players.find(x => x.id === pid);
@@ -1497,10 +1523,16 @@
             return;
         }
 
-        const sorted = [...matches].sort((a, b) => (a.week || 0) - (b.week || 0));
+        // Oynanmış maçlar hafta sırasıyla, oynanmamışlar en alta
+        const sorted = [...matches].sort((a, b) => {
+            if (a.pending && !b.pending) return 1;
+            if (!a.pending && b.pending) return -1;
+            return (a.week || 0) - (b.week || 0);
+        });
 
         function renderMatchCard(m) {
-            const eventsHtml = (m.events || []).map(ev => {
+            const isPending = m.pending;
+            const eventsHtml = isPending ? '' : (m.events || []).map(ev => {
                 const p = players.find(x => x.id === ev.playerId);
                 const pName = p ? p.name : 'Bilinmeyen';
                 if (ev.type === 'goal') return `<span class="match-detail-tag goal">&#9917; ${pName} (${ev.count || 1} gol)</span>`;
@@ -1508,33 +1540,54 @@
                 return '';
             }).join('');
 
-            const result = m.score1 > m.score2 ? `<span style="color:#2ecc71;font-weight:700">${m.team1} Kazandı</span>` :
+            const result = isPending ? `<span style="color:#e67e22;font-weight:700">Oynanmadı</span>` :
+                           m.score1 > m.score2 ? `<span style="color:#2ecc71;font-weight:700">${m.team1} Kazandı</span>` :
                            m.score2 > m.score1 ? `<span style="color:#2ecc71;font-weight:700">${m.team2} Kazandı</span>` :
                            `<span style="color:#f39c12;font-weight:700">Berabere</span>`;
 
+            // Tür ve yer etiketleri
+            const typeBadge = m.matchType ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;font-weight:600;background:${m.matchType==='Turnuva'?'#fff3e0;color:#e67e22':m.matchType==='Lig'?'#e8f5e9;color:#2e7d32':'#e3f2fd;color:#1565c0'}">${m.matchType}</span>` : '';
+            const locBadge = m.location ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;background:#f3e5f5;color:#7b1fa2;font-weight:600">${m.location}</span>` : '';
+            const serieBadge = m.serieMatch ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;background:#fce4ec;color:#c62828;font-weight:600">${m.serieMatch}/${m.serieTotal}</span>` : '';
+
+            const cardStyle = isPending ? 'border-left:5px solid #e67e22;opacity:0.8' : '';
+
             return `
-                <div class="match-card" onclick="openMatchModal(${m.id})" style="cursor:pointer" title="Detaylar için tıkla">
+                <div class="match-card" onclick="${isPending ? '' : `openMatchModal(${m.id})`}" style="cursor:${isPending ? 'default' : 'pointer'};${cardStyle}" title="${isPending ? 'Oynanmamış maç' : 'Detaylar için tıkla'}">
                     <div class="match-header">
-                        <span style="font-weight:700;color:#333">Hafta ${m.week || '-'}</span>
+                        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                            <span style="font-weight:700;color:#333">Hafta ${m.week || '-'}</span>
+                            ${typeBadge} ${locBadge} ${serieBadge}
+                        </div>
                         <div style="display:flex;align-items:center;gap:8px">
                             ${result}
                             <span class="match-date">${m.date || 'Tarih yok'}</span>
                         </div>
                     </div>
-                    <div class="match-score">
-                        <div class="match-team"><div class="team-name">${m.team1}</div></div>
-                        <div class="score-display">${m.score1} - ${m.score2}</div>
-                        <div class="match-team"><div class="team-name">${m.team2}</div></div>
-                    </div>
-                    <div class="match-details">${eventsHtml}</div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-                        <span style="font-size:0.75rem;color:#aaa">Detaylar için tıkla</span>
-                        <div style="display:flex;gap:6px;align-items:center" class="control-only">
-                            <button onclick="event.stopPropagation();moveMatch(${m.id},-1)" style="background:#1E90FF;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer" title="Yukarı">&#9650;</button>
-                            <button onclick="event.stopPropagation();moveMatch(${m.id},1)" style="background:#1E90FF;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer" title="Aşağı">&#9660;</button>
-                            <button onclick="event.stopPropagation();deleteMatch(${m.id})" style="background:#ff4757;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Sil</button>
+                    ${isPending ? `
+                        <div style="text-align:center;padding:20px 0;color:#e67e22;font-weight:700;font-size:1.1rem">Henüz Oynanmadı</div>
+                        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+                            <div style="display:flex;gap:6px;align-items:center" class="control-only">
+                                <button onclick="event.stopPropagation();editPendingMatch(${m.id})" style="background:#e67e22;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Sonuç Gir</button>
+                                <button onclick="event.stopPropagation();deleteMatch(${m.id})" style="background:#ff4757;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Sil</button>
+                            </div>
                         </div>
-                    </div>
+                    ` : `
+                        <div class="match-score">
+                            <div class="match-team"><div class="team-name">${m.team1}</div></div>
+                            <div class="score-display">${m.score1} - ${m.score2}</div>
+                            <div class="match-team"><div class="team-name">${m.team2}</div></div>
+                        </div>
+                        <div class="match-details">${eventsHtml}</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+                            <span style="font-size:0.75rem;color:#aaa">Detaylar için tıkla</span>
+                            <div style="display:flex;gap:6px;align-items:center" class="control-only">
+                                <button onclick="event.stopPropagation();moveMatch(${m.id},-1)" style="background:#1E90FF;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer" title="Yukarı">&#9650;</button>
+                                <button onclick="event.stopPropagation();moveMatch(${m.id},1)" style="background:#1E90FF;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer" title="Aşağı">&#9660;</button>
+                                <button onclick="event.stopPropagation();deleteMatch(${m.id})" style="background:#ff4757;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Sil</button>
+                            </div>
+                        </div>
+                    `}
                 </div>
             `;
         }
@@ -1773,8 +1826,34 @@
     }
 
     // ===== SAVE MATCH =====
+    // ===== MATCH TYPE =====
+    function onMatchTypeChange() {
+        const type = document.getElementById('match-type').value;
+        document.getElementById('tournament-extra').style.display = type === 'Turnuva' ? 'block' : 'none';
+    }
+
     function isControlMode() {
         return document.body.classList.contains('control-mode');
+    }
+
+    function editPendingMatch(matchId) {
+        if (!isControlMode()) return;
+        const m = matches.find(x => x.id === matchId);
+        if (!m || !m.pending) return;
+
+        const s1 = prompt('Takım 1 Skor:', '0');
+        if (s1 === null) return;
+        const s2 = prompt('Takım 2 Skor:', '0');
+        if (s2 === null) return;
+
+        m.score1 = parseInt(s1) || 0;
+        m.score2 = parseInt(s2) || 0;
+        m.pending = false;
+
+        saveData('9d_matches', matches);
+        recalcPlayerStats();
+        renderAll();
+        notify('Maç sonucu girildi!');
     }
 
     function moveMatch(matchId, direction) {
@@ -1812,6 +1891,8 @@
         const score1 = parseInt(document.getElementById('match-score1').value) || 0;
         const score2 = parseInt(document.getElementById('match-score2').value) || 0;
         const date = document.getElementById('match-date').value;
+        const location = document.getElementById('match-location').value;
+        const matchType = document.getElementById('match-type').value;
 
         const team1Players = [...document.querySelectorAll('input[name="team1"]:checked')].map(c => parseInt(c.value));
         const team2Players = [...document.querySelectorAll('input[name="team2"]:checked')].map(c => parseInt(c.value));
@@ -1822,8 +1903,6 @@
         }
 
         const rawEvents = getCurrentEvents();
-
-        // Aynı oyuncunun aynı tür olaylarını birleştir
         const eventMap = {};
         rawEvents.forEach(ev => {
             const key = `${ev.playerId}_${ev.type}`;
@@ -1832,28 +1911,58 @@
         });
         const events = Object.values(eventMap);
 
+        const matchId = Date.now();
+        const weekNum = matches.length + 1;
+
+        // Turnuva ise serieId oluştur
+        const serieId = matchType === 'Turnuva' ? matchId : null;
+
         const match = {
-            id: Date.now(),
-            week: matches.length + 1,
+            id: matchId,
+            week: weekNum,
             team1, team2, score1, score2, date,
+            location, matchType,
+            serieId, serieMatch: matchType === 'Turnuva' ? 1 : null, serieTotal: matchType === 'Turnuva' ? 2 : null,
             team1Players, team2Players, events
         };
 
         matches.push(match);
+
+        // Turnuva: 2. maçı otomatik oluştur (oynanmamış)
+        if (matchType === 'Turnuva') {
+            const date2 = document.getElementById('match-date2').value;
+            if (!date2) {
+                notify('Lütfen 2. maç tarihini girin!');
+                matches.pop();
+                return;
+            }
+            const match2 = {
+                id: matchId + 1,
+                week: weekNum + 1,
+                team1, team2, score1: 0, score2: 0, date: date2,
+                location, matchType: 'Turnuva',
+                serieId, serieMatch: 2, serieTotal: 2,
+                team1Players, team2Players, events: [],
+                pending: true // oynanmamış
+            };
+            matches.push(match2);
+        }
+
         saveData('9d_matches', matches);
         recalcPlayerStats();
-        // Oyuncu istatistikleri maçlardan hesaplanır, ayrıca kaydetmeye gerek yok
         renderAll();
-        notify('Maç başarıyla kaydedildi!');
+        notify('Maç başarıyla kaydedildi!' + (matchType === 'Turnuva' ? ' (2. maç otomatik oluşturuldu)' : ''));
 
         // Reset form
         document.getElementById('match-team1').value = '';
         document.getElementById('match-team2').value = '';
         document.getElementById('match-score1').value = '0';
         document.getElementById('match-score2').value = '0';
+        document.getElementById('match-type').value = 'Dostluk';
+        document.getElementById('match-location').value = 'Okul';
+        document.getElementById('tournament-extra').style.display = 'none';
         document.getElementById('event-list').innerHTML = '';
         document.querySelectorAll('input[name="team1"], input[name="team2"]').forEach(c => { c.checked = false; c.disabled = false; c.closest('.player-checkbox-item').style.opacity = '1'; });
-        // Takım 2'yi tekrar disabled yap
         document.querySelectorAll('input[name="team2"]').forEach(cb => { cb.disabled = true; });
     }
 

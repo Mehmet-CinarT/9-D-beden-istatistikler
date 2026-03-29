@@ -1435,6 +1435,7 @@
     <button onclick="switchTab('maclar')">Maçlar</button>
     <button onclick="switchTab('krallik')">Gol & Asist Krallığı</button>
     <button onclick="switchTab('kadro')" class="auth-only">Kadro Kurucu</button>
+    <button onclick="switchTab('duyurular')" style="position:relative">Duyurular <span id="notif-badge" style="position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:50%;font-size:0.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;color:#fff;background:#e74c3c">0</span></button>
 </div>
 
 <div class="container">
@@ -1623,6 +1624,14 @@
 
         <div id="teams-result"></div>
     </div>
+
+    <!-- ===== DUYURULAR ===== -->
+    <div id="tab-duyurular" class="tab-content">
+        <div class="table-wrapper">
+            <h2 style="padding:20px 24px 12px;color:#1E90FF">Duyurular</h2>
+            <div id="duyurular-list" style="padding:0 24px 20px"></div>
+        </div>
+    </div>
 </div>
 
 <!-- FOOTER -->
@@ -1778,6 +1787,10 @@
         document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + tab).classList.add('active');
         event.target.classList.add('active');
+        if (tab === 'duyurular') {
+            markAllAsRead();
+            renderDuyurular();
+        }
         renderAll();
     }
 
@@ -2405,6 +2418,7 @@
         renderAll();
         closePendingModal();
         notify('Maç sonucu kaydedildi!');
+        createNotification(`Turnuva 2. maç sonucu girildi: ${m.team1} ${m.score1} - ${m.score2} ${m.team2}`);
     }
 
     function closePendingModal() {
@@ -2526,6 +2540,10 @@
         recalcPlayerStats();
         renderAll();
         notify('Maç başarıyla kaydedildi!' + (matchType === 'Turnuva' ? ' (2. maç otomatik oluşturuldu)' : ''));
+
+        // Duyuru oluştur
+        const notifText = `Yeni maç eklendi: ${team1} ${score1} - ${score2} ${team2} (${location}, ${matchType}, ${date})`;
+        createNotification(notifText);
 
         // Reset form
         document.getElementById('match-team1').value = '';
@@ -3546,6 +3564,81 @@
     function isControlMode() {
         return document.body.classList.contains('admin-mode');
     }
+
+    // ===== DUYURULAR (NOTIFICATIONS) =====
+    function createNotification(text) {
+        const user = auth.currentUser;
+        db.ref('9d_notifications').push({
+            text: text,
+            date: new Date().toISOString(),
+            createdBy: user ? user.email : 'Sistem'
+        });
+    }
+
+    function getReadNotifIds() {
+        const user = auth.currentUser;
+        if (!user) return [];
+        const stored = localStorage.getItem('9d_read_notifs_' + user.uid);
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    function markAllAsRead() {
+        const user = auth.currentUser;
+        if (!user) return;
+        db.ref('9d_notifications').once('value', snap => {
+            const notifs = snap.val();
+            if (!notifs) return;
+            const allIds = Object.keys(notifs);
+            localStorage.setItem('9d_read_notifs_' + user.uid, JSON.stringify(allIds));
+            updateNotifBadge();
+        });
+    }
+
+    function updateNotifBadge() {
+        db.ref('9d_notifications').once('value', snap => {
+            const notifs = snap.val();
+            const badge = document.getElementById('notif-badge');
+            if (!notifs) { badge.textContent = '0'; badge.style.background = '#aaa'; return; }
+            const readIds = getReadNotifIds();
+            const unread = Object.keys(notifs).filter(id => !readIds.includes(id)).length;
+            badge.textContent = unread;
+            badge.style.background = unread > 0 ? '#e74c3c' : '#aaa';
+        });
+    }
+
+    function renderDuyurular() {
+        db.ref('9d_notifications').once('value', snap => {
+            const notifs = snap.val();
+            const container = document.getElementById('duyurular-list');
+            if (!notifs) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa">Henüz duyuru yok</div>';
+                return;
+            }
+            const readIds = getReadNotifIds();
+            const list = Object.entries(notifs).sort(([,a],[,b]) => new Date(b.date) - new Date(a.date));
+
+            container.innerHTML = list.map(([id, n]) => {
+                const isRead = readIds.includes(id);
+                return `
+                    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:${isRead ? '#f8f8f8' : '#e8f5e9'};border-radius:10px;margin-bottom:8px;border-left:4px solid ${isRead ? '#ddd' : '#2ecc71'};transition:all 0.2s">
+                        <div style="width:36px;height:36px;border-radius:50%;background:${isRead ? '#ddd' : '#2ecc71'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">${isRead ? '&#9989;' : '&#128227;'}</div>
+                        <div style="flex:1">
+                            <div style="font-size:0.9rem;color:#333;font-weight:${isRead ? '400' : '700'}">${n.text}</div>
+                            <div style="font-size:0.7rem;color:#aaa;margin-top:4px">${n.date ? new Date(n.date).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        });
+    }
+
+    // Duyurular sekmesi açıldığında okundu işaretle
+    const origSwitchTab = switchTab;
+
+    // Firebase'den duyuruları dinle
+    db.ref('9d_notifications').on('value', () => {
+        updateNotifBadge();
+    });
 
     // ===== USER MENU =====
     function toggleUserMenu() {

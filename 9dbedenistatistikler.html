@@ -3562,11 +3562,12 @@
             displayName: displayName,
             lastLogin: new Date().toISOString(),
         });
-        // Eğer rol atanmamışsa varsayılan ata
+        // Eğer rol atanmamışsa yeni kayıt → varsayılan ata ve bildirim gönder
         db.ref('9d_users/' + user.uid + '/role').once('value', snap => {
             if (!snap.val()) {
                 const role = SUPER_ADMIN_EMAILS.includes(user.email) ? 'admin' : 'observer';
                 db.ref('9d_users/' + user.uid + '/role').set(role);
+                createNotification('Yeni kullanıcı kaydoldu: ' + displayName + ' (' + user.email + ')');
             }
         });
     }

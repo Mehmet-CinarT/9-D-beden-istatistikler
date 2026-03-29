@@ -1798,14 +1798,14 @@
 <script>
     // ===== DATA STORE =====
     const defaultPlayers = [
-        { id: 1, name: "Mehmet Çınar Turşak", positions: ["SNT","MOO","SLK","SĞK"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 2, name: "Fatih Doğanay", positions: ["SNT","MOO","SLK","SĞK"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 3, name: "Kağan Durak", positions: ["SNT","MOO","SLK","SĞK"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 1, name: "Mehmet Çınar Turşak", positions: ["SNT","SĞK","SLK","MOO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 2, name: "Fatih Doğanay", positions: ["SNT","SĞK","SLK","MOO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 3, name: "Kağan Durak", positions: ["SNT","SĞK","SLK","MOO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 4, name: "Mehmet Ali Çınar", positions: ["MOO","MO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 5, name: "Mehmet Efe Güvenmez", positions: ["MOO","MO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 6, name: "Egemen Işık", positions: ["MO","SNT"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 7, name: "Yusuf Karadağ", positions: ["STP","MO","MDO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 8, name: "Ömer Ege Durmuşoğlu", positions: ["STP","MO","MDO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 6, name: "Egemen Işık", positions: ["SNT","MO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 7, name: "Yusuf Karadağ", positions: ["MO","MDO","STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 8, name: "Ömer Ege Durmuşoğlu", positions: ["MO","MDO","STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 9, name: "Ertuğrul Gazi Kuzucu", positions: ["STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 10, name: "Eren Kaya", positions: ["STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
         { id: 11, name: "Boran Mir Şenoğlu", positions: ["KL"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
@@ -1839,7 +1839,7 @@
         players = defaultPlayers.map(dp => {
             const edit = edits[dp.id];
             if (edit) {
-                return { ...dp, positions: edit.positions || dp.positions, foot: edit.foot || dp.foot };
+                return { ...dp, positions: sortPositions(edit.positions || dp.positions), foot: edit.foot || dp.foot };
             }
             return { ...dp };
         });
@@ -1869,6 +1869,12 @@
             if (ep) return { id: ep.id, name: ep.name, positions: [ep.position || 'MO'], foot: '-', goals: 0, assists: 0, matches: 0 };
         }
         return null;
+    }
+
+    // Mevki sıralama: SNT, SĞK, SLK, MOO, MO, MDO, STP, KL
+    const POS_ORDER = {'SNT':0,'SĞK':1,'SLK':2,'MOO':3,'MO':4,'MDO':5,'STP':6,'KL':7};
+    function sortPositions(positions) {
+        return [...positions].sort((a, b) => (POS_ORDER[a] ?? 99) - (POS_ORDER[b] ?? 99));
     }
 
     function getShortName(player) {
@@ -3732,7 +3738,7 @@
         const p = players.find(x => x.id === playerId);
         if (!p) return;
 
-        const allPositions = ['SNT','MOO','MO','STP','MDO','KL','SLK','SĞK'];
+        const allPositions = ['SNT','SĞK','SLK','MOO','MO','MDO','STP','KL'];
         const posChecks = allPositions.map(pos =>
             '<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#f3e5f5;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600">' +
             '<input type="checkbox" name="edit-pos" value="' + pos + '" ' + (p.positions.includes(pos) ? 'checked' : '') + ' style="accent-color:#9b59b6;width:16px;height:16px"> ' + pos + '</label>'
@@ -3788,7 +3794,7 @@
         } else {
             // Kontrolcü veya mevki değişmedi → direkt uygula
             db.ref('9d_player_edits/' + playerId).set({
-                positions: checkedPos,
+                positions: sortPositions(checkedPos),
                 foot: foot
             }).then(() => {
                 notify('Bilgilerin güncellendi!');

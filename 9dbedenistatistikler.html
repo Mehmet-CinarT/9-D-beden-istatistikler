@@ -1494,9 +1494,10 @@
         return firstName;
     }
 
-    function notify(msg) {
+    function notify(msg, isError) {
         const el = document.getElementById('notification');
         el.textContent = msg;
+        el.style.background = isError ? '#e74c3c' : '#2ecc71';
         el.classList.add('show');
         setTimeout(() => el.classList.remove('show'), 2500);
     }
@@ -1760,7 +1761,8 @@
 
         if (total > 12) {
             panel.style.display = 'block';
-            document.getElementById('extra-panel-info').textContent = `Toplam ${total} oyuncu gerekli, kadroda ${players.length} kişi var. ${needed - extraMatchPlayers.length} ekstra oyuncu daha ekleyin.`;
+            const remaining = needed - extraMatchPlayers.length;
+            document.getElementById('extra-panel-info').textContent = `Toplam ${total} oyuncu gerekli, kadroda ${players.length} kişi var. ${remaining > 0 ? remaining + ' ekstra oyuncu daha ekleyin.' : 'Yeterli oyuncu eklendi.'}`;
         } else {
             panel.style.display = 'none';
             extraMatchPlayers = [];
@@ -1772,12 +1774,23 @@
     let extraMatchPlayers = [];
     let extraMatchIdCounter = 200;
 
+    function getExtraNeeded() {
+        const t1Count = parseInt(document.getElementById('match-t1-count').value) || 6;
+        const t2Count = parseInt(document.getElementById('match-t2-count').value) || 6;
+        return (t1Count + t2Count) - players.length;
+    }
+
     function addExtraMatchPlayer() {
+        const needed = getExtraNeeded();
+        if (extraMatchPlayers.length >= needed) {
+            notify('Fazla ekstra oyuncu ekleyemezsiniz! En fazla ' + needed + ' ekstra oyuncu eklenebilir.', true);
+            return;
+        }
+
         const nameInput = document.getElementById('extra-match-name');
         const teamSelect = document.getElementById('extra-match-team');
         const rawName = nameInput.value.trim();
-        if (!rawName) { notify('Lütfen oyuncu adı girin!'); return; }
-        // İlk harfleri büyük yap
+        if (!rawName) { notify('Lütfen oyuncu adı girin!', true); return; }
         const name = rawName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 
         extraMatchIdCounter++;
@@ -1789,11 +1802,13 @@
         });
         nameInput.value = '';
         renderExtraMatchPlayers();
+        checkExtraPanel();
     }
 
     function removeExtraMatchPlayer(id) {
         extraMatchPlayers = extraMatchPlayers.filter(p => p.id !== id);
         renderExtraMatchPlayers();
+        checkExtraPanel();
     }
 
     function renderExtraMatchPlayers() {
@@ -2167,15 +2182,15 @@
         });
 
         if (team1Players.length === 0 && team2Players.length === 0) {
-            notify('Lütfen en az bir takıma oyuncu seçin!');
+            notify('Lütfen en az bir takıma oyuncu seçin!', true);
             return;
         }
 
         // Her takımda en az 1 kaleci zorunlu
         const t1HasGk = team1Players.some(id => goalkeeperIds.includes(id));
         const t2HasGk = team2Players.some(id => goalkeeperIds.includes(id));
-        if (!t1HasGk) { notify('Takım 1\'de en az bir kaleci olmalı!'); return; }
-        if (!t2HasGk) { notify('Takım 2\'de en az bir kaleci olmalı!'); return; }
+        if (!t1HasGk) { notify('Takım 1\'de en az bir kaleci olmalı!', true); return; }
+        if (!t2HasGk) { notify('Takım 2\'de en az bir kaleci olmalı!', true); return; }
 
         const rawEvents = getCurrentEvents();
         const eventMap = {};
@@ -2207,7 +2222,7 @@
         if (matchType === 'Turnuva') {
             const date2 = document.getElementById('match-date2').value;
             if (!date2) {
-                notify('Lütfen 2. maç tarihini girin!');
+                notify('Lütfen 2. maç tarihini girin!', true);
                 matches.pop();
                 return;
             }
@@ -2562,7 +2577,7 @@
         // Limit aşıldıysa son tıklananı geri al
         if (checked > absentNeeded) {
             event.target.checked = false;
-            notify(`En fazla ${absentNeeded} kişi seçebilirsiniz!`);
+            notify(`En fazla ${absentNeeded} kişi seçebilirsiniz!`, true);
             return;
         }
 
@@ -2610,14 +2625,14 @@
         const absentNeeded = players.length - totalNeeded;
 
         if (absentNeeded > 0 && absentIds.length !== absentNeeded) {
-            notify(`Lütfen gelmeyen ${absentNeeded} kişiyi seçin! (${absentIds.length}/${absentNeeded} seçili)`);
+            notify(`Lütfen gelmeyen ${absentNeeded} kişiyi seçin! (${absentIds.length}/${absentNeeded} seçili)`, true);
             return;
         }
 
         const allPlayers = players.filter(p => !absentIds.includes(p.id));
 
         if (allPlayers.length < totalNeeded) {
-            notify('Yeterli oyuncu yok!');
+            notify('Yeterli oyuncu yok!', true);
             return;
         }
 
@@ -2844,7 +2859,7 @@
 
     function exportMatchesToExcel() {
         if (matches.length === 0) {
-            notify('Dışa aktarılacak maç yok!');
+            notify('Dışa aktarılacak maç yok!', true);
             return;
         }
 

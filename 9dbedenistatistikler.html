@@ -1320,8 +1320,20 @@
                 <div class="player-checkbox-grid" id="team2-players"></div>
             </div>
 
-            <div style="margin-bottom:16px;padding:14px;background:#f0f7ff;border:2px solid #d0e4ff;border-radius:10px">
-                <label style="display:block;font-weight:600;color:#1E90FF;margin-bottom:8px;font-size:0.85rem">Ekstra Oyuncu (Opsiyonel)</label>
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
+                <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 1 Kişi Sayısı</label>
+                    <input type="number" id="match-t1-count" min="4" max="12" value="6" onchange="checkExtraPanel()" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
+                </div>
+                <div style="flex:1;min-width:120px">
+                    <label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Takım 2 Kişi Sayısı</label>
+                    <input type="number" id="match-t2-count" min="4" max="12" value="6" onchange="checkExtraPanel()" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">
+                </div>
+            </div>
+
+            <div id="extra-panel" style="display:none;margin-bottom:16px;padding:14px;background:#f0f7ff;border:2px solid #d0e4ff;border-radius:10px">
+                <label style="display:block;font-weight:600;color:#1E90FF;margin-bottom:8px;font-size:0.85rem">Ekstra Oyuncu</label>
+                <p id="extra-panel-info" style="font-size:0.8rem;color:#777;margin-bottom:8px"></p>
                 <div id="extra-match-players"></div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
                     <input type="text" id="extra-match-name" placeholder="Oyuncu adı" style="flex:1;min-width:120px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.85rem">
@@ -1738,6 +1750,23 @@
     const goalkeeperIds = players.filter(p => p.positions[0] === 'KL').map(p => p.id);
 
     const MAX_TEAM_SIZE = 6;
+
+    function checkExtraPanel() {
+        const t1Count = parseInt(document.getElementById('match-t1-count').value) || 6;
+        const t2Count = parseInt(document.getElementById('match-t2-count').value) || 6;
+        const total = t1Count + t2Count;
+        const panel = document.getElementById('extra-panel');
+        const needed = total - players.length;
+
+        if (total > 12) {
+            panel.style.display = 'block';
+            document.getElementById('extra-panel-info').textContent = `Toplam ${total} oyuncu gerekli, kadroda ${players.length} kişi var. ${needed - extraMatchPlayers.length} ekstra oyuncu daha ekleyin.`;
+        } else {
+            panel.style.display = 'none';
+            extraMatchPlayers = [];
+            renderExtraMatchPlayers();
+        }
+    }
 
     // Ekstra oyuncu sistemi (maç ekleme)
     let extraMatchPlayers = [];
@@ -2210,6 +2239,9 @@
         document.querySelectorAll('input[name="team2"]').forEach(cb => { cb.disabled = true; });
         extraMatchPlayers = [];
         renderExtraMatchPlayers();
+        document.getElementById('match-t1-count').value = '6';
+        document.getElementById('match-t2-count').value = '6';
+        document.getElementById('extra-panel').style.display = 'none';
     }
 
     // ===== PLAYER MODAL =====

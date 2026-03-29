@@ -1205,9 +1205,9 @@
 
         /* Giriş yapmamış kullanıcılara gizlenecek elemanlar */
         .auth-only { display: none !important; }
-        body.logged-in .auth-only { display: block !important; }
-        body.logged-in button.auth-only { display: inline-block !important; }
-        body.logged-in .match-card .auth-only { display: flex !important; }
+        body.admin-mode .auth-only { display: block !important; }
+        body.admin-mode button.auth-only { display: inline-block !important; }
+        body.admin-mode .match-card .auth-only { display: flex !important; }
 
         .user-bar {
             background: linear-gradient(135deg, #f8fbff, #e8f2ff);
@@ -1335,7 +1335,10 @@
 <div class="user-bar" id="user-bar" style="display:none">
     <div class="user-avatar" id="user-avatar"></div>
     <div class="user-info">
-        <span class="user-name" id="user-name"></span>
+        <div style="display:flex;align-items:center;gap:6px">
+            <span class="user-name" id="user-name"></span>
+            <span id="user-role" style="font-size:0.65rem;padding:2px 8px;border-radius:6px;font-weight:700;background:#f0f4f8"></span>
+        </div>
         <span class="user-email" id="user-email"></span>
     </div>
     <button class="logout-btn" onclick="logoutUser()">Çıkış Yap</button>
@@ -3246,6 +3249,8 @@
     }
 
     // Auth state dinle
+    const ADMIN_EMAILS = ['mehmetcinartursak497@gmail.com'];
+
     auth.onAuthStateChanged(user => {
         // Loading ekranını kaldır ve body'yi göster
         document.getElementById('loading-screen').style.display = 'none';
@@ -3255,23 +3260,35 @@
             // Giriş yapıldı
             document.getElementById('login-screen').style.display = 'none';
             document.body.classList.add('logged-in');
+
+            // Admin mi gözlemci mi?
+            const isAdmin = ADMIN_EMAILS.includes(user.email);
+            if (isAdmin) {
+                document.body.classList.add('admin-mode');
+            } else {
+                document.body.classList.remove('admin-mode');
+            }
+
             document.getElementById('user-bar').style.display = 'flex';
             const displayName = user.displayName || user.email.split('@')[0];
             const initial = displayName.charAt(0).toUpperCase();
             document.getElementById('user-avatar').textContent = initial;
             document.getElementById('user-name').textContent = displayName;
             document.getElementById('user-email').textContent = user.email;
+            document.getElementById('user-role').textContent = isAdmin ? 'Kontrolcü' : 'Gözlemci';
+            document.getElementById('user-role').style.color = isAdmin ? '#2ecc71' : '#f39c12';
             renderAll();
         } else {
             // Çıkış yapıldı
             document.getElementById('login-screen').style.display = 'flex';
             document.body.classList.remove('logged-in');
+            document.body.classList.remove('admin-mode');
             document.getElementById('user-bar').style.display = 'none';
         }
     });
 
     function isControlMode() {
-        return document.body.classList.contains('logged-in');
+        return document.body.classList.contains('admin-mode');
     }
 
     // Init

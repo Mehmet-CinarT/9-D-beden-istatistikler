@@ -2581,21 +2581,29 @@
         `;
     }
 
-    function openPlayerModal(id) {
+    let currentPlayerModalId = null;
+
+    function openPlayerModal(id, filter) {
         const p = players.find(x => x.id === id);
         if (!p) return;
+        currentPlayerModalId = id;
+        const activeFilter = filter || 'genel';
 
         document.getElementById('modal-player-name').textContent = p.name;
 
-        const playerMatches = matches.filter(m =>
+        const allPlayerMatches = matches.filter(m =>
             !m.pending && ((m.team1Players || []).includes(id) || (m.team2Players || []).includes(id))
         ).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-        const okulMatches = playerMatches.filter(m => m.location !== 'Halısaha');
-        const haliMatches = playerMatches.filter(m => m.location === 'Halısaha');
+        // Filtreye göre maçları seç
+        let filteredMatches;
+        if (activeFilter === 'okul') filteredMatches = allPlayerMatches.filter(m => m.location !== 'Halısaha');
+        else if (activeFilter === 'halisaha') filteredMatches = allPlayerMatches.filter(m => m.location === 'Halısaha');
+        else filteredMatches = allPlayerMatches;
 
-        const okulStats = calcStats(okulMatches, id);
-        const haliStats = calcStats(haliMatches, id);
+        const stats = calcStats(filteredMatches, id);
+
+        const btnStyle = (f) => `padding:8px 16px;border:2px solid ${activeFilter===f?'#1E90FF':'#ddd'};border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s;background:${activeFilter===f?'#1E90FF':'#fff'};color:${activeFilter===f?'#fff':'#666'}`;
 
         document.getElementById('modal-body').innerHTML = `
             <div style="margin-bottom:16px">
@@ -2608,15 +2616,17 @@
                 <strong>Kullanılan Ayak:</strong> ${p.foot}
             </div>
 
-            <h3 style="color:#1E90FF;margin:16px 0 8px">Okul İstatistikleri</h3>
-            ${okulMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz okul maçı yok</p>' : renderStatsGrid(okulStats)}
+            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+                <button onclick="openPlayerModal(${id},'genel')" style="${btnStyle('genel')}">Genel</button>
+                <button onclick="openPlayerModal(${id},'okul')" style="${btnStyle('okul')}">Okul</button>
+                <button onclick="openPlayerModal(${id},'halisaha')" style="${btnStyle('halisaha')}">Halısaha</button>
+            </div>
 
-            <h3 style="color:#2e7d32;margin:16px 0 8px">Halısaha İstatistikleri</h3>
-            ${haliMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz halısaha maçı yok</p>' : renderStatsGrid(haliStats)}
+            ${filteredMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem;text-align:center;padding:16px">Bu kategoride henüz maç yok</p>' : renderStatsGrid(stats)}
 
             <h3 style="color:#1E90FF;margin:16px 0 12px">Son Maçlar</h3>
-            ${playerMatches.length === 0 ? '<p style="color:#aaa">Henüz maç yok</p>' :
-            playerMatches.slice(0, 5).map(m => {
+            ${filteredMatches.length === 0 ? '' :
+            filteredMatches.slice(0, 5).map(m => {
                 const inTeam1 = (m.team1Players || []).includes(id);
                 const won = inTeam1 ? m.score1 > m.score2 : m.score2 > m.score1;
                 const draw = m.score1 === m.score2;

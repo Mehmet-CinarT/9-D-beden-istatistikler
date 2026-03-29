@@ -1446,6 +1446,18 @@
     });
 
     // ===== NOTIFICATION =====
+    // Kısa isim: ilk adı aynı olanlar İlk Harf + 2. isim, diğerleri sadece ilk isim
+    function getShortName(player) {
+        const parts = player.name.split(' ');
+        const firstName = parts[0];
+        // Aynı ilk ada sahip başka oyuncu var mı?
+        const sameFirst = players.filter(p => p.name.split(' ')[0] === firstName);
+        if (sameFirst.length > 1 && parts.length >= 2) {
+            return firstName[0] + '. ' + parts[1];
+        }
+        return firstName;
+    }
+
     function notify(msg) {
         const el = document.getElementById('notification');
         el.textContent = msg;
@@ -2283,12 +2295,12 @@
         let html = '';
         placed.forEach(({ player, top, left }) => {
             // Sadece ilk isim
-            const firstName = player.name.split(' ')[0];
+            const shortName = getShortName(player);
 
             html += `
                 <div class="pitch-player" style="top:${top}%;left:${left}%">
                     <div class="pitch-dot" style="background:${color}">${player.positions[0]}</div>
-                    <div class="pitch-name">${firstName}</div>
+                    <div class="pitch-name">${shortName}</div>
                 </div>
             `;
         });

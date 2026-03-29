@@ -1544,6 +1544,22 @@
             return new Date(a.date || 0) - new Date(b.date || 0);
         });
 
+        // Okul maçlarına tarih sırasına göre dinamik hafta numarası ata
+        let weekCounter = 0;
+        const weekMap = {};
+        [...matches]
+            .filter(m => m.location !== 'Halısaha')
+            .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0))
+            .forEach(m => {
+                weekCounter++;
+                weekMap[m.id] = weekCounter;
+            });
+
+        function getWeekLabel(m) {
+            if (m.location === 'Halısaha') return 'Halısaha';
+            return 'Hafta ' + (weekMap[m.id] || '-');
+        }
+
         function renderMatchCard(m) {
             const isPending = m.pending;
             const eventsHtml = isPending ? '' : (m.events || []).map(ev => {
@@ -1588,7 +1604,7 @@
                 <div class="match-card" onclick="${isPending ? '' : `openMatchModal(${m.id})`}" style="cursor:${isPending ? 'default' : 'pointer'};${cardStyle}" title="${isPending ? 'Oynanmamış maç' : 'Detaylar için tıkla'}">
                     <div class="match-header">
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                            <span style="font-weight:700;color:#333">${m.location === 'Halısaha' ? 'Halısaha' : 'Hafta ' + (m.week || '-')}</span>
+                            <span style="font-weight:700;color:#333">${getWeekLabel(m)}</span>
                             ${typeBadge} ${locBadge} ${serieBadge}
                         </div>
                         <div style="display:flex;align-items:center;gap:8px">
@@ -1994,17 +2010,17 @@
 
     function moveMatch(matchId, direction) {
         if (!isControlMode()) return;
-        // Hafta sırasına göre sırala
-        matches.sort((a, b) => (a.week || 0) - (b.week || 0));
+        // Tarih sırasına göre sırala
+        matches.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
         const idx = matches.findIndex(m => m.id === matchId);
         const swapIdx = idx + direction;
 
         if (swapIdx < 0 || swapIdx >= matches.length) return;
 
-        // Hafta numaralarını değiştir
-        const tempWeek = matches[idx].week;
-        matches[idx].week = matches[swapIdx].week;
-        matches[swapIdx].week = tempWeek;
+        // Tarihleri değiştir (sıralama tarihe göre olduğu için)
+        const tempDate = matches[idx].date;
+        matches[idx].date = matches[swapIdx].date;
+        matches[swapIdx].date = tempDate;
 
         saveData('9d_matches', matches);
         renderAll();
@@ -2054,7 +2070,7 @@
         const events = Object.values(eventMap);
 
         const matchId = Date.now();
-        const weekNum = matches.length + 1;
+        const weekNum = null; // Hafta numarası render sırasında dinamik hesaplanır
 
         // Turnuva ise serieId oluştur
         const serieId = matchType === 'Turnuva' ? matchId : null;

@@ -1810,6 +1810,7 @@
     }
 
     let players = [...defaultPlayers];
+    let playersShown = 12, matchesShown = 3, duyurularShown = 12, pollsShown = 12;
     let matches = [];
 
     // Firebase'den verileri dinle - anlık güncelleme
@@ -1927,7 +1928,8 @@
 
     function renderPlayersTable() {
         const sorted = [...players].sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists));
-        document.getElementById('players-table').innerHTML = sorted.map((p, i) => `
+        const visible = sorted.slice(0, playersShown);
+        document.getElementById('players-table').innerHTML = visible.map((p, i) => `
             <tr onclick="openPlayerModal(${p.id})">
                 <td>${i + 1}</td>
                 <td>${p.name}</td>
@@ -1938,7 +1940,7 @@
                 <td>${p.matches}</td>
                 <td>${p.gaMatches > 0 ? ((p.goals + p.assists) / p.gaMatches).toFixed(2) : '-'}</td>
             </tr>
-        `).join('');
+        `).join('') + (sorted.length > playersShown ? `<tr><td colspan="8" style="text-align:center;padding:14px"><button onclick="playersShown+=12;renderPlayersTable()" style="background:#1E90FF;color:#fff;border:none;padding:8px 24px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer">Daha Fazla Göster (${sorted.length - playersShown})</button></td></tr>` : '');
     }
 
     function renderMatches() {
@@ -2059,7 +2061,8 @@
             `;
         }
 
-        container.innerHTML = sorted.map(renderMatchCard).join('');
+        const visibleMatches = sorted.slice(0, matchesShown);
+        container.innerHTML = visibleMatches.map(renderMatchCard).join('') + (sorted.length > matchesShown ? `<div style="text-align:center;padding:16px"><button onclick="matchesShown+=3;renderMatches()" style="background:#1E90FF;color:#fff;border:none;padding:10px 28px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer">Daha Fazla Göster (${sorted.length - matchesShown})</button></div>` : '');
         const latestTwo = [...matches].filter(m => !m.pending).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).slice(0, 2);
         homeContainer.innerHTML = latestTwo.map(renderMatchCard).join('');
     }
@@ -3904,16 +3907,22 @@
                 `;
             }
 
+            const allPolls = [...unvoted.map(p => ({p, compact:false})), ...voted.map(p => ({p, compact:true}))];
+            const visiblePolls = allPolls.slice(0, pollsShown);
             let html = '';
-            if (unvoted.length > 0) {
-                html += unvoted.map(p => '<div style="margin-bottom:16px">' + renderPollCard(p, false) + '</div>').join('');
-            }
-            if (voted.length > 0) {
-                html += `<div style="margin-top:${unvoted.length > 0 ? '8px' : '0'};margin-bottom:8px;font-size:0.8rem;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.5px">Oy Verilmiş Anketler</div>`;
-                html += '<div style="display:flex;flex-direction:column;gap:10px">' + voted.map(p => renderPollCard(p, true)).join('') + '</div>';
-            }
-            if (unvoted.length === 0 && voted.length === 0) {
+            let votedStarted = false;
+            visiblePolls.forEach(({p, compact}) => {
+                if (compact && !votedStarted) {
+                    votedStarted = true;
+                    html += `<div style="margin-top:8px;margin-bottom:8px;font-size:0.8rem;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.5px">Oy Verilmiş Anketler</div>`;
+                }
+                html += '<div style="margin-bottom:' + (compact ? '10px' : '16px') + '">' + renderPollCard(p, compact) + '</div>';
+            });
+            if (allPolls.length === 0) {
                 html = '<div style="text-align:center;padding:40px;color:#aaa">Henüz anket yok</div>';
+            }
+            if (allPolls.length > pollsShown) {
+                html += `<div style="text-align:center;padding:12px"><button onclick="pollsShown+=12;renderPolls()" style="background:#9b59b6;color:#fff;border:none;padding:8px 24px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer">Daha Fazla Göster (${allPolls.length - pollsShown})</button></div>`;
             }
             container.innerHTML = html;
         });
@@ -4040,7 +4049,8 @@
             const readIds = getReadNotifIds();
             const list = Object.entries(notifs).sort(([,a],[,b]) => new Date(b.date) - new Date(a.date));
 
-            container.innerHTML = list.map(([id, n]) => {
+            const visibleNotifs = list.slice(0, duyurularShown);
+            container.innerHTML = visibleNotifs.map(([id, n]) => {
                 const isRead = readIds.includes(id);
                 return `
                     <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:${isRead ? '#f8f8f8' : '#e8f5e9'};border-radius:10px;margin-bottom:8px;border-left:4px solid ${isRead ? '#ddd' : '#2ecc71'};transition:all 0.2s">
@@ -4052,7 +4062,7 @@
                         <button class="auth-only" onclick="event.stopPropagation();deleteSingleNotif('${id}')" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:1.1rem;padding:0;line-height:1;transition:color 0.2s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='#ccc'" title="Sil">&times;</button>
                     </div>
                 `;
-            }).join('');
+            }).join('') + (list.length > duyurularShown ? `<div style="text-align:center;padding:12px"><button onclick="duyurularShown+=12;renderDuyurular()" style="background:#1E90FF;color:#fff;border:none;padding:8px 24px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer">Daha Fazla Göster (${list.length - duyurularShown})</button></div>` : '');
         });
     }
 

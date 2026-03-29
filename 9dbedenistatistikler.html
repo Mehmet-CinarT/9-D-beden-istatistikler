@@ -2157,10 +2157,24 @@
                 const resultText = draw ? 'B' : (won ? 'G' : 'M');
                 const matchGoals = (m.events || []).filter(e => e.playerId === id && e.type === 'goal').reduce((s, e) => s + (e.count || 1), 0);
                 const matchAssists = (m.events || []).filter(e => e.playerId === id && e.type === 'assist').reduce((s, e) => s + (e.count || 1), 0);
+                // Turnuva etiketi ve toplam skor
+                const serieBadge = m.serieMatch ? `<span style="font-size:0.65rem;padding:1px 6px;border-radius:6px;background:#fce4ec;color:#c62828;font-weight:700">${m.serieMatch}/${m.serieTotal}</span>` : '';
+                let totalLine = '';
+                if (m.serieId && m.serieMatch === 2) {
+                    const m1 = matches.find(x => x.serieId === m.serieId && x.serieMatch === 1);
+                    if (m1 && !m1.pending) {
+                        const tT1 = m1.score1 + m.score1, tT2 = m1.score2 + m.score2;
+                        totalLine = `<div style="font-size:0.7rem;color:#e67e22;font-weight:700;margin-top:2px">Toplam: ${tT1} - ${tT2}</div>`;
+                    }
+                }
+
                 return `
                     <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8f8f8;border-radius:8px;margin-bottom:6px">
                         <span style="width:28px;height:28px;border-radius:50%;background:${resultColor};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem">${resultText}</span>
-                        <span style="flex:1">${m.team1} <strong>${m.score1} - ${m.score2}</strong> ${m.team2}</span>
+                        <div style="flex:1">
+                            <div style="display:flex;align-items:center;gap:6px">${m.team1} <strong>${m.score1} - ${m.score2}</strong> ${m.team2} ${serieBadge}</div>
+                            ${totalLine}
+                        </div>
                         <span style="font-size:0.8rem;color:#666">${matchGoals}G ${matchAssists}A</span>
                     </div>
                 `;

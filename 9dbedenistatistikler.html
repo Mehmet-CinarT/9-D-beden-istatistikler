@@ -3842,14 +3842,27 @@
         });
     }
 
+    // Duyurulardaki onay bekliyor metnini güncelle
+    function updatePendingNotifText(playerName, newStatus) {
+        db.ref('9d_notifications').once('value', snap => {
+            const notifs = snap.val() || {};
+            Object.entries(notifs).forEach(([nid, n]) => {
+                if (n.text && n.text.includes(playerName) && n.text.includes('Onay bekliyor')) {
+                    db.ref('9d_notifications/' + nid + '/text').set(n.text.replace('(Onay bekliyor)', '(' + newStatus + ')'));
+                }
+            });
+            renderDuyurular();
+        });
+    }
+
     function approvePendingEdit(key) {
         db.ref('9d_pending_edits/' + key).once('value', snap => {
             const edit = snap.val();
             if (!edit) return;
-            // Mevkiyi uygula
             db.ref('9d_player_edits/' + edit.playerId + '/positions').set(edit.newPositions);
             db.ref('9d_pending_edits/' + key + '/status').set('approved');
             createNotification(edit.playerName + ' mevki değişikliği onaylandı: ' + edit.newPositions.join(', '));
+            updatePendingNotifText(edit.playerName, 'Onaylandı');
             notify('Mevki değişikliği onaylandı!');
             loadPendingEdits();
         });
@@ -3861,6 +3874,7 @@
             if (!edit) return;
             db.ref('9d_pending_edits/' + key + '/status').set('rejected');
             createNotification(edit.playerName + ' mevki değişikliği reddedildi');
+            updatePendingNotifText(edit.playerName, 'Reddedildi');
             notify('Mevki değişikliği reddedildi!');
             loadPendingEdits();
         });

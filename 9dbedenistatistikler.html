@@ -1520,7 +1520,12 @@
     }
 
     // ===== SAVE MATCH =====
+    function isControlMode() {
+        return document.body.classList.contains('control-mode');
+    }
+
     function moveMatch(matchId, direction) {
+        if (!isControlMode()) return;
         // Hafta sırasına göre sırala
         matches.sort((a, b) => (a.week || 0) - (b.week || 0));
         const idx = matches.findIndex(m => m.id === matchId);
@@ -1538,6 +1543,7 @@
     }
 
     function deleteMatch(matchId) {
+        if (!isControlMode()) return;
         if (!confirm('Bu maçı silmek istediğinize emin misiniz?')) return;
         matches = matches.filter(m => m.id !== matchId);
         saveData('9d_matches', matches);
@@ -1547,6 +1553,7 @@
     }
 
     function saveMatch() {
+        if (!isControlMode()) return;
         const team1 = document.getElementById('match-team1').value.trim() || 'Takım 1';
         const team2 = document.getElementById('match-team2').value.trim() || 'Takım 2';
         const score1 = parseInt(document.getElementById('match-score1').value) || 0;
@@ -1650,7 +1657,7 @@
                 return `
                     <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8f8f8;border-radius:8px;margin-bottom:6px">
                         <span style="width:28px;height:28px;border-radius:50%;background:${resultColor};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem">${resultText}</span>
-                        <span style="flex:1">${m.team1} ${m.score1} - ${m.score2} ${m.team2}</span>
+                        <span style="flex:1">${m.team1} <strong>${m.score1} - ${m.score2}</strong> ${m.team2}</span>
                         <span style="font-size:0.8rem;color:#666">${matchGoals}G ${matchAssists}A</span>
                     </div>
                 `;

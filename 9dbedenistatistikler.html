@@ -1525,7 +1525,8 @@
     function recalcPlayerStats() {
         players.forEach(p => { p.goals = 0; p.assists = 0; p.matches = 0; });
         matches.forEach(m => {
-            if (m.pending) return; // Oynanmamış maçları sayma
+            if (m.pending) return;
+            if (m.location === 'Halısaha') return; // Ana tabloda sadece okul maçları
             const allPlayerIds = [...(m.team1Players || []), ...(m.team2Players || [])];
             allPlayerIds.forEach(pid => {
                 const p = players.find(x => x.id === pid);
@@ -2278,6 +2279,41 @@
     }
 
     // ===== PLAYER MODAL =====
+    function calcStats(matchList, id) {
+        const wins = matchList.filter(m => {
+            const inTeam1 = (m.team1Players || []).includes(id);
+            return inTeam1 ? m.score1 > m.score2 : m.score2 > m.score1;
+        }).length;
+        const draws = matchList.filter(m => m.score1 === m.score2).length;
+        const losses = matchList.length - wins - draws;
+        let goals = 0, assists = 0;
+        matchList.forEach(m => {
+            (m.events || []).forEach(ev => {
+                if (ev.playerId === id) {
+                    if (ev.type === 'goal') goals += (ev.count || 1);
+                    if (ev.type === 'assist') assists += (ev.count || 1);
+                }
+            });
+        });
+        const winRate = matchList.length > 0 ? ((wins / matchList.length) * 100).toFixed(0) : 0;
+        return { goals, assists, matches: matchList.length, wins, draws, losses, winRate };
+    }
+
+    function renderStatsGrid(s) {
+        return `
+            <div class="player-info-grid">
+                <div class="info-item"><div class="info-value">${s.goals}</div><div class="info-label">Gol</div></div>
+                <div class="info-item"><div class="info-value">${s.assists}</div><div class="info-label">Asist</div></div>
+                <div class="info-item"><div class="info-value">${s.matches}</div><div class="info-label">Maç</div></div>
+                <div class="info-item"><div class="info-value">${s.goals + s.assists}</div><div class="info-label">G+A</div></div>
+                <div class="info-item"><div class="info-value">${s.wins}</div><div class="info-label">Galibiyet</div></div>
+                <div class="info-item"><div class="info-value">${s.draws}</div><div class="info-label">Beraberlik</div></div>
+                <div class="info-item"><div class="info-value">${s.losses}</div><div class="info-label">Mağlubiyet</div></div>
+                <div class="info-item"><div class="info-value">%${s.winRate}</div><div class="info-label">Kazanma Oranı</div></div>
+            </div>
+        `;
+    }
+
     function openPlayerModal(id) {
         const p = players.find(x => x.id === id);
         if (!p) return;
@@ -2288,14 +2324,11 @@
             !m.pending && ((m.team1Players || []).includes(id) || (m.team2Players || []).includes(id))
         ).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-        const wins = playerMatches.filter(m => {
-            const inTeam1 = (m.team1Players || []).includes(id);
-            return inTeam1 ? m.score1 > m.score2 : m.score2 > m.score1;
-        }).length;
+        const okulMatches = playerMatches.filter(m => m.location !== 'Halısaha');
+        const haliMatches = playerMatches.filter(m => m.location === 'Halısaha');
 
-        const draws = playerMatches.filter(m => m.score1 === m.score2).length;
-        const losses = playerMatches.length - wins - draws;
-        const winRate = playerMatches.length > 0 ? ((wins / playerMatches.length) * 100).toFixed(0) : 0;
+        const okulStats = calcStats(okulMatches, id);
+        const haliStats = calcStats(haliMatches, id);
 
         document.getElementById('modal-body').innerHTML = `
             <div style="margin-bottom:16px">
@@ -2307,16 +2340,13 @@
             <div style="margin-bottom:16px">
                 <strong>Kullanılan Ayak:</strong> ${p.foot}
             </div>
-            <div class="player-info-grid">
-                <div class="info-item"><div class="info-value">${p.goals}</div><div class="info-label">Gol</div></div>
-                <div class="info-item"><div class="info-value">${p.assists}</div><div class="info-label">Asist</div></div>
-                <div class="info-item"><div class="info-value">${p.matches}</div><div class="info-label">Maç</div></div>
-                <div class="info-item"><div class="info-value">${p.goals + p.assists}</div><div class="info-label">G+A</div></div>
-                <div class="info-item"><div class="info-value">${wins}</div><div class="info-label">Galibiyet</div></div>
-                <div class="info-item"><div class="info-value">${draws}</div><div class="info-label">Beraberlik</div></div>
-                <div class="info-item"><div class="info-value">${losses}</div><div class="info-label">Mağlubiyet</div></div>
-                <div class="info-item"><div class="info-value">%${winRate}</div><div class="info-label">Kazanma Oranı</div></div>
-            </div>
+
+            <h3 style="color:#1E90FF;margin:16px 0 8px">Okul İstatistikleri</h3>
+            ${okulMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz okul maçı yok</p>' : renderStatsGrid(okulStats)}
+
+            <h3 style="color:#2e7d32;margin:16px 0 8px">Halısaha İstatistikleri</h3>
+            ${haliMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz halısaha maçı yok</p>' : renderStatsGrid(haliStats)}
+
             <h3 style="color:#1E90FF;margin:16px 0 12px">Son Maçlar</h3>
             ${playerMatches.length === 0 ? '<p style="color:#aaa">Henüz maç yok</p>' :
             playerMatches.slice(0, 5).map(m => {
@@ -2327,8 +2357,9 @@
                 const resultText = draw ? 'B' : (won ? 'G' : 'M');
                 const matchGoals = (m.events || []).filter(e => e.playerId === id && e.type === 'goal').reduce((s, e) => s + (e.count || 1), 0);
                 const matchAssists = (m.events || []).filter(e => e.playerId === id && e.type === 'assist').reduce((s, e) => s + (e.count || 1), 0);
-                // Turnuva etiketi ve toplam skor
+                // Turnuva etiketi, yer etiketi ve toplam skor
                 const serieBadge = m.serieMatch ? `<span style="font-size:0.65rem;padding:1px 6px;border-radius:6px;background:#fce4ec;color:#c62828;font-weight:700">${m.serieMatch}/${m.serieTotal}</span>` : '';
+                const locTag = m.location === 'Halısaha' ? `<span style="font-size:0.6rem;padding:1px 5px;border-radius:5px;background:#e8f5e9;color:#2e7d32;font-weight:700">HS</span>` : '';
                 let totalLine = '';
                 if (m.serieId && m.serieMatch === 2) {
                     const m1 = matches.find(x => x.serieId === m.serieId && x.serieMatch === 1);
@@ -2342,7 +2373,7 @@
                     <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8f8f8;border-radius:8px;margin-bottom:6px">
                         <span style="width:28px;height:28px;border-radius:50%;background:${resultColor};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem">${resultText}</span>
                         <div style="flex:1">
-                            <div style="display:flex;align-items:center;gap:6px">${m.team1} <strong>${m.score1} - ${m.score2}</strong> ${m.team2} ${serieBadge}</div>
+                            <div style="display:flex;align-items:center;gap:6px">${m.team1} <strong>${m.score1} - ${m.score2}</strong> ${m.team2} ${serieBadge} ${locTag}</div>
                             ${totalLine}
                         </div>
                         <span style="font-size:0.8rem;color:#666">${matchGoals}G ${matchAssists}A</span>

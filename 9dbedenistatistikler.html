@@ -1266,10 +1266,16 @@
         .user-bar .logout-btn:hover { background: #e74c3c; color: #fff; }
     </style>
 </head>
-<body>
+<body style="visibility:hidden">
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1E90FF,#0052a3);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+    <div style="font-size:1.5rem;font-weight:700;color:#fff">9/D Maçlar ve İstatistikler</div>
+    <div style="font-size:0.9rem;color:rgba(255,255,255,0.7)">Yükleniyor...</div>
+</div>
 
 <!-- LOGIN SCREEN -->
-<div class="login-overlay" id="login-screen">
+<div class="login-overlay" id="login-screen" style="display:none">
     <div class="login-box">
         <h1>9/D Maçlar ve İstatistikler</h1>
         <p id="auth-subtitle">Giriş yapın veya kayıt olun</p>
@@ -3241,9 +3247,13 @@
 
     // Auth state dinle
     auth.onAuthStateChanged(user => {
+        // Loading ekranını kaldır ve body'yi göster
+        document.getElementById('loading-screen').style.display = 'none';
+        document.body.style.visibility = 'visible';
+
         if (user) {
             // Giriş yapıldı
-            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('login-screen').style.display = 'none';
             document.body.classList.add('logged-in');
             document.getElementById('user-bar').style.display = 'flex';
             const displayName = user.displayName || user.email.split('@')[0];
@@ -3254,7 +3264,7 @@
             renderAll();
         } else {
             // Çıkış yapıldı
-            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-screen').style.display = 'flex';
             document.body.classList.remove('logged-in');
             document.getElementById('user-bar').style.display = 'none';
         }

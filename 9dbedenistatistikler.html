@@ -1786,7 +1786,8 @@
         matches.forEach(m => {
             if (m.pending) return;
             if (m.location === 'Halısaha') return; // Ana tabloda sadece okul maçları
-            const hasEvents = m.events && m.events.length > 0;
+            const isZeroZero = m.score1 === 0 && m.score2 === 0;
+            const hasEvents = (m.events && m.events.length > 0) || isZeroZero;
             const allPlayerIds = [...(m.team1Players || []), ...(m.team2Players || [])];
             allPlayerIds.forEach(pid => {
                 const p = players.find(x => x.id === pid);
@@ -1951,7 +1952,7 @@
                             <div class="score-display">${m.score1} - ${m.score2}</div>
                             <div class="match-team"><div class="team-name">${m.team2}</div></div>
                         </div>
-                        <div class="match-details">${(m.events && m.events.length > 0 && !isPending) ? eventsHtml : '<span style="display:inline-block;padding:6px 12px;background:#fde8e8;color:#c62828;border-radius:8px;font-size:0.78rem;font-weight:600;width:100%">Bu maçta yaşanan olaylar kayıt altına alınmamıştır. (Bu sebeple bu maçlar maç başına G/A oranı hesaplanırken hesaplamaya dahil edilmemiştir)</span>'}</div>
+                        <div class="match-details">${(m.events && m.events.length > 0 && !isPending) ? eventsHtml : (m.score1 === 0 && m.score2 === 0 && !isPending) ? '' : (!isPending ? '<span style="display:inline-block;padding:6px 12px;background:#fde8e8;color:#c62828;border-radius:8px;font-size:0.78rem;font-weight:600;width:100%">Bu maçta yaşanan olaylar kayıt altına alınmamıştır. (Bu sebeple bu maçlar maç başına G/A oranı hesaplanırken hesaplamaya dahil edilmemiştir)</span>' : '')}</div>
                         ${tournamentSummary}
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
                             <span style="font-size:0.75rem;color:#aaa">Detaylar için tıkla</span>
@@ -2836,7 +2837,7 @@
             <div class="match-detail-section">
                 <h3>Maç Olayları</h3>
                 <div class="match-event-list">${eventsHtml}</div>
-            </div>` : `
+            </div>` : (m.score1 === 0 && m.score2 === 0) ? '' : `
             <div style="margin-top:16px;padding:12px 16px;background:#fde8e8;border-radius:10px;text-align:center;color:#c62828;font-weight:600;font-size:0.85rem">
                 Bu maçta yaşanan olaylar kayıt altına alınmamıştır. (Bu sebeple bu maçlar maç başına G/A oranı hesaplanırken hesaplamaya dahil edilmemiştir)
             </div>`}

@@ -1971,22 +1971,26 @@
 
     <!-- ===== DUYURULAR ===== -->
     <div id="tab-duyurular" class="tab-content">
-        <div class="table-wrapper">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 12px">
-                <h2 style="color:#1E90FF;margin:0">Duyurular</h2>
-                <button class="auth-only" onclick="clearAllNotifications()" style="background:#ff4757;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer">Tümünü Temizle</button>
-            </div>
-            <div id="duyurular-list" style="padding:0 24px 20px"></div>
-        </div>
-
         <!-- Duyuru Oluşturma (sadece kontrolcü) -->
-        <div class="form-section auth-only" style="border-top:4px solid #e74c3c;margin-top:16px">
+        <div class="form-section auth-only" style="border-top:4px solid #e74c3c">
             <h2 style="color:#e74c3c">Yeni Duyuru Oluştur</h2>
+            <div style="margin-bottom:12px">
+                <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Duyuru Başlığı</label>
+                <input type="text" id="custom-notif-title" placeholder="Duyuru başlığını yazın..." style="width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-size:0.9rem;background:var(--card-bg);color:var(--text)">
+            </div>
             <div style="margin-bottom:12px">
                 <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Duyuru Metni</label>
                 <textarea id="custom-notif-text" placeholder="Duyuru mesajını yazın..." style="width:100%;height:70px;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-size:0.9rem;resize:none;background:var(--card-bg);color:var(--text)"></textarea>
             </div>
             <button onclick="createCustomNotification()" class="save-match-btn" style="background:linear-gradient(135deg,#e74c3c,#c0392b)">Duyuru Yayınla</button>
+        </div>
+
+        <div class="table-wrapper" style="margin-top:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 12px">
+                <h2 style="color:#1E90FF;margin:0">Duyurular</h2>
+                <button class="auth-only" onclick="clearAllNotifications()" style="background:#ff4757;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer">Tümünü Temizle</button>
+            </div>
+            <div id="duyurular-list" style="padding:0 24px 20px"></div>
         </div>
     </div>
 
@@ -5200,9 +5204,13 @@
     function createCustomNotification() {
         if (!isControlMode()) return;
         if (!rateLimit('customNotif', 3000)) { notify('Çok hızlı! Birkaç saniye bekleyin.', true); return; }
+        const title = sanitizeInput(document.getElementById('custom-notif-title').value, 100);
         const text = sanitizeInput(document.getElementById('custom-notif-text').value, 500);
+        if (!title) { notify('Lütfen duyuru başlığı yazın!', true); return; }
         if (!text) { notify('Lütfen duyuru metni yazın!', true); return; }
-        createNotification(text);
+        const fullText = '📢 ' + title + ': ' + text;
+        createNotification(fullText);
+        document.getElementById('custom-notif-title').value = '';
         document.getElementById('custom-notif-text').value = '';
         notify('Duyuru yayınlandı!');
         renderDuyurular();

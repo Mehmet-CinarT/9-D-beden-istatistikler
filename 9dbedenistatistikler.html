@@ -1731,7 +1731,10 @@
                 <div class="event-list" id="event-list"></div>
             </div>
 
-            <button class="save-match-btn" onclick="saveMatch()">Maçı Kaydet</button>
+            <div style="display:flex;gap:10px">
+                <button class="save-match-btn" onclick="saveMatch()" style="flex:1">Maçı Kaydet</button>
+                <button onclick="resetMatchForm()" style="flex:0 0 auto;padding:12px 20px;background:#ff4757;color:#fff;border:none;border-radius:12px;font-weight:700;font-size:0.9rem;cursor:pointer">Temizle</button>
+            </div>
         </div>
 
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
@@ -2898,6 +2901,28 @@
         recalcPlayerStats();
         renderAll();
         notify('Maç silindi!');
+    }
+
+    function resetMatchForm() {
+        document.getElementById('match-score1').value = '0';
+        document.getElementById('match-score2').value = '0';
+        document.getElementById('match-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('match-location').value = 'Okul';
+        document.getElementById('match-type').value = 'Dostluk';
+        document.getElementById('tournament-extra').style.display = 'none';
+        document.getElementById('match-t1-count').value = '6';
+        document.getElementById('match-t2-count').value = '6';
+        document.getElementById('extra-panel').style.display = 'none';
+        document.getElementById('gk-select-section').style.display = 'none';
+        document.getElementById('event-list').innerHTML = '';
+        extraMatchPlayers = [];
+        renderExtraMatchPlayers();
+        document.querySelectorAll('input[name="team1"], input[name="team2"]').forEach(c => {
+            c.checked = false; c.disabled = false;
+            c.closest('.player-checkbox-item').style.opacity = '1';
+        });
+        document.querySelectorAll('input[name="team2"]').forEach(cb => { cb.disabled = true; });
+        notify('Form temizlendi!');
     }
 
     function saveMatch() {

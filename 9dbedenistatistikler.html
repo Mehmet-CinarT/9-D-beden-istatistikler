@@ -1899,6 +1899,17 @@
     </div>
 </div>
 
+<!-- EDIT MATCH MODAL -->
+<div class="modal-overlay" id="edit-match-modal">
+    <div class="modal" style="max-width:700px">
+        <div class="modal-header" style="background:linear-gradient(135deg,#e67e22,#d35400)">
+            <h2 id="edit-match-title">Maçı Düzenle</h2>
+            <button class="modal-close" onclick="closeEditMatch()">&times;</button>
+        </div>
+        <div class="modal-body" id="edit-match-body"></div>
+    </div>
+</div>
+
 <!-- PENDING MATCH RESULT MODAL -->
 <div class="modal-overlay" id="pending-modal">
     <div class="modal" style="max-width:700px">
@@ -2229,6 +2240,7 @@
                             <div style="display:flex;gap:6px;align-items:center" class="auth-only">
                                 <button onclick="event.stopPropagation();moveMatch(${m.id},-1)" style="background:#1E90FF;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer" title="Yukarı">&#9650;</button>
                                 <button onclick="event.stopPropagation();moveMatch(${m.id},1)" style="background:#1E90FF;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer" title="Aşağı">&#9660;</button>
+                                <button onclick="event.stopPropagation();openEditMatch(${m.id})" style="background:#e67e22;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Düzenle</button>
                                 <button onclick="event.stopPropagation();deleteMatch(${m.id})" style="background:#ff4757;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Sil</button>
                             </div>
                         </div>
@@ -2683,6 +2695,154 @@
 
     document.getElementById('pending-modal').addEventListener('click', function(e) {
         if (e.target === this) closePendingModal();
+    });
+
+    // ===== MATCH EDIT =====
+    let editMatchId = null;
+    let editEventCounter = 0;
+
+    function openEditMatch(matchId) {
+        if (!isControlMode()) return;
+        const m = matches.find(x => x.id === matchId);
+        if (!m) return;
+        editMatchId = matchId;
+        editEventCounter = 0;
+
+        document.getElementById('edit-match-title').textContent = 'Maçı Düzenle';
+
+        const allIds = [...(m.team1Players || []), ...(m.team2Players || [])];
+        const t1Set = new Set(m.team1Players || []);
+
+        // Takım oyuncuları checkbox
+        const t1Checks = players.map(p => {
+            const checked = (m.team1Players || []).includes(p.id);
+            return '<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.8rem"><input type="checkbox" name="edit-t1" value="' + p.id + '" ' + (checked ? 'checked' : '') + ' style="accent-color:#1E90FF"> ' + p.name + '</label>';
+        }).join('');
+
+        const t2Checks = players.map(p => {
+            const checked = (m.team2Players || []).includes(p.id);
+            return '<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.8rem"><input type="checkbox" name="edit-t2" value="' + p.id + '" ' + (checked ? 'checked' : '') + ' style="accent-color:#e74c3c"> ' + p.name + '</label>';
+        }).join('');
+
+        // Mevcut olayları yükle
+        let eventsHtml = '';
+        (m.events || []).forEach(ev => {
+            editEventCounter++;
+            const pl = findPlayer(ev.playerId, m);
+            const pName = pl ? pl.name : 'Bilinmeyen';
+            const allMatchPlayers = allIds.map(id => { const p = findPlayer(id, m); return p ? '<option value="' + p.id + '" ' + (p.id === ev.playerId ? 'selected' : '') + '>' + p.name + ' (' + (t1Set.has(p.id) ? 'TA' : 'TB') + ')</option>' : ''; }).join('');
+            eventsHtml += '<div class="event-row" id="edit-ev-' + editEventCounter + '"><select><option value="goal" ' + (ev.type === 'goal' ? 'selected' : '') + '>Gol</option><option value="assist" ' + (ev.type === 'assist' ? 'selected' : '') + '>Asist</option></select><select>' + allMatchPlayers + '</select><input type="number" min="0" value="' + (ev.count || 1) + '" style="width:60px"><button class="remove-event" onclick="document.getElementById(\'edit-ev-' + editEventCounter + '\').remove()">&#10005;</button></div>';
+        });
+
+        document.getElementById('edit-match-body').innerHTML = `
+            <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+                <div style="flex:1;min-width:100px">
+                    <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Yer</label>
+                    <select id="edit-location" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">
+                        <option value="Okul" ${m.location==='Okul'?'selected':''}>Okul</option>
+                        <option value="Halısaha" ${m.location==='Halısaha'?'selected':''}>Halısaha</option>
+                    </select>
+                </div>
+                <div style="flex:1;min-width:100px">
+                    <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Tür</label>
+                    <select id="edit-type" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">
+                        <option value="Dostluk" ${m.matchType==='Dostluk'?'selected':''}>Dostluk</option>
+                        <option value="Lig" ${m.matchType==='Lig'?'selected':''}>Lig</option>
+                        <option value="Turnuva" ${m.matchType==='Turnuva'?'selected':''}>Turnuva</option>
+                    </select>
+                </div>
+                <div style="flex:1;min-width:100px">
+                    <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Tarih</label>
+                    <input type="date" id="edit-date" value="${m.date || ''}" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+                <div style="flex:1;min-width:100px">
+                    <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Takım A Skor</label>
+                    <input type="number" id="edit-score1" min="0" value="${m.score1}" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">
+                </div>
+                <div style="flex:1;min-width:100px">
+                    <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Takım B Skor</label>
+                    <input type="number" id="edit-score2" min="0" value="${m.score2}" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">
+                </div>
+            </div>
+
+            <div style="margin-bottom:14px">
+                <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Takım A Oyuncuları</label>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px">${t1Checks}</div>
+            </div>
+
+            <div style="margin-bottom:14px">
+                <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Takım B Oyuncuları</label>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px">${t2Checks}</div>
+            </div>
+
+            <div style="margin-bottom:14px">
+                <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:8px;font-size:0.85rem">Gol & Asist Olayları</label>
+                <button class="btn btn-secondary" onclick="addEditEvent()" style="margin-bottom:8px">+ Olay Ekle</button>
+                <div id="edit-event-list">${eventsHtml}</div>
+            </div>
+
+            <button onclick="saveEditMatch()" class="save-match-btn" style="background:linear-gradient(135deg,#e67e22,#d35400)">Değişiklikleri Kaydet</button>
+        `;
+
+        document.getElementById('edit-match-modal').classList.add('show');
+    }
+
+    function addEditEvent() {
+        editEventCounter++;
+        const t1Checked = [...document.querySelectorAll('input[name="edit-t1"]:checked')].map(c => parseInt(c.value));
+        const t2Checked = [...document.querySelectorAll('input[name="edit-t2"]:checked')].map(c => parseInt(c.value));
+        const allIds = [...t1Checked, ...t2Checked];
+        const opts = allIds.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + ' (' + (t1Checked.includes(p.id) ? 'TA' : 'TB') + ')</option>' : ''; }).join('');
+
+        const html = '<div class="event-row" id="edit-ev-' + editEventCounter + '"><select><option value="goal">Gol</option><option value="assist">Asist</option></select><select>' + opts + '</select><input type="number" min="0" value="1" style="width:60px"><button class="remove-event" onclick="document.getElementById(\'edit-ev-' + editEventCounter + '\').remove()">&#10005;</button></div>';
+        document.getElementById('edit-event-list').insertAdjacentHTML('beforeend', html);
+    }
+
+    function saveEditMatch() {
+        if (!isControlMode()) return;
+        const m = matches.find(x => x.id === editMatchId);
+        if (!m) return;
+
+        m.location = document.getElementById('edit-location').value;
+        m.matchType = document.getElementById('edit-type').value;
+        m.date = document.getElementById('edit-date').value;
+        m.score1 = parseInt(document.getElementById('edit-score1').value) || 0;
+        m.score2 = parseInt(document.getElementById('edit-score2').value) || 0;
+        m.team1Players = [...document.querySelectorAll('input[name="edit-t1"]:checked')].map(c => parseInt(c.value));
+        m.team2Players = [...document.querySelectorAll('input[name="edit-t2"]:checked')].map(c => parseInt(c.value));
+
+        // Olayları topla
+        const rawEvents = [];
+        document.querySelectorAll('#edit-event-list .event-row').forEach(row => {
+            const selects = row.querySelectorAll('select');
+            const input = row.querySelector('input');
+            rawEvents.push({ type: selects[0].value, playerId: parseInt(selects[1].value), count: parseInt(input.value) || 1 });
+        });
+        const eventMap = {};
+        rawEvents.forEach(ev => {
+            const key = ev.playerId + '_' + ev.type;
+            if (eventMap[key]) eventMap[key].count += ev.count;
+            else eventMap[key] = { ...ev };
+        });
+        m.events = Object.values(eventMap);
+
+        saveData('9d_matches', matches);
+        recalcPlayerStats();
+        renderAll();
+        closeEditMatch();
+        notify('Maç başarıyla düzenlendi!');
+    }
+
+    function closeEditMatch() {
+        document.getElementById('edit-match-modal').classList.remove('show');
+        editMatchId = null;
+    }
+
+    document.getElementById('edit-match-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditMatch();
     });
 
     function moveMatch(matchId, direction) {

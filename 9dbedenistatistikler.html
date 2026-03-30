@@ -2414,24 +2414,33 @@
             }
         });
 
-        // Takım B checkboxlarını güncelle
-        document.querySelectorAll('input[name="team2"]').forEach(cb => {
-            if (t1Checked.has(cb.value)) {
+        // Takım A'da hiç kimse seçili değilse Takım B'yi temizle
+        if (t1Count === 0) {
+            document.querySelectorAll('input[name="team2"]').forEach(cb => {
                 cb.checked = false;
                 cb.disabled = true;
                 cb.closest('.player-checkbox-item').style.opacity = '0.4';
-            } else {
-                cb.checked = true;
-                cb.disabled = false;
-                cb.closest('.player-checkbox-item').style.opacity = '1';
-            }
-        });
+            });
+        } else {
+            // Takım B checkboxlarını güncelle
+            document.querySelectorAll('input[name="team2"]').forEach(cb => {
+                if (t1Checked.has(cb.value)) {
+                    cb.checked = false;
+                    cb.disabled = true;
+                    cb.closest('.player-checkbox-item').style.opacity = '0.4';
+                } else {
+                    cb.checked = true;
+                    cb.disabled = false;
+                    cb.closest('.player-checkbox-item').style.opacity = '1';
+                }
+            });
 
-        // Takım B'de 6'dan fazla varsa sondan kaldır
-        const t2Final = [...document.querySelectorAll('input[name="team2"]:checked')];
-        if (t2Final.length > MAX_TEAM_SIZE) {
-            for (let i = t2Final.length - 1; i >= MAX_TEAM_SIZE; i--) {
-                t2Final[i].checked = false;
+            // Takım B'de 6'dan fazla varsa sondan kaldır
+            const t2Final = [...document.querySelectorAll('input[name="team2"]:checked')];
+            if (t2Final.length > MAX_TEAM_SIZE) {
+                for (let i = t2Final.length - 1; i >= MAX_TEAM_SIZE; i--) {
+                    t2Final[i].checked = false;
+                }
             }
         }
 

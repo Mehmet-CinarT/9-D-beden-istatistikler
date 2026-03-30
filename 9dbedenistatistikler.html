@@ -3504,8 +3504,11 @@
         const matchGkId = matchData && matchData.matchGk ? matchData.matchGk[gkKey] : null;
 
         const groups = { KL: [], STP: [], MDO: [], MO: [], MOO: [], SLK: [], SĞK: [], SNT: [] };
+        const usedPrimaryPos = {};
+
+        // Önce özel kuralları uygula, sonra as mevkiye göre yerleştir
         teamPlayers.forEach(p => {
-            let pos = p.positions[0];
+            let pos = p.primaryPos || p.positions[0];
 
             // Boran+Demir aynı takımda: Demir kaleci, Boran stoper
             if (bothKlInTeam) {
@@ -3515,6 +3518,25 @@
 
             // matchGk ile seçilen kaleci override
             if (matchGkId && p.id === matchGkId) pos = 'KL';
+
+            // Aynı as mevkide biri zaten varsa alternatif mevkiye geç
+            if (!usedPrimaryPos[pos]) usedPrimaryPos[pos] = 0;
+            usedPrimaryPos[pos]++;
+
+            // KL: max 1, diğer mevkiler: max 2 (aynı hatta 2 kişi olabilir)
+            const maxPerPos = pos === 'KL' ? 1 : 2;
+            if (usedPrimaryPos[pos] > maxPerPos && p.positions.length > 1) {
+                // Alternatif mevki bul (çakışmayan)
+                for (let i = 1; i < p.positions.length; i++) {
+                    const altPos = p.positions[i];
+                    if (!usedPrimaryPos[altPos] || usedPrimaryPos[altPos] < (altPos === 'KL' ? 1 : 2)) {
+                        pos = altPos;
+                        if (!usedPrimaryPos[pos]) usedPrimaryPos[pos] = 0;
+                        usedPrimaryPos[pos]++;
+                        break;
+                    }
+                }
+            }
 
             if (groups[pos]) groups[pos].push(p);
             else groups['MO'].push(p);

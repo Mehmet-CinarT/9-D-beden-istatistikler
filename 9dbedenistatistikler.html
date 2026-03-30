@@ -2392,18 +2392,12 @@
         );
         const t1Count = t1Checked.size;
 
-        // Takım A'de kaç kaleci var?
-        const t1GkCount = [...t1Checked].filter(id => goalkeeperIds.includes(parseInt(id))).length;
-
-        // Takım A: kaleci limiti + 6 kişi limiti
+        // Takım A: 6 kişi limiti
         document.querySelectorAll('input[name="team1"]').forEach(cb => {
-            const pid = parseInt(cb.value);
-            const isGk = goalkeeperIds.includes(pid);
-
             if (cb.checked) {
                 cb.disabled = false;
                 cb.closest('.player-checkbox-item').style.opacity = '1';
-            } else if ((isGk && t1GkCount >= 1) || t1Count >= MAX_TEAM_SIZE) {
+            } else if (t1Count >= MAX_TEAM_SIZE) {
                 cb.disabled = true;
                 cb.closest('.player-checkbox-item').style.opacity = '0.4';
             } else {
@@ -2414,7 +2408,6 @@
 
         // Takım B checkboxlarını güncelle
         document.querySelectorAll('input[name="team2"]').forEach(cb => {
-            const pid = parseInt(cb.value);
             if (t1Checked.has(cb.value)) {
                 cb.checked = false;
                 cb.disabled = true;
@@ -2425,22 +2418,6 @@
                 cb.closest('.player-checkbox-item').style.opacity = '1';
             }
         });
-
-        // Takım B: kaleci limiti + 6 kişi limiti
-        const t2Checked = [...document.querySelectorAll('input[name="team2"]:checked')];
-        const t2Count = t2Checked.length;
-        let t2GkCount = t2Checked.filter(cb => goalkeeperIds.includes(parseInt(cb.value))).length;
-
-        // Fazla kalecileri kaldır
-        if (t2GkCount > 1) {
-            let kept = 0;
-            t2Checked.forEach(cb => {
-                if (goalkeeperIds.includes(parseInt(cb.value))) {
-                    kept++;
-                    if (kept > 1) cb.checked = false;
-                }
-            });
-        }
 
         // Takım B'de 6'dan fazla varsa sondan kaldır
         const t2Final = [...document.querySelectorAll('input[name="team2"]:checked')];
@@ -2900,11 +2877,7 @@
             return;
         }
 
-        // Her takımda en az 1 kaleci zorunlu
-        const t1HasGk = team1Players.some(id => goalkeeperIds.includes(id));
-        const t2HasGk = team2Players.some(id => goalkeeperIds.includes(id));
-        if (!t1HasGk) { notify('Takım A\'de en az bir kaleci olmalı!', true); return; }
-        if (!t2HasGk) { notify('Takım B\'de en az bir kaleci olmalı!', true); return; }
+        // Kaleci kontrolü kaldırıldı - aynı takımda birden fazla kaleci olabilir
 
         const rawEvents = getCurrentEvents();
         const eventMap = {};

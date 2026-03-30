@@ -1978,6 +1978,16 @@
             </div>
             <div id="duyurular-list" style="padding:0 24px 20px"></div>
         </div>
+
+        <!-- Duyuru Oluşturma (sadece kontrolcü) -->
+        <div class="form-section auth-only" style="border-top:4px solid #e74c3c;margin-top:16px">
+            <h2 style="color:#e74c3c">Yeni Duyuru Oluştur</h2>
+            <div style="margin-bottom:12px">
+                <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:6px;font-size:0.85rem">Duyuru Metni</label>
+                <textarea id="custom-notif-text" placeholder="Duyuru mesajını yazın..." style="width:100%;height:70px;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-size:0.9rem;resize:none;background:var(--card-bg);color:var(--text)"></textarea>
+            </div>
+            <button onclick="createCustomNotification()" class="save-match-btn" style="background:linear-gradient(135deg,#e74c3c,#c0392b)">Duyuru Yayınla</button>
+        </div>
     </div>
 
     <!-- ===== ANKETLER ===== -->
@@ -5185,6 +5195,17 @@
             badge.textContent = unread;
             badge.style.background = unread > 0 ? '#e74c3c' : '#aaa';
         });
+    }
+
+    function createCustomNotification() {
+        if (!isControlMode()) return;
+        if (!rateLimit('customNotif', 3000)) { notify('Çok hızlı! Birkaç saniye bekleyin.', true); return; }
+        const text = sanitizeInput(document.getElementById('custom-notif-text').value, 500);
+        if (!text) { notify('Lütfen duyuru metni yazın!', true); return; }
+        createNotification(text);
+        document.getElementById('custom-notif-text').value = '';
+        notify('Duyuru yayınlandı!');
+        renderDuyurular();
     }
 
     function deleteSingleNotif(id) {

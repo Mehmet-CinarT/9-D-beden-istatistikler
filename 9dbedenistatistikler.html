@@ -2266,7 +2266,7 @@
 
     // ===== RENDER FUNCTIONS =====
     function recalcPlayerStats() {
-        players.forEach(p => { p.goals = 0; p.assists = 0; p.matches = 0; p.gaMatches = 0; });
+        players.forEach(p => { p.goals = 0; p.assists = 0; p.matches = 0; p.gaMatches = 0; p.conceded = 0; p.gkMatches = 0; });
         matches.forEach(m => {
             if (m.pending) return;
             if (m.location === 'Halısaha') return; // Ana tabloda sadece okul maçları
@@ -2289,6 +2289,22 @@
                     }
                 });
             }
+        });
+        // Yenilen gol hesapla (sadece KL oynanan maçlar)
+        matches.forEach(m => {
+            if (m.pending) return;
+            if (m.location === 'Halısaha') return;
+            const allPlayerIds = [...(m.team1Players || []), ...(m.team2Players || [])];
+            allPlayerIds.forEach(pid => {
+                const p = players.find(x => x.id === pid);
+                if (!p) return;
+                const pos = getPlayerMatchPos(pid, m);
+                if (pos === 'KL') {
+                    const inTeam1 = (m.team1Players || []).includes(pid);
+                    p.conceded += inTeam1 ? (m.score2 || 0) : (m.score1 || 0);
+                    p.gkMatches++;
+                }
+            });
         });
         // Oyuncu istatistikleri maçlardan hesaplanır, ayrıca kaydetmeye gerek yok
     }
@@ -3218,6 +3234,27 @@
     }
 
     // ===== PLAYER MODAL =====
+    // Bir maçta oyuncunun hangi mevkide oynadığını bul
+    function getPlayerMatchPos(playerId, match) {
+        const boranId = 11, demirId = 12;
+        const inTeam1 = (match.team1Players || []).includes(playerId);
+        const teamPlayers = inTeam1 ? (match.team1Players || []) : (match.team2Players || []);
+        const teamKey = inTeam1 ? 'team1' : 'team2';
+
+        // matchGk ile seçilen kaleci
+        if (match.matchGk && match.matchGk[teamKey] === playerId) return 'KL';
+
+        // Boran+Demir aynı takımda: Demir=KL, Boran=STP
+        if (teamPlayers.includes(boranId) && teamPlayers.includes(demirId)) {
+            if (playerId === demirId) return 'KL';
+            if (playerId === boranId) return 'STP';
+        }
+
+        // Normal mevki
+        const p = players.find(x => x.id === playerId);
+        return p ? p.positions[0] : '?';
+    }
+
     function calcStats(matchList, id) {
         const wins = matchList.filter(m => {
             const inTeam1 = (m.team1Players || []).includes(id);
@@ -3225,7 +3262,7 @@
         }).length;
         const draws = matchList.filter(m => m.score1 === m.score2).length;
         const losses = matchList.length - wins - draws;
-        let goals = 0, assists = 0;
+        let goals = 0, assists = 0, conceded = 0, gkMatches = 0;
         matchList.forEach(m => {
             (m.events || []).forEach(ev => {
                 if (ev.playerId === id) {
@@ -3233,12 +3270,24 @@
                     if (ev.type === 'assist') assists += (ev.count || 1);
                 }
             });
+            // Yenilen gol: sadece KL oynanan maçlarda
+            const pos = getPlayerMatchPos(id, m);
+            if (pos === 'KL') {
+                const inTeam1 = (m.team1Players || []).includes(id);
+                conceded += inTeam1 ? (m.score2 || 0) : (m.score1 || 0);
+                gkMatches++;
+            }
         });
         const winRate = matchList.length > 0 ? ((wins / matchList.length) * 100).toFixed(0) : 0;
-        return { goals, assists, matches: matchList.length, wins, draws, losses, winRate };
+        return { goals, assists, matches: matchList.length, wins, draws, losses, winRate, conceded, gkMatches };
     }
 
     function renderStatsGrid(s) {
+        const gkRow = s.gkMatches > 0 ? `
+            <div class="info-item" style="border:1px solid #e74c3c33"><div class="info-value" style="color:#e74c3c">${s.conceded}</div><div class="info-label">Yenilen Gol</div></div>
+            <div class="info-item" style="border:1px solid #e74c3c33"><div class="info-value" style="color:#e74c3c">${s.gkMatches > 0 ? (s.conceded / s.gkMatches).toFixed(1) : '-'}</div><div class="info-label">Maç Başı YG</div></div>
+            <div class="info-item" style="border:1px solid #2ecc7133"><div class="info-value" style="color:#2ecc71">${s.gkMatches}</div><div class="info-label">Kalecilik Maçı</div></div>
+        ` : '';
         return `
             <div class="player-info-grid">
                 <div class="info-item"><div class="info-value">${s.goals}</div><div class="info-label">Gol</div></div>
@@ -3249,6 +3298,7 @@
                 <div class="info-item"><div class="info-value">${s.draws}</div><div class="info-label">Beraberlik</div></div>
                 <div class="info-item"><div class="info-value">${s.losses}</div><div class="info-label">Mağlubiyet</div></div>
                 <div class="info-item"><div class="info-value">%${s.winRate}</div><div class="info-label">Kazanma Oranı</div></div>
+                ${gkRow}
             </div>
         `;
     }
@@ -3841,7 +3891,7 @@
         const colWidths = [40, 140, 100, 60, 60, 60, 60, 70];
         colWidths.forEach(w => { xml += `  <Column ss:Width="${w}"/>\n`; });
 
-        const headers = ['#', 'Ad Soyad', 'Mevki', 'Ayak', 'Gol', 'Asist', 'Maç', 'Maç Başı G+A'];
+        const headers = ['#', 'Ad Soyad', 'Mevki', 'Ayak', 'Gol', 'Asist', 'Maç', 'Maç Başı G+A', 'Yenilen Gol', 'KL Maçı'];
         xml += '  <Row ss:Height="25">\n';
         headers.forEach(h => { xml += `    <Cell ss:StyleID="header"><Data ss:Type="String">${h}</Data></Cell>\n`; });
         xml += '  </Row>\n';
@@ -3858,6 +3908,8 @@
             xml += `    <Cell ss:StyleID="center"><Data ss:Type="Number">${p.assists}</Data></Cell>\n`;
             xml += `    <Cell ss:StyleID="center"><Data ss:Type="Number">${p.matches}</Data></Cell>\n`;
             xml += `    <Cell ss:StyleID="center"><Data ss:Type="String">${avg}</Data></Cell>\n`;
+            xml += `    <Cell ss:StyleID="center"><Data ss:Type="Number">${p.conceded || 0}</Data></Cell>\n`;
+            xml += `    <Cell ss:StyleID="center"><Data ss:Type="Number">${p.gkMatches || 0}</Data></Cell>\n`;
             xml += '  </Row>\n';
         });
 

@@ -2447,19 +2447,27 @@
         const t1Full = t1Ids.length >= t1Count;
         const t2Full = t2Ids.length >= t2Count;
 
+        // 2 kaleci de henüz seçilmediyse hiçbir takım için kaleci seçimi gösterme
+        const allSelectedIds = [...t1Ids, ...t2Ids];
+        const totalGkSelected = allSelectedIds.filter(id => goalkeeperIds.includes(id)).length;
+        const totalGkInRoster = goalkeeperIds.length;
+
         const section = document.getElementById('gk-select-section');
         let html = '';
 
-        if (t1Full && !t1HasGk) {
-            const opts = t1Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + '</option>' : ''; }).join('');
-            html += '<div style="margin-bottom:10px"><label style="display:block;font-weight:600;color:#e67e22;margin-bottom:6px;font-size:0.85rem">Takım A\'da kaleci yok! Kaleci olarak kimi seçmek istersiniz?</label>' +
-                '<select id="gk-select-t1" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:8px;font-size:0.85rem">' + opts + '</select></div>';
-        }
+        // Tüm kaleciler seçilene kadar bekle, sonra eksik takıma kaleci seçtir
+        if (totalGkSelected >= totalGkInRoster) {
+            if (t1Full && !t1HasGk) {
+                const opts = t1Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + '</option>' : ''; }).join('');
+                html += '<div style="margin-bottom:10px"><label style="display:block;font-weight:600;color:#e67e22;margin-bottom:6px;font-size:0.85rem">Takım A\'da kaleci yok! Kaleci olarak kimi seçmek istersiniz?</label>' +
+                    '<select id="gk-select-t1" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:8px;font-size:0.85rem">' + opts + '</select></div>';
+            }
 
-        if (t2Full && !t2HasGk) {
-            const opts = t2Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + '</option>' : ''; }).join('');
-            html += '<div><label style="display:block;font-weight:600;color:#e67e22;margin-bottom:6px;font-size:0.85rem">Takım B\'de kaleci yok! Kaleci olarak kimi seçmek istersiniz?</label>' +
-                '<select id="gk-select-t2" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:8px;font-size:0.85rem">' + opts + '</select></div>';
+            if (t2Full && !t2HasGk) {
+                const opts = t2Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + '</option>' : ''; }).join('');
+                html += '<div><label style="display:block;font-weight:600;color:#e67e22;margin-bottom:6px;font-size:0.85rem">Takım B\'de kaleci yok! Kaleci olarak kimi seçmek istersiniz?</label>' +
+                    '<select id="gk-select-t2" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:8px;font-size:0.85rem">' + opts + '</select></div>';
+            }
         }
 
         if (html) {

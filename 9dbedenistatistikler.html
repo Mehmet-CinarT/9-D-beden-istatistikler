@@ -1818,6 +1818,7 @@
                         <th>Asist</th>
                         <th>Maç</th>
                         <th>Maç Başı G+A</th>
+                        <th>Yenilen Gol</th>
                     </tr>
                 </thead>
                 <tbody id="players-table"></tbody>
@@ -2349,8 +2350,9 @@
                 <td>${p.assists}</td>
                 <td>${p.matches}</td>
                 <td>${p.gaMatches > 0 ? ((p.goals + p.assists) / p.gaMatches).toFixed(2) : '-'}</td>
+                <td>${p.gkMatches > 0 ? p.conceded : '-'}</td>
             </tr>
-        `).join('') + (sorted.length > playersShown ? `<tr><td colspan="8" style="text-align:center;padding:14px"><button onclick="playersShown+=12;renderPlayersTable()" style="background:#1E90FF;color:#fff;border:none;padding:8px 24px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer">Daha Fazla Göster (${sorted.length - playersShown})</button></td></tr>` : '');
+        `).join('') + (sorted.length > playersShown ? `<tr><td colspan="9" style="text-align:center;padding:14px"><button onclick="playersShown+=12;renderPlayersTable()" style="background:#1E90FF;color:#fff;border:none;padding:8px 24px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer">Daha Fazla Göster (${sorted.length - playersShown})</button></td></tr>` : '');
     }
 
     function renderMatches() {

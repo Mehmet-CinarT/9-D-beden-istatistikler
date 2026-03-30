@@ -1720,6 +1720,11 @@
                 </div>
             </div>
 
+            <!-- Kaleci seçimi uyarısı -->
+            <div id="gk-select-section" style="display:none;margin-bottom:16px;padding:14px;background:#fff3e0;border:2px solid #ffe0b2;border-radius:10px">
+                <div id="gk-select-content"></div>
+            </div>
+
             <div style="margin-bottom:16px">
                 <label style="display:block;font-weight:600;color:#555;margin-bottom:8px;font-size:0.85rem">Gol & Asist Olayları</label>
                 <button class="btn btn-secondary" onclick="addEvent()" style="margin-bottom:8px">+ Olay Ekle</button>
@@ -2426,6 +2431,43 @@
                 t2Final[i].checked = false;
             }
         }
+
+        // Kaleci yoksa seçim bölümü göster
+        checkGkSelection();
+    }
+
+    function checkGkSelection() {
+        const t1Count = parseInt(document.getElementById('match-t1-count').value) || 6;
+        const t2Count = parseInt(document.getElementById('match-t2-count').value) || 6;
+        const t1Ids = [...document.querySelectorAll('input[name="team1"]:checked')].map(c => parseInt(c.value));
+        const t2Ids = [...document.querySelectorAll('input[name="team2"]:checked')].map(c => parseInt(c.value));
+
+        const t1HasGk = t1Ids.some(id => goalkeeperIds.includes(id));
+        const t2HasGk = t2Ids.some(id => goalkeeperIds.includes(id));
+        const t1Full = t1Ids.length >= t1Count;
+        const t2Full = t2Ids.length >= t2Count;
+
+        const section = document.getElementById('gk-select-section');
+        let html = '';
+
+        if (t1Full && !t1HasGk) {
+            const opts = t1Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + '</option>' : ''; }).join('');
+            html += '<div style="margin-bottom:10px"><label style="display:block;font-weight:600;color:#e67e22;margin-bottom:6px;font-size:0.85rem">Takım A\'da kaleci yok! Kaleci olarak kimi seçmek istersiniz?</label>' +
+                '<select id="gk-select-t1" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:8px;font-size:0.85rem">' + opts + '</select></div>';
+        }
+
+        if (t2Full && !t2HasGk) {
+            const opts = t2Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + '</option>' : ''; }).join('');
+            html += '<div><label style="display:block;font-weight:600;color:#e67e22;margin-bottom:6px;font-size:0.85rem">Takım B\'de kaleci yok! Kaleci olarak kimi seçmek istersiniz?</label>' +
+                '<select id="gk-select-t2" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:8px;font-size:0.85rem">' + opts + '</select></div>';
+        }
+
+        if (html) {
+            section.style.display = 'block';
+            document.getElementById('gk-select-content').innerHTML = html;
+        } else {
+            section.style.display = 'none';
+        }
     }
 
     // ===== EVENTS (GOAL/ASSIST) =====
@@ -2877,7 +2919,12 @@
             return;
         }
 
-        // Kaleci kontrolü kaldırıldı - aynı takımda birden fazla kaleci olabilir
+        // Kaleci seçimi: takımda kaleci yoksa seçilen oyuncuyu kaydet
+        const matchGk = {};
+        const gkT1 = document.getElementById('gk-select-t1');
+        const gkT2 = document.getElementById('gk-select-t2');
+        if (gkT1) matchGk.team1 = parseInt(gkT1.value);
+        if (gkT2) matchGk.team2 = parseInt(gkT2.value);
 
         const rawEvents = getCurrentEvents();
         const eventMap = {};
@@ -2900,7 +2947,7 @@
             team1, team2, score1, score2, date,
             location, matchType,
             serieId, serieMatch: matchType === 'Turnuva' ? 1 : null, serieTotal: matchType === 'Turnuva' ? 2 : null,
-            team1Players, team2Players, events, extraPlayers: extraNames
+            team1Players, team2Players, events, extraPlayers: extraNames, matchGk
         };
 
         matches.push(match);
@@ -3089,16 +3136,33 @@
     // Takım A: SOL yarı saha (%2-%48), Takım B: SAĞ yarı saha (%52-%98)
     // Her takım kendi yarısında, kesinlikle karşı tarafa geçmez
 
-    function renderPitchPlayers(teamPlayers, teamKey, color) {
-        // Sol yarı saha mı sağ mı?
+    function renderPitchPlayers(teamPlayers, teamKey, color, matchData) {
         const isLeft = (teamKey === 'team1');
 
-        // Mevkilere göre grupla
+        // Boran(11) ve Demir(12) aynı takımdaysa: Demir=KL, Boran=STP
+        const boranId = 11, demirId = 12;
+        const teamIds = teamPlayers.map(p => p.id);
+        const bothKlInTeam = teamIds.includes(boranId) && teamIds.includes(demirId);
+
+        // matchGk kontrolü - bu maç için seçilen kaleci
+        const gkKey = teamKey === 'team1' ? 'team1' : 'team2';
+        const matchGkId = matchData && matchData.matchGk ? matchData.matchGk[gkKey] : null;
+
         const groups = { KL: [], STP: [], MDO: [], MO: [], MOO: [], SLK: [], SĞK: [], SNT: [] };
         teamPlayers.forEach(p => {
-            const pos = p.positions[0];
+            let pos = p.positions[0];
+
+            // Boran+Demir aynı takımda: Demir kaleci, Boran stoper
+            if (bothKlInTeam) {
+                if (p.id === demirId) pos = 'KL';
+                else if (p.id === boranId) pos = 'STP';
+            }
+
+            // matchGk ile seçilen kaleci override
+            if (matchGkId && p.id === matchGkId) pos = 'KL';
+
             if (groups[pos]) groups[pos].push(p);
-            else groups['MO'].push(p); // bilinmeyen mevki orta sahaya
+            else groups['MO'].push(p);
         });
 
         // Her hat için yatay çizgi (left %) - sol yarı saha
@@ -3220,8 +3284,8 @@
                 <h3>Saha Dizilişi</h3>
                 <div class="pitch-container">
                     <img src="saha.png" alt="Saha">
-                    ${renderPitchPlayers(t1Players, 'team1', '#1E90FF')}
-                    ${renderPitchPlayers(t2Players, 'team2', '#e74c3c')}
+                    ${renderPitchPlayers(t1Players, 'team1', '#1E90FF', m)}
+                    ${renderPitchPlayers(t2Players, 'team2', '#e74c3c', m)}
                     <!-- Takım renk göstergesi -->
                     <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:16px;background:rgba(0,0,0,0.6);padding:4px 14px;border-radius:12px;">
                         <span style="display:flex;align-items:center;gap:4px;color:#fff;font-size:0.7rem"><span style="width:12px;height:12px;border-radius:50%;background:#1E90FF;display:inline-block"></span> ${m.team1}</span>

@@ -3040,13 +3040,10 @@
         const m = matches.find(x => x.id === editMatchId);
         if (!m) return;
 
-        m.location = document.getElementById('edit-location').value;
-        m.matchType = document.getElementById('edit-type').value;
-        m.date = document.getElementById('edit-date').value;
-        m.score1 = parseInt(document.getElementById('edit-score1').value) || 0;
-        m.score2 = parseInt(document.getElementById('edit-score2').value) || 0;
-        m.team1Players = [...document.querySelectorAll('input[name="edit-t1"]:checked')].map(c => parseInt(c.value));
-        m.team2Players = [...document.querySelectorAll('input[name="edit-t2"]:checked')].map(c => parseInt(c.value));
+        const score1 = parseInt(document.getElementById('edit-score1').value) || 0;
+        const score2 = parseInt(document.getElementById('edit-score2').value) || 0;
+        const team1Players = [...document.querySelectorAll('input[name="edit-t1"]:checked')].map(c => parseInt(c.value));
+        const team2Players = [...document.querySelectorAll('input[name="edit-t2"]:checked')].map(c => parseInt(c.value));
 
         // Olayları topla
         const rawEvents = [];
@@ -3055,12 +3052,54 @@
             const input = row.querySelector('input');
             rawEvents.push({ type: selects[0].value, playerId: parseInt(selects[1].value), count: parseInt(input.value) || 1 });
         });
+
+        // Limit kontrolü
+        let t1Goals = 0, t1Assists = 0, t2Goals = 0, t2Assists = 0, t1OwnGoals = 0, t2OwnGoals = 0;
+        rawEvents.forEach(ev => {
+            const team = team1Players.includes(ev.playerId) ? 1 : 2;
+            if (ev.type === 'goal') { if (team === 1) t1Goals += ev.count; else t2Goals += ev.count; }
+            else if (ev.type === 'assist') { if (team === 1) t1Assists += ev.count; else t2Assists += ev.count; }
+            else if (ev.type === 'owngoal') { if (team === 1) t1OwnGoals += ev.count; else t2OwnGoals += ev.count; }
+        });
+        const t1TotalGoals = t1Goals + t2OwnGoals;
+        const t2TotalGoals = t2Goals + t1OwnGoals;
+        if (t1TotalGoals > score1) { notify(`Takım A toplam gol sayısı (${t1TotalGoals}) skordan (${score1}) fazla olamaz!`, true); return; }
+        if (t2TotalGoals > score2) { notify(`Takım B toplam gol sayısı (${t2TotalGoals}) skordan (${score2}) fazla olamaz!`, true); return; }
+        if (t1Assists > score1) { notify(`Takım A en fazla ${score1} asist yapabilir! (${t1Assists} girildi)`, true); return; }
+        if (t2Assists > score2) { notify(`Takım B en fazla ${score2} asist yapabilir! (${t2Assists} girildi)`, true); return; }
+
+        // Bir oyuncunun gol sayısı takımının skorundan fazla olamaz
+        const playerGoals = {};
+        rawEvents.forEach(ev => {
+            if (ev.type === 'goal') {
+                if (!playerGoals[ev.playerId]) playerGoals[ev.playerId] = 0;
+                playerGoals[ev.playerId] += ev.count;
+            }
+        });
+        for (const [pid, gols] of Object.entries(playerGoals)) {
+            const team = team1Players.includes(parseInt(pid)) ? 1 : 2;
+            const maxGoals = team === 1 ? score1 : score2;
+            if (gols > maxGoals) {
+                const p = players.find(x => x.id === parseInt(pid));
+                notify(`${p ? p.name : 'Oyuncu'} en fazla ${maxGoals} gol atabilir! (${gols} girildi)`, true);
+                return;
+            }
+        }
+
         const eventMap = {};
         rawEvents.forEach(ev => {
             const key = ev.playerId + '_' + ev.type;
             if (eventMap[key]) eventMap[key].count += ev.count;
             else eventMap[key] = { ...ev };
         });
+
+        m.location = document.getElementById('edit-location').value;
+        m.matchType = document.getElementById('edit-type').value;
+        m.date = document.getElementById('edit-date').value;
+        m.score1 = score1;
+        m.score2 = score2;
+        m.team1Players = team1Players;
+        m.team2Players = team2Players;
         m.events = Object.values(eventMap);
 
         saveData('9d_matches', matches);
@@ -3182,6 +3221,24 @@
         if (t2TotalGoals > score2) { notify(`Takım B toplam gol sayısı (${t2TotalGoals}) skordan (${score2}) fazla olamaz!`, true); return; }
         if (t1Assists > score1) { notify(`Takım A en fazla ${score1} asist yapabilir! (${t1Assists} girildi)`, true); return; }
         if (t2Assists > score2) { notify(`Takım B en fazla ${score2} asist yapabilir! (${t2Assists} girildi)`, true); return; }
+
+        // Bireysel oyuncu gol kontrolü
+        const playerGoalsCheck = {};
+        rawEvents.forEach(ev => {
+            if (ev.type === 'goal') {
+                if (!playerGoalsCheck[ev.playerId]) playerGoalsCheck[ev.playerId] = 0;
+                playerGoalsCheck[ev.playerId] += ev.count;
+            }
+        });
+        for (const [pid, gols] of Object.entries(playerGoalsCheck)) {
+            const team = team1Players.includes(parseInt(pid)) ? 1 : 2;
+            const maxGoals = team === 1 ? score1 : score2;
+            if (gols > maxGoals) {
+                const p = players.find(x => x.id === parseInt(pid));
+                notify(`${p ? p.name : 'Oyuncu'} en fazla ${maxGoals} gol atabilir! (${gols} girildi)`, true);
+                return;
+            }
+        }
 
         const eventMap = {};
         rawEvents.forEach(ev => {

@@ -2132,18 +2132,18 @@
 <script>
     // ===== DATA STORE =====
     const defaultPlayers = [
-        { id: 1, name: "Mehmet Çınar Turşak", positions: ["SNT","SĞK","SLK","MOO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 2, name: "Fatih Doğanay", positions: ["SNT","SĞK","SLK","MOO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 3, name: "Kağan Durak", positions: ["SNT","SĞK","SLK","MOO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 4, name: "Mehmet Ali Çınar", positions: ["MOO","MO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 5, name: "Mehmet Efe Güvenmez", positions: ["MOO","MO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 6, name: "Egemen Işık", positions: ["SNT","MO"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 7, name: "Yusuf Karadağ", positions: ["MO","MDO","STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 8, name: "Ömer Ege Durmuşoğlu", positions: ["MO","MDO","STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 9, name: "Ertuğrul Gazi Kuzucu", positions: ["STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 10, name: "Eren Kaya", positions: ["STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 11, name: "Boran Mir Şenoğlu", positions: ["KL","STP"], foot: "Sağ", goals: 0, assists: 0, matches: 0 },
-        { id: 12, name: "Ege Demir Şen", positions: ["KL"], foot: "Sağ", goals: 0, assists: 0, matches: 0 }
+        { id: 1, name: "Mehmet Çınar Turşak", positions: ["SNT","SĞK","SLK","MOO"], primaryPos: "SNT", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 2, name: "Fatih Doğanay", positions: ["SNT","SĞK","SLK","MOO"], primaryPos: "SNT", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 3, name: "Kağan Durak", positions: ["SNT","SĞK","SLK","MOO"], primaryPos: "MOO", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 4, name: "Mehmet Ali Çınar", positions: ["MOO","MO"], primaryPos: "MOO", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 5, name: "Mehmet Efe Güvenmez", positions: ["MOO","MO"], primaryPos: "MO", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 6, name: "Egemen Işık", positions: ["SNT","MO"], primaryPos: "SNT", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 7, name: "Yusuf Karadağ", positions: ["MO","MDO","STP"], primaryPos: "MDO", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 8, name: "Ömer Ege Durmuşoğlu", positions: ["MO","MDO","STP"], primaryPos: "STP", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 9, name: "Ertuğrul Gazi Kuzucu", positions: ["STP"], primaryPos: "STP", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 10, name: "Eren Kaya", positions: ["STP"], primaryPos: "STP", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 11, name: "Boran Mir Şenoğlu", positions: ["KL","STP"], primaryPos: "KL", foot: "Sağ", goals: 0, assists: 0, matches: 0 },
+        { id: 12, name: "Ege Demir Şen", positions: ["KL"], primaryPos: "KL", foot: "Sağ", goals: 0, assists: 0, matches: 0 }
     ];
 
     // ===== FIREBASE =====
@@ -2173,7 +2173,7 @@
         players = defaultPlayers.map(dp => {
             const edit = edits[dp.id];
             if (edit) {
-                return { ...dp, positions: sortPositions(edit.positions || dp.positions), foot: edit.foot || dp.foot };
+                return { ...dp, positions: sortPositions(edit.positions || dp.positions), primaryPos: dp.primaryPos, foot: edit.foot || dp.foot };
             }
             return { ...dp };
         });
@@ -2209,6 +2209,14 @@
     const POS_ORDER = {'SNT':0,'SĞK':1,'SLK':2,'MOO':3,'MO':4,'MDO':5,'STP':6,'KL':7};
     function sortPositions(positions) {
         return [...positions].sort((a, b) => (POS_ORDER[a] ?? 99) - (POS_ORDER[b] ?? 99));
+    }
+
+    // As mevkiyi belirgin göster
+    function formatPositions(player) {
+        const pp = player.primaryPos || player.positions[0];
+        return player.positions.map(pos =>
+            pos === pp ? '<strong style="color:var(--primary)">' + pos + '</strong>' : pos
+        ).join(', ');
     }
 
     function getShortName(player) {
@@ -2328,7 +2336,7 @@
         document.getElementById('home-players-table').innerHTML = players.map(p => `
             <tr onclick="openPlayerModal(${p.id})">
                 <td>${p.name}</td>
-                <td>${p.positions.join(', ')}</td>
+                <td>${formatPositions(p)}</td>
                 <td>${p.foot}</td>
                 <td>${p.goals}</td>
                 <td>${p.assists}</td>
@@ -2344,7 +2352,7 @@
             <tr onclick="openPlayerModal(${p.id})">
                 <td>${i + 1}</td>
                 <td>${p.name}</td>
-                <td>${p.positions.join(', ')}</td>
+                <td>${formatPositions(p)}</td>
                 <td>${p.foot}</td>
                 <td>${p.goals}</td>
                 <td>${p.assists}</td>
@@ -3416,7 +3424,7 @@
             <div style="margin-bottom:16px">
                 <strong>Mevkiler:</strong>
                 <div class="player-positions">
-                    ${p.positions.map(pos => `<span class="position-tag">${pos}</span>`).join('')}
+                    ${p.positions.map(pos => `<span class="position-tag" style="${pos === (p.primaryPos || p.positions[0]) ? 'background:var(--primary);color:#fff;font-weight:700' : ''}">${pos}</span>`).join('')}
                 </div>
             </div>
             <div style="margin-bottom:16px">
@@ -3941,7 +3949,7 @@
                     <div class="team-player-item">
                         <div>
                             <div class="player-name">${p.name}</div>
-                            <div style="font-size:0.75rem;color:#888;margin-top:2px">${p.positions.join(', ')}</div>
+                            <div style="font-size:0.75rem;color:#888;margin-top:2px">${formatPositions(p)}</div>
                         </div>
                         <span class="player-pos">${p.builderPos}</span>
                     </div>
@@ -3992,7 +4000,7 @@
             xml += '  <Row>\n';
             xml += `    <Cell ss:StyleID="center"><Data ss:Type="Number">${i + 1}</Data></Cell>\n`;
             xml += `    <Cell><Data ss:Type="String">${p.name}</Data></Cell>\n`;
-            xml += `    <Cell><Data ss:Type="String">${p.positions.join(', ')}</Data></Cell>\n`;
+            xml += `    <Cell><Data ss:Type="String">${p.positions.map(pos => pos === (p.primaryPos || p.positions[0]) ? '[' + pos + ']' : pos).join(', ')}</Data></Cell>\n`;
             xml += `    <Cell ss:StyleID="center"><Data ss:Type="String">${p.foot}</Data></Cell>\n`;
             xml += `    <Cell ss:StyleID="center"><Data ss:Type="Number">${p.goals}</Data></Cell>\n`;
             xml += `    <Cell ss:StyleID="center"><Data ss:Type="Number">${p.assists}</Data></Cell>\n`;
@@ -4758,7 +4766,7 @@
                     <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#1E90FF,#0066cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.5rem">${p.name[0]}</div>
                     <div>
                         <h2 style="margin:0;color:#333">${p.name}</h2>
-                        <div style="display:flex;gap:6px;margin-top:4px">${p.positions.map(pos => `<span class="position-tag">${pos}</span>`).join('')}</div>
+                        <div style="display:flex;gap:6px;margin-top:4px">${p.positions.map(pos => `<span class="position-tag" style="${pos === (p.primaryPos || p.positions[0]) ? 'background:var(--primary);color:#fff;font-weight:700' : ''}">${pos}</span>`).join('')}</div>
                     </div>
                 </div>
 

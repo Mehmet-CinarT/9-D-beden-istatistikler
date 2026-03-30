@@ -27,18 +27,64 @@
         }
 
         body.dark-mode {
-            --bg: #0f1923;
-            --card-bg: #1a2733;
-            --text: #e0e0e0;
-            --text-secondary: #999;
-            --text-muted: #666;
-            --border: #2a3a4a;
-            --shadow: rgba(0,0,0,0.2);
-            --shadow-lg: rgba(0,0,0,0.4);
-            --glass-bg: rgba(26,39,51,0.9);
-            --glass-border: rgba(255,255,255,0.08);
-            --primary-light: #1a2f44;
+            --bg: #0d1117;
+            --card-bg: #161b22;
+            --text: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #777;
+            --border: #30363d;
+            --shadow: rgba(0,0,0,0.3);
+            --shadow-lg: rgba(0,0,0,0.5);
+            --glass-bg: rgba(22,27,34,0.95);
+            --glass-border: rgba(255,255,255,0.06);
+            --primary-light: #1a2744;
         }
+
+        /* Dark mode global override */
+        body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+            background: #1a2233 !important; color: #f0f0f0 !important; border-color: #30363d !important;
+        }
+        body.dark-mode input:focus, body.dark-mode select:focus, body.dark-mode textarea:focus {
+            border-color: #5ab0ff !important; box-shadow: 0 0 0 3px rgba(90,176,255,0.15) !important;
+        }
+        body.dark-mode label { color: #b0b0b0 !important; }
+        body.dark-mode .form-section h2 { color: #5ab0ff; }
+        body.dark-mode thead { background: #1a3a5c; }
+        body.dark-mode .score-display { color: #5ab0ff; background: #1a2744; }
+        body.dark-mode .match-date { background: #1a2744; color: #b0b0b0; }
+        body.dark-mode .match-detail-tag.goal { background: #1a3a2a; color: #6ddc6d; }
+        body.dark-mode .match-detail-tag.assist { background: #3a2a1a; color: #f0b060; }
+        body.dark-mode .info-item { background: #1a2744; }
+        body.dark-mode .info-item .info-value { color: #5ab0ff; }
+        body.dark-mode .king-count { color: #5ab0ff; }
+        body.dark-mode .king-item:hover { background: #1a2744; }
+        body.dark-mode .position-tag { color: #5ab0ff; background: #1a2744; border-color: #30363d; }
+        body.dark-mode .btn-secondary { background: #1a2744; color: #5ab0ff; border-color: #5ab0ff; }
+        body.dark-mode .player-checkbox-item { background: #1a2233; border-color: #30363d; color: #f0f0f0; }
+        body.dark-mode .player-checkbox-item:hover { background: #1a2744; border-color: #5ab0ff; }
+        body.dark-mode .event-row { background: #1a2233; border-color: #30363d; }
+        body.dark-mode .team-box { background: #1a2744; border-color: #30363d; }
+        body.dark-mode .team-player-item { background: #1a2233; border-color: #30363d; color: #f0f0f0; }
+        body.dark-mode .match-team-box { background: #1a2744; border-color: #30363d; }
+        body.dark-mode .match-event-item { background: #1a2233; color: #f0f0f0; }
+        body.dark-mode .builder-section h2 { color: #5ab0ff; }
+        body.dark-mode .builder-controls label { color: #b0b0b0; }
+        body.dark-mode .pitch-player .pitch-name { background: rgba(0,0,0,0.8); }
+        body.dark-mode .modal { border-color: #30363d; }
+        body.dark-mode .notification { box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+        body.dark-mode footer { background: #0d1117 !important; }
+        body.dark-mode .user-bar { border-bottom-color: #30363d; }
+        body.dark-mode .auth-input { background: #1a2233 !important; color: #f0f0f0 !important; border-color: #30363d !important; }
+        body.dark-mode .save-match-btn { box-shadow: 0 4px 15px rgba(30,144,255,0.2); }
+        body.dark-mode .remove-event { background: #c0392b; }
+        body.dark-mode strong { color: #f0f0f0; }
+        body.dark-mode p { color: #b0b0b0; }
+        body.dark-mode h3 { color: #ddd; }
+        body.dark-mode h4 { color: #ccc; }
+        body.dark-mode .mtp-pos { background: #1a2744; color: #b0b0b0; }
+        body.dark-mode .absent-players-section, body.dark-mode #absent-players-section { background: #2a1a00 !important; border-color: #4a3a1a !important; }
+        body.dark-mode #extra-panel { background: #0d1a2e !important; border-color: #1a3a5c !important; }
+        body.dark-mode #gk-select-section { background: #2a1a00 !important; border-color: #4a3a1a !important; }
 
         * {
             margin: 0;

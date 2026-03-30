@@ -2275,11 +2275,14 @@
     }
 
     function renderOverview() {
-        const totalGoals = players.reduce((s, p) => s + p.goals, 0);
-        const totalAssists = players.reduce((s, p) => s + p.assists, 0);
+        const playedMatches = matches.filter(m => !m.pending);
+        const totalGoals = playedMatches.reduce((s, m) => s + (m.score1 || 0) + (m.score2 || 0), 0);
+        const totalAssists = playedMatches.reduce((s, m) => {
+            return s + (m.events || []).filter(e => e.type === 'assist').reduce((a, e) => a + (e.count || 1), 0);
+        }, 0);
         document.getElementById('overview-stats').innerHTML = `
             <div class="stat-card"><div class="number">${players.length}</div><div class="label">Toplam Oyuncu</div></div>
-            <div class="stat-card"><div class="number">${matches.filter(m => !m.pending).length}</div><div class="label">Toplam Maç</div></div>
+            <div class="stat-card"><div class="number">${playedMatches.length}</div><div class="label">Toplam Maç</div></div>
             <div class="stat-card"><div class="number">${totalGoals}</div><div class="label">Toplam Gol</div></div>
             <div class="stat-card"><div class="number">${totalAssists}</div><div class="label">Toplam Asist</div></div>
         `;

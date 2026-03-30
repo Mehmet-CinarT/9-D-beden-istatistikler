@@ -108,8 +108,73 @@
         body.dark-mode [style*="background:#e8f2ff"] { background: #1a2744 !important; }
         body.dark-mode [style*="border:1px solid #eee"], body.dark-mode [style*="border: 1px solid #eee"] { border-color: #30363d !important; }
         body.dark-mode [style*="border:2px solid #eee"], body.dark-mode [style*="border: 2px solid #eee"] { border-color: #30363d !important; }
-        body.dark-mode [style*="border-top:1px solid #eee"] { border-top-color: #30363d !important; }
-        body.dark-mode [style*="border-bottom:1px solid #eee"] { border-bottom-color: #30363d !important; }
+        body.dark-mode [style*="border-top:1px solid #eee"], body.dark-mode [style*="border-top: 1px solid #eee"] { border-top-color: #30363d !important; }
+        body.dark-mode [style*="border-bottom:1px solid #eee"], body.dark-mode [style*="border-bottom: 1px solid #eee"] { border-bottom-color: #30363d !important; }
+
+        /* Dark mode - kalan tüm açık arka planlar ve yazılar */
+        body.dark-mode [style*="background:#e8f5e9"] { background: #0d2818 !important; }
+        body.dark-mode [style*="background:#fff3e0"] { background: #2a1a00 !important; }
+        body.dark-mode [style*="background:#fde8e8"] { background: #2a0d0d !important; }
+        body.dark-mode [style*="background:#fce4ec"] { background: #2a0d1a !important; }
+        body.dark-mode [style*="background:#f3e5f5"] { background: #1a0d2a !important; }
+        body.dark-mode [style*="background:#e3f2fd"] { background: #0d1a2e !important; }
+        body.dark-mode [style*="background:#f8fbff"] { background: #1a2233 !important; }
+        body.dark-mode [style*="background:#f0f0f0"] { background: #1a2233 !important; }
+        body.dark-mode [style*="background:#e0e0e0"] { background: #2a2a2a !important; }
+        body.dark-mode [style*="background:#ddd"] { background: #333 !important; }
+        body.dark-mode [style*="background:#e0ecff"] { background: #1a2744 !important; }
+        body.dark-mode [style*="background:#d0e4ff"] { background: #1a2744 !important; border-color: #1a3a5c !important; }
+        body.dark-mode [style*="background:#ffe0b2"] { background: #3a2a0a !important; border-color: #4a3a1a !important; }
+
+        /* Tüm span, div, a renk override */
+        body.dark-mode span[style*="color:#333"] { color: #f0f0f0 !important; }
+        body.dark-mode div[style*="color:#333"] { color: #f0f0f0 !important; }
+        body.dark-mode span[style*="color:#555"] { color: #ccc !important; }
+        body.dark-mode div[style*="color:#555"] { color: #ccc !important; }
+        body.dark-mode span[style*="color:#666"] { color: #aaa !important; }
+        body.dark-mode div[style*="color:#666"] { color: #aaa !important; }
+        body.dark-mode span[style*="color:#777"] { color: #999 !important; }
+        body.dark-mode div[style*="color:#777"] { color: #999 !important; }
+        body.dark-mode span[style*="color:#888"] { color: #999 !important; }
+        body.dark-mode div[style*="color:#888"] { color: #999 !important; }
+        body.dark-mode span[style*="color:#999"] { color: #888 !important; }
+        body.dark-mode span[style*="color:#aaa"] { color: #777 !important; }
+        body.dark-mode div[style*="color:#aaa"] { color: #777 !important; }
+        body.dark-mode span[style*="color:#bbb"] { color: #666 !important; }
+        body.dark-mode span[style*="color:#ccc"] { color: #666 !important; }
+
+        /* Dark mode - genel beyaz arka plan temizliği */
+        body.dark-mode [style*="background:#fff;"] { background: #1a2233 !important; }
+        body.dark-mode [style*="background: #fff;"] { background: #1a2233 !important; }
+        body.dark-mode [style*="background:white"] { background: #1a2233 !important; }
+        body.dark-mode [style*="border:1px solid #eee"] { border-color: #30363d !important; }
+        body.dark-mode [style*="border:2px solid #ddd"] { border-color: #30363d !important; }
+        body.dark-mode [style*="border:2px solid #e0e0e0"] { border-color: #30363d !important; }
+        body.dark-mode [style*="border-left:4px solid #ddd"] { border-left-color: #30363d !important; }
+        body.dark-mode [style*="border-top:2px solid #eee"] { border-top-color: #30363d !important; }
+        body.dark-mode [style*="border-bottom:1px solid #ddd"] { border-bottom-color: #30363d !important; }
+        body.dark-mode [style*="height:1px;background:#eee"] { background: #30363d !important; }
+
+        /* Dark mode - menü ve dropdown */
+        body.dark-mode #user-menu { background: #161b22 !important; border-color: #30363d !important; }
+        body.dark-mode #user-menu div[style*="background:linear-gradient(135deg,#f8fbff"] { background: #1a2233 !important; }
+        body.dark-mode #user-menu div[style*="border-bottom:1px solid #eee"] { border-bottom-color: #30363d !important; }
+        body.dark-mode #user-menu div[style*="color:#333"] { color: #f0f0f0 !important; }
+        body.dark-mode #user-menu div[style*="color:#888"] { color: #999 !important; }
+
+        /* Dark mode - anket kartları */
+        body.dark-mode [style*="border:2px solid #9b59b6"] { border-color: #6a3d8a !important; }
+        body.dark-mode [style*="border-top:4px solid #9b59b6"] { border-top-color: #6a3d8a !important; }
+
+        /* Dark mode - duyurular */
+        body.dark-mode [style*="background:#e8f5e9;border-radius:10px"] { background: #0d2818 !important; }
+        body.dark-mode [style*="background:#f8f8f8;border-radius:10px"] { background: #1a2233 !important; }
+
+        /* Dark mode - footer */
+        body.dark-mode footer a { color: #b0b0b0 !important; }
+        body.dark-mode footer textarea { background: #1a2233 !important; color: #f0f0f0 !important; }
+        body.dark-mode footer p { color: #888 !important; }
+        body.dark-mode footer h3 { color: #5ab0ff !important; }
 
         * {
             margin: 0;

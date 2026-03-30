@@ -43,7 +43,13 @@
         /* Dark mode global override */
         body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
             background: #1a2233 !important; color: #f0f0f0 !important; border-color: #30363d !important;
+            color-scheme: dark;
         }
+        body.dark-mode input::-webkit-calendar-picker-indicator { filter: invert(1); }
+        body.dark-mode select { background-image: none; }
+        body.dark-mode input[type="number"]::-webkit-inner-spin-button,
+        body.dark-mode input[type="number"]::-webkit-outer-spin-button { filter: invert(1); }
+        body.dark-mode input[type="checkbox"] { color-scheme: dark; }
         body.dark-mode input:focus, body.dark-mode select:focus, body.dark-mode textarea:focus {
             border-color: #5ab0ff !important; box-shadow: 0 0 0 3px rgba(90,176,255,0.15) !important;
         }

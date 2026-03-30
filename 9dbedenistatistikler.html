@@ -3167,15 +3167,19 @@
 
         const rawEvents = getCurrentEvents();
 
-        // Gol/asist limit kontrolü
-        let t1Goals = 0, t1Assists = 0, t2Goals = 0, t2Assists = 0;
+        // Gol/asist/owngoal limit kontrolü
+        let t1Goals = 0, t1Assists = 0, t2Goals = 0, t2Assists = 0, t1OwnGoals = 0, t2OwnGoals = 0;
         rawEvents.forEach(ev => {
             const team = team1Players.includes(ev.playerId) ? 1 : 2;
             if (ev.type === 'goal') { if (team === 1) t1Goals += ev.count; else t2Goals += ev.count; }
-            else { if (team === 1) t1Assists += ev.count; else t2Assists += ev.count; }
+            else if (ev.type === 'assist') { if (team === 1) t1Assists += ev.count; else t2Assists += ev.count; }
+            else if (ev.type === 'owngoal') { if (team === 1) t1OwnGoals += ev.count; else t2OwnGoals += ev.count; }
         });
-        if (t1Goals > score1) { notify(`Takım A en fazla ${score1} gol atabilir! (${t1Goals} girildi)`, true); return; }
-        if (t2Goals > score2) { notify(`Takım B en fazla ${score2} gol atabilir! (${t2Goals} girildi)`, true); return; }
+        // Takım A golleri + Takım B kendi kalesine golleri = score1
+        const t1TotalGoals = t1Goals + t2OwnGoals;
+        const t2TotalGoals = t2Goals + t1OwnGoals;
+        if (t1TotalGoals > score1) { notify(`Takım A toplam gol sayısı (${t1TotalGoals}) skordan (${score1}) fazla olamaz!`, true); return; }
+        if (t2TotalGoals > score2) { notify(`Takım B toplam gol sayısı (${t2TotalGoals}) skordan (${score2}) fazla olamaz!`, true); return; }
         if (t1Assists > score1) { notify(`Takım A en fazla ${score1} asist yapabilir! (${t1Assists} girildi)`, true); return; }
         if (t2Assists > score2) { notify(`Takım B en fazla ${score2} asist yapabilir! (${t2Assists} girildi)`, true); return; }
 

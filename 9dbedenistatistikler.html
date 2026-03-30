@@ -558,11 +558,11 @@
             box-shadow: 0 2px 16px var(--shadow);
             padding: 20px;
             margin-bottom: 14px;
-            border-left: 4px solid var(--primary);
             border: 1px solid var(--border);
             border-left: 4px solid var(--primary);
             transition: transform 0.2s, box-shadow 0.2s;
             animation: fadeIn 0.4s ease;
+            overflow: hidden;
         }
 
         .match-card:hover {
@@ -1760,7 +1760,7 @@
     <div id="tab-anasayfa" class="tab-content active">
         <div class="stats-grid" id="overview-stats"></div>
 
-        <div class="table-wrapper">
+        <div class="table-wrapper" style="overflow-x:hidden">
             <h2>Son Maçlar</h2>
             <div id="recent-matches-home"></div>
         </div>

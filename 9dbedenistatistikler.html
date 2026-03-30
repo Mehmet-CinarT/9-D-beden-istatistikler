@@ -3200,33 +3200,26 @@
             return result;
         }
 
-        // Tüm pozisyonlanmış oyuncuları topla
+        // Tüm pozisyonlanmış oyuncuları topla (mevki bilgisi ile)
         let placed = [];
 
-        // Kaleci
-        placed.push(...distribute(groups['KL'], lines['KL']));
+        function distributeWithPos(players, leftPct, posLabel) {
+            return distribute(players, leftPct).map(item => ({ ...item, posLabel }));
+        }
 
-        // Defans: STP + MDO birleştir
-        const defPlayers = [...groups['STP'], ...groups['MDO']];
-        placed.push(...distribute(defPlayers, lines['STP']));
-
-        // Orta saha: MO + MOO birleştir
-        const midPlayers = [...groups['MO'], ...groups['MOO']];
-        placed.push(...distribute(midPlayers, lines['MO']));
-
-        // Hücum: ST + SLK + SĞK birleştir
-        const atkPlayers = [...groups['SNT'], ...groups['SLK'], ...groups['SĞK']];
-        placed.push(...distribute(atkPlayers, lines['SNT']));
+        placed.push(...distributeWithPos(groups['KL'], lines['KL'], 'KL'));
+        placed.push(...distributeWithPos([...groups['STP'], ...groups['MDO']], lines['STP'], 'STP'));
+        placed.push(...distributeWithPos([...groups['MO'], ...groups['MOO']], lines['MO'], 'MO'));
+        placed.push(...distributeWithPos([...groups['SNT'], ...groups['SLK'], ...groups['SĞK']], lines['SNT'], 'SNT'));
 
         // HTML oluştur
         let html = '';
-        placed.forEach(({ player, top, left }) => {
-            // Sadece ilk isim
+        placed.forEach(({ player, top, left, posLabel }) => {
             const shortName = getShortName(player);
 
             html += `
                 <div class="pitch-player" style="top:${top}%;left:${left}%">
-                    <div class="pitch-dot" style="background:${color}">${player.positions[0]}</div>
+                    <div class="pitch-dot" style="background:${color}">${posLabel}</div>
                     <div class="pitch-name">${shortName}</div>
                 </div>
             `;

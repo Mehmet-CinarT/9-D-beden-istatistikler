@@ -2711,42 +2711,7 @@
     }
 
     // Olay satırlarındaki değişiklikleri anlık kontrol et
-    function validateEventRow(row) {
-        const selects = row.querySelectorAll('select');
-        const input = row.querySelector('input');
-        const type = selects[0].value;
-        const playerId = parseInt(selects[1].value);
-        const team = getTeamForPlayer(playerId);
-        const score1 = parseInt(document.getElementById('match-score1').value) || 0;
-        const score2 = parseInt(document.getElementById('match-score2').value) || 0;
-        const maxForTeam = team === 1 ? score1 : score2;
-
-        // Bu satır hariç mevcut toplamları hesapla
-        let totalForType = 0;
-        document.querySelectorAll('.event-row').forEach(r => {
-            if (r === row) return;
-            const rSelects = r.querySelectorAll('select');
-            const rInput = r.querySelector('input');
-            const rType = rSelects[0].value;
-            const rPid = parseInt(rSelects[1].value);
-            const rTeam = getTeamForPlayer(rPid);
-            if (rTeam === team && rType === type) totalForType += (parseInt(rInput.value) || 1);
-        });
-
-        const remaining = maxForTeam - totalForType;
-        if (remaining <= 0) {
-            input.value = 0;
-            input.disabled = true;
-            return;
-        }
-        input.disabled = false;
-        input.max = remaining;
-        if (parseInt(input.value) > remaining) input.value = remaining;
-    }
-
-    function validateAllEvents() {
-        document.querySelectorAll('.event-row').forEach(row => validateEventRow(row));
-    }
+    // Olay doğrulaması saveMatch'te yapılır, anlık engelleme yok
 
     function addEvent() {
         eventCounter++;
@@ -2769,17 +2734,16 @@
         const eid = eventCounter;
         const html = `
             <div class="event-row" id="event-${eid}">
-                <select onchange="validateAllEvents()">
+                <select >
                     <option value="goal">Gol</option>
                     <option value="assist">Asist</option>
                 </select>
-                <select onchange="validateAllEvents()">${playerOptions.length > 0 ? playerOptions : players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
-                <input type="number" min="0" value="1" style="width:60px" placeholder="Adet" onchange="validateAllEvents()" oninput="validateAllEvents()">
-                <button class="remove-event" onclick="document.getElementById('event-${eid}').remove();validateAllEvents()">&#10005;</button>
+                <select >${playerOptions.length > 0 ? playerOptions : players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
+                <input type="number" min="0" value="1" style="width:60px" placeholder="Adet"  >
+                <button class="remove-event" onclick="document.getElementById('event-${eid}').remove()">&#10005;</button>
             </div>
         `;
         document.getElementById('event-list').insertAdjacentHTML('beforeend', html);
-        validateAllEvents();
     }
 
     // ===== SAVE MATCH =====
@@ -3149,6 +3113,19 @@
         if (gkT2) matchGk.team2 = parseInt(gkT2.value);
 
         const rawEvents = getCurrentEvents();
+
+        // Gol/asist limit kontrolü
+        let t1Goals = 0, t1Assists = 0, t2Goals = 0, t2Assists = 0;
+        rawEvents.forEach(ev => {
+            const team = team1Players.includes(ev.playerId) ? 1 : 2;
+            if (ev.type === 'goal') { if (team === 1) t1Goals += ev.count; else t2Goals += ev.count; }
+            else { if (team === 1) t1Assists += ev.count; else t2Assists += ev.count; }
+        });
+        if (t1Goals > score1) { notify(`Takım A en fazla ${score1} gol atabilir! (${t1Goals} girildi)`, true); return; }
+        if (t2Goals > score2) { notify(`Takım B en fazla ${score2} gol atabilir! (${t2Goals} girildi)`, true); return; }
+        if (t1Assists > score1) { notify(`Takım A en fazla ${score1} asist yapabilir! (${t1Assists} girildi)`, true); return; }
+        if (t2Assists > score2) { notify(`Takım B en fazla ${score2} asist yapabilir! (${t2Assists} girildi)`, true); return; }
+
         const eventMap = {};
         rawEvents.forEach(ev => {
             const key = `${ev.playerId}_${ev.type}`;

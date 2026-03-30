@@ -2973,7 +2973,7 @@
             const pl = findPlayer(ev.playerId, m);
             const pName = pl ? pl.name : 'Bilinmeyen';
             const allMatchPlayers = allIds.map(id => { const p = findPlayer(id, m); return p ? '<option value="' + p.id + '" ' + (p.id === ev.playerId ? 'selected' : '') + '>' + p.name + ' (' + (t1Set.has(p.id) ? 'TA' : 'TB') + ')</option>' : ''; }).join('');
-            eventsHtml += '<div class="event-row" id="edit-ev-' + editEventCounter + '"><select><option value="goal" ' + (ev.type === 'goal' ? 'selected' : '') + '>Gol</option><option value="assist" ' + (ev.type === 'assist' ? 'selected' : '') + '>Asist</option></select><select>' + allMatchPlayers + '</select><input type="number" min="0" value="' + (ev.count || 1) + '" style="width:60px"><button class="remove-event" onclick="document.getElementById(\'edit-ev-' + editEventCounter + '\').remove()">&#10005;</button></div>';
+            eventsHtml += '<div class="event-row" id="edit-ev-' + editEventCounter + '"><select><option value="goal" ' + (ev.type === 'goal' ? 'selected' : '') + '>Gol</option><option value="assist" ' + (ev.type === 'assist' ? 'selected' : '') + '>Asist</option><option value="owngoal" ' + (ev.type === 'owngoal' ? 'selected' : '') + '>Kendi Kalesine Gol</option></select><select>' + allMatchPlayers + '</select><input type="number" min="0" value="' + (ev.count || 1) + '" style="width:60px"><button class="remove-event" onclick="document.getElementById(\'edit-ev-' + editEventCounter + '\').remove()">&#10005;</button></div>';
         });
 
         document.getElementById('edit-match-body').innerHTML = `

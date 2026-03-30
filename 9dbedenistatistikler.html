@@ -2394,13 +2394,27 @@
 
         function renderMatchCard(m) {
             const isPending = m.pending;
-            const eventsHtml = isPending ? '' : (m.events || []).map(ev => {
-                const p = findPlayer(ev.playerId, m);
-                const pName = p ? p.name : 'Bilinmeyen';
-                if (ev.type === 'goal') return `<span class="match-detail-tag goal">&#9917; ${pName} (${ev.count || 1} gol)</span>`;
-                if (ev.type === 'assist') return `<span class="match-detail-tag assist">&#127919; ${pName} (${ev.count || 1} asist)</span>`;
-                return '';
-            }).join('');
+            // Olayları takım bazlı ayır
+            let eventsHtml = '';
+            if (!isPending && m.events && m.events.length > 0) {
+                const t1Set = new Set(m.team1Players || []);
+                const t1Events = [], t2Events = [];
+                (m.events || []).forEach(ev => {
+                    const p = findPlayer(ev.playerId, m);
+                    const pName = p ? p.name : 'Bilinmeyen';
+                    const inT1 = t1Set.has(ev.playerId);
+                    let tag = '';
+                    if (ev.type === 'goal') tag = `<span class="match-detail-tag goal">&#9917; ${pName} (${ev.count || 1} gol)</span>`;
+                    else if (ev.type === 'assist') tag = `<span class="match-detail-tag assist">&#127919; ${pName} (${ev.count || 1} asist)</span>`;
+                    else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag" style="background:#4a0000;color:#ff6b6b;border-radius:6px;padding:4px 10px;font-size:0.8rem">&#9940; ${pName} (${ev.count || 1} kendi kalesine gol)</span>`;
+                    if (tag) {
+                        if (ev.type === 'owngoal') { if (inT1) t2Events.push(tag); else t1Events.push(tag); }
+                        else { if (inT1) t1Events.push(tag); else t2Events.push(tag); }
+                    }
+                });
+                if (t1Events.length > 0) eventsHtml += '<div style="margin-bottom:4px"><span style="font-size:0.7rem;font-weight:700;color:var(--primary)">Takım A:</span> ' + t1Events.join(' ') + '</div>';
+                if (t2Events.length > 0) eventsHtml += '<div><span style="font-size:0.7rem;font-weight:700;color:#e74c3c">Takım B:</span> ' + t2Events.join(' ') + '</div>';
+            }
 
             const result = isPending ? `<span style="background:#e0e0e0;color:#666;font-weight:700;padding:2px 8px;border-radius:6px">X</span>` :
                            m.score1 > m.score2 ? `<span style="color:#2ecc71;font-weight:700">${m.team1} Kazandı</span>` :
@@ -2774,6 +2788,7 @@
                 <select >
                     <option value="goal">Gol</option>
                     <option value="assist">Asist</option>
+                    <option value="owngoal">Kendi Kalesine Gol</option>
                 </select>
                 <select >${playerOptions.length > 0 ? playerOptions : players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
                 <input type="number" min="0" value="1" style="width:60px" placeholder="Adet"  >
@@ -2860,6 +2875,7 @@
                 <select>
                     <option value="goal">Gol</option>
                     <option value="assist">Asist</option>
+                    <option value="owngoal">Kendi Kalesine Gol</option>
                 </select>
                 <select>${opts}</select>
                 <input type="number" min="0" value="1" style="width:60px" placeholder="Adet">
@@ -3015,7 +3031,7 @@
         const allIds = [...t1Checked, ...t2Checked];
         const opts = allIds.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + ' (' + (t1Checked.includes(p.id) ? 'TA' : 'TB') + ')</option>' : ''; }).join('');
 
-        const html = '<div class="event-row" id="edit-ev-' + editEventCounter + '"><select><option value="goal">Gol</option><option value="assist">Asist</option></select><select>' + opts + '</select><input type="number" min="0" value="1" style="width:60px"><button class="remove-event" onclick="document.getElementById(\'edit-ev-' + editEventCounter + '\').remove()">&#10005;</button></div>';
+        const html = '<div class="event-row" id="edit-ev-' + editEventCounter + '"><select><option value="goal">Gol</option><option value="assist">Asist</option><option value="owngoal">Kendi Kalesine Gol</option></select><select>' + opts + '</select><input type="number" min="0" value="1" style="width:60px"><button class="remove-event" onclick="document.getElementById(\'edit-ev-' + editEventCounter + '\').remove()">&#10005;</button></div>';
         document.getElementById('edit-event-list').insertAdjacentHTML('beforeend', html);
     }
 
@@ -3511,24 +3527,35 @@
         const resultColor = m.score1 > m.score2 ? '#2ecc71' : m.score2 > m.score1 ? '#2ecc71' : '#f39c12';
 
         // Gol/Asist olayları - aynı oyuncunun gol ve asistini birleştir
-        const playerEventMap = {};
-        (m.events || []).forEach(ev => {
-            if (!playerEventMap[ev.playerId]) playerEventMap[ev.playerId] = { goals: 0, assists: 0 };
-            if (ev.type === 'goal') playerEventMap[ev.playerId].goals += (ev.count || 1);
-            if (ev.type === 'assist') playerEventMap[ev.playerId].assists += (ev.count || 1);
-        });
-
-        const eventsHtml = Object.entries(playerEventMap).map(([pid, stats]) => {
-            const p = findPlayer(parseInt(pid), m);
-            const name = p ? p.name : 'Bilinmeyen';
-            const parts = [];
-            if (stats.goals > 0) parts.push(`${stats.goals} Gol`);
-            if (stats.assists > 0) parts.push(`${stats.assists} Asist`);
-            return `<div class="match-event-item">
-                ${stats.goals > 0 ? '<div class="match-event-icon goal-icon">&#9917;</div>' : '<div class="match-event-icon assist-icon">&#127919;</div>'}
-                <div><strong>${name}</strong> — ${parts.join(' + ')}</div>
-            </div>`;
-        }).join('');
+        // Olayları takım bazlı grupla
+        const t1Set = new Set(m.team1Players || []);
+        function buildTeamEvents(teamPlayerIds, teamLabel) {
+            const map = {};
+            (m.events || []).forEach(ev => {
+                const inThisTeam = teamPlayerIds.has(ev.playerId);
+                // Normal gol/asist kendi takımında, owngoal karşı takımda
+                const showHere = (ev.type === 'owngoal') ? !inThisTeam : inThisTeam;
+                if (!showHere) return;
+                if (!map[ev.playerId]) map[ev.playerId] = { goals: 0, assists: 0, owngoals: 0 };
+                if (ev.type === 'goal') map[ev.playerId].goals += (ev.count || 1);
+                if (ev.type === 'assist') map[ev.playerId].assists += (ev.count || 1);
+                if (ev.type === 'owngoal') map[ev.playerId].owngoals += (ev.count || 1);
+            });
+            if (Object.keys(map).length === 0) return '';
+            const items = Object.entries(map).map(([pid, s]) => {
+                const p = findPlayer(parseInt(pid), m);
+                const name = p ? p.name : 'Bilinmeyen';
+                const parts = [];
+                if (s.goals > 0) parts.push(s.goals + ' Gol');
+                if (s.assists > 0) parts.push(s.assists + ' Asist');
+                if (s.owngoals > 0) parts.push(s.owngoals + ' KKG');
+                const icon = s.owngoals > 0 ? '<div class="match-event-icon" style="background:#4a0000">&#9940;</div>' : s.goals > 0 ? '<div class="match-event-icon goal-icon">&#9917;</div>' : '<div class="match-event-icon assist-icon">&#127919;</div>';
+                return '<div class="match-event-item">' + icon + '<div><strong>' + name + '</strong> — ' + parts.join(' + ') + '</div></div>';
+            }).join('');
+            return '<div style="margin-bottom:8px"><div style="font-weight:700;font-size:0.85rem;color:' + (teamLabel === 'Takım A' ? 'var(--primary)' : '#e74c3c') + ';margin-bottom:6px">' + teamLabel + '</div>' + items + '</div>';
+        }
+        const t2Set = new Set(m.team2Players || []);
+        const eventsHtml = buildTeamEvents(t1Set, 'Takım A') + buildTeamEvents(t2Set, 'Takım B');
 
         document.getElementById('match-modal-body').innerHTML = `
             <!-- Skor -->

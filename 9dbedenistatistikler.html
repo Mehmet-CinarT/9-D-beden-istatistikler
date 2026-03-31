@@ -5175,7 +5175,8 @@
     // Kategori: 'sistem' (maç/kayıt/mevki), 'anket', 'genel' (kontrolcü duyurusu)
     function getNotifCategory(text) {
         if (text.includes('anket') || text.includes('Anket')) return 'anket';
-        if (text.includes('maç') || text.includes('Maç') || text.includes('kaydoldu') || text.includes('mevki') || text.includes('Onay') || text.includes('cevap')) return 'sistem';
+        if (text.includes('maç') || text.includes('Maç') || text.includes('Turnuva')) return 'mac';
+        if (text.includes('kaydoldu') || text.includes('mevki') || text.includes('Onay') || text.includes('cevap') || text.includes('Bakım')) return 'sistem';
         return 'genel';
     }
 
@@ -5364,7 +5365,7 @@
             });
 
             // Kategorilere ayır
-            const catGroups = { genel: [], anket: [], sistem: [] };
+            const catGroups = { genel: [], mac: [], anket: [], sistem: [] };
             filtered.forEach(item => {
                 const cat = (item[1].category) || getNotifCategory(item[1].text);
                 if (catGroups[cat]) catGroups[cat].push(item);
@@ -5396,9 +5397,9 @@
                     '</div>' + approvalButtons + '</div>';
             }
 
-            const catLabels = { genel: {icon:'&#128227;', label:'Genel Duyurular', color:'#e74c3c'}, anket: {icon:'&#128202;', label:'Anket Duyuruları', color:'#9b59b6'}, sistem: {icon:'&#9881;', label:'Sistem Duyuruları', color:'#1E90FF'} };
+            const catLabels = { genel: {icon:'&#128227;', label:'Genel Duyurular', color:'#e74c3c'}, mac: {icon:'&#9917;', label:'Maç Duyuruları', color:'#2ecc71'}, anket: {icon:'&#128202;', label:'Anket Duyuruları', color:'#9b59b6'}, sistem: {icon:'&#9881;', label:'Sistem Duyuruları', color:'#1E90FF'} };
             let html = '';
-            ['genel','anket','sistem'].forEach(cat => {
+            ['genel','mac','anket','sistem'].forEach(cat => {
                 if (catGroups[cat].length === 0) return;
                 const c = catLabels[cat];
                 html += '<div style="margin-bottom:16px">';

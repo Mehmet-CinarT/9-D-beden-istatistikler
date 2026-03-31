@@ -5657,16 +5657,30 @@
                 return;
             }
             const list = Object.entries(feedbacks).sort(([,a],[,b]) => new Date(b.date) - new Date(a.date));
-            document.getElementById('feedback-modal-body').innerHTML = list.map(([key, f]) => `
-                <div style="padding:12px;background:#f8f8f8;border-radius:10px;margin-bottom:8px;border-left:4px solid #e67e22">
+            document.getElementById('feedback-modal-body').innerHTML = list.map(([key, f]) => {
+                const repliesHtml = f.replies ? Object.values(f.replies).sort((a,b) => new Date(a.date) - new Date(b.date)).map(r =>
+                    '<div style="margin-top:6px;padding:8px 10px;background:var(--primary-light);border-radius:8px;border-left:3px solid var(--primary)">' +
+                    '<div style="font-size:0.7rem;color:var(--primary);font-weight:700">' + esc(r.from) + '</div>' +
+                    '<div style="font-size:0.8rem;color:var(--text);margin-top:2px">' + esc(r.text) + '</div>' +
+                    '<div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px">' + (r.date ? new Date(r.date).toLocaleDateString('tr-TR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '') + '</div>' +
+                    '</div>'
+                ).join('') : '';
+
+                return `
+                <div style="padding:12px;background:var(--card-bg);border-radius:10px;margin-bottom:8px;border-left:4px solid #e67e22;border:1px solid var(--border);border-left:4px solid #e67e22">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                        <span style="font-weight:700;font-size:0.85rem;color:#333">${f.email}</span>
-                        <span style="font-size:0.7rem;color:#aaa">${f.date ? new Date(f.date).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+                        <span style="font-weight:700;font-size:0.85rem;color:var(--text)">${esc(f.email)}</span>
+                        <span style="font-size:0.7rem;color:var(--text-muted)">${f.date ? new Date(f.date).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-'}</span>
                     </div>
-                    <p style="font-size:0.85rem;color:#555;margin:0">${esc(f.text)}</p>
-                    <button onclick="deleteFeedback('${key}')" style="margin-top:6px;background:none;border:none;color:#e74c3c;font-size:0.7rem;cursor:pointer;font-weight:600">Sil</button>
+                    <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">${esc(f.text)}</p>
+                    ${repliesHtml}
+                    <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+                        <input type="text" id="reply-${key}" placeholder="Cevap yaz..." style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;background:var(--card-bg);color:var(--text)" onkeydown="if(event.key==='Enter')replyFeedback('${key}','${esc(f.email)}')">
+                        <button onclick="replyFeedback('${key}','${esc(f.email)}')" style="background:#1E90FF;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer">Cevapla</button>
+                        <button onclick="deleteFeedback('${key}')" style="background:none;border:none;color:#e74c3c;font-size:0.8rem;cursor:pointer;font-weight:600">Sil</button>
+                    </div>
                 </div>
-            `).join('');
+            `}).join('');
         });
     }
 
@@ -5675,6 +5689,27 @@
             if (e.target === this) this.classList.remove('show');
         });
     });
+
+    function replyFeedback(key, feedbackEmail) {
+        if (!isControlMode()) return;
+        const input = document.getElementById('reply-' + key);
+        const text = sanitizeInput(input.value, 300);
+        if (!text) { notify('Lütfen cevap yazın!', true); return; }
+
+        const user = auth.currentUser;
+        const replyData = {
+            text: text,
+            from: user ? (user.displayName || user.email) : 'Kontrolcü',
+            date: new Date().toISOString()
+        };
+
+        db.ref('9d_feedbacks/' + key + '/replies').push(replyData).then(() => {
+            // Cevap verilen kişiye duyuru gönder
+            createNotification('Geri bildiriminize cevap verildi: "' + text + '"');
+            notify('Cevap gönderildi!');
+            openFeedbackPanel();
+        });
+    }
 
     function deleteFeedback(key) {
         db.ref('9d_feedbacks/' + key).remove().then(() => {

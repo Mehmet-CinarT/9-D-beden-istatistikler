@@ -2208,7 +2208,7 @@
         players = defaultPlayers.map(dp => {
             const edit = edits[dp.id];
             if (edit) {
-                return { ...dp, positions: sortPositions(edit.positions || dp.positions), primaryPos: dp.primaryPos, foot: edit.foot || dp.foot };
+                return { ...dp, positions: sortPositions(edit.positions || dp.positions), primaryPos: edit.primaryPos || dp.primaryPos, foot: edit.foot || dp.foot };
             }
             return { ...dp };
         });
@@ -3470,7 +3470,7 @@
                 <button onclick="openPlayerModal(${id},'genel')" style="${btnStyle('genel')}">Genel</button>
                 <button onclick="openPlayerModal(${id},'okul')" style="${btnStyle('okul')}">Okul</button>
                 <button onclick="openPlayerModal(${id},'halisaha')" style="${btnStyle('halisaha')}">Halısaha</button>
-                ${isControlMode() ? `<button onclick="openLinkUserModal(${id})" style="margin-left:auto;padding:6px 14px;border:2px solid #e67e22;border-radius:8px;background:#fff;color:#e67e22;font-size:0.75rem;font-weight:700;cursor:pointer">Kullanıcı Bağla</button>` : ''}
+                ${isControlMode() ? `<button onclick="openEditPlayerPositions(${id})" style="margin-left:auto;padding:6px 14px;border:2px solid #9b59b6;border-radius:8px;background:#fff;color:#9b59b6;font-size:0.75rem;font-weight:700;cursor:pointer">Mevkileri Düzenle</button><button onclick="openLinkUserModal(${id})" style="padding:6px 14px;border:2px solid #e67e22;border-radius:8px;background:#fff;color:#e67e22;font-size:0.75rem;font-weight:700;cursor:pointer">Kullanıcı Bağla</button>` : ''}
             </div>
 
             ${filteredMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem;text-align:center;padding:16px">Bu kategoride henüz maç yok</p>' : renderStatsGrid(stats)}
@@ -4554,6 +4554,62 @@
                 renderPerformansim();
             });
         }
+    }
+
+    // ===== KONTROLCÜ MEVKİ DÜZENLEME =====
+    function openEditPlayerPositions(playerId) {
+        const p = players.find(x => x.id === playerId);
+        if (!p || !isControlMode()) return;
+
+        const allPositions = ['SNT','SĞK','SLK','MOO','MO','MDO','STP','KL'];
+        const posChecks = allPositions.map(pos =>
+            '<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#f3e5f5;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600">' +
+            '<input type="checkbox" name="ctrl-edit-pos" value="' + pos + '" ' + (p.positions.includes(pos) ? 'checked' : '') + ' onchange="updatePrimaryPosDropdown(' + playerId + ')" style="accent-color:#9b59b6;width:16px;height:16px"> ' + pos + '</label>'
+        ).join('');
+
+        const currentPrimary = p.primaryPos || p.positions[0];
+        const primaryOptions = p.positions.map(pos =>
+            '<option value="' + pos + '"' + (pos === currentPrimary ? ' selected' : '') + '>' + pos + '</option>'
+        ).join('');
+
+        document.getElementById('modal-body').innerHTML =
+            '<h3 style="color:#9b59b6;margin-bottom:16px">Mevkileri Düzenle — ' + p.name.split(' ')[0] + '</h3>' +
+            '<div style="margin-bottom:14px"><label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Mevkiler</label>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:6px">' + posChecks + '</div></div>' +
+            '<div style="margin-bottom:14px"><label style="display:block;font-weight:600;color:#555;margin-bottom:6px;font-size:0.85rem">Asıl Mevki</label>' +
+            '<select id="ctrl-primary-pos" style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem">' + primaryOptions + '</select></div>' +
+            '<div style="display:flex;gap:8px">' +
+            '<button onclick="savePlayerPositions(' + playerId + ')" style="flex:1;padding:12px;border:none;border-radius:10px;background:#9b59b6;color:#fff;font-weight:700;font-size:0.9rem;cursor:pointer">Kaydet</button>' +
+            '<button onclick="openPlayerModal(' + playerId + ')" style="flex:1;padding:12px;border:2px solid #ddd;border-radius:10px;background:#fff;color:#666;font-weight:700;font-size:0.9rem;cursor:pointer">İptal</button></div>';
+    }
+
+    function updatePrimaryPosDropdown(playerId) {
+        const checked = [...document.querySelectorAll('input[name="ctrl-edit-pos"]:checked')].map(c => c.value);
+        const sel = document.getElementById('ctrl-primary-pos');
+        if (!sel) return;
+        const prev = sel.value;
+        sel.innerHTML = checked.map(pos =>
+            '<option value="' + pos + '"' + (pos === prev ? ' selected' : '') + '>' + pos + '</option>'
+        ).join('');
+        if (checked.length === 0) sel.innerHTML = '<option value="">—</option>';
+    }
+
+    function savePlayerPositions(playerId) {
+        const checkedPos = [...document.querySelectorAll('input[name="ctrl-edit-pos"]:checked')].map(c => c.value);
+        const primaryPos = document.getElementById('ctrl-primary-pos').value;
+        const p = players.find(x => x.id === playerId);
+        if (!p) return;
+
+        if (checkedPos.length === 0) { notify('En az bir mevki seçin!', true); return; }
+        if (!checkedPos.includes(primaryPos)) { notify('Asıl mevki seçili mevkilerden biri olmalı!', true); return; }
+
+        db.ref('9d_player_edits/' + playerId).update({
+            positions: sortPositions(checkedPos),
+            primaryPos: primaryPos
+        }).then(() => {
+            notify(p.name.split(' ')[0] + ' mevkileri güncellendi!');
+            openPlayerModal(playerId);
+        });
     }
 
     // ===== ONAY BEKLEYEN DEĞİŞİKLİKLER =====

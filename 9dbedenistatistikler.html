@@ -2776,7 +2776,7 @@
 
     function getCurrentEvents() {
         const events = [];
-        document.querySelectorAll('.event-row').forEach(row => {
+        document.querySelectorAll('#event-list .event-row').forEach(row => {
             const selects = row.querySelectorAll('select');
             const input = row.querySelector('input');
             events.push({

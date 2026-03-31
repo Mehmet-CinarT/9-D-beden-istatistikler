@@ -4307,7 +4307,13 @@
             if (!snap.val()) {
                 const role = SUPER_ADMIN_EMAILS.includes(user.email) ? 'admin' : 'observer';
                 db.ref('9d_users/' + user.uid + '/role').set(role);
-                createNotification('Yeni kullanıcı kaydoldu: ' + displayName + ' (' + user.email + ')');
+                db.ref('9d_notifications').push({
+                    text: 'Yeni kullanıcı kaydoldu: ' + displayName + ' (' + user.email + ')',
+                    date: new Date().toISOString(),
+                    createdBy: user.email,
+                    category: 'sistem',
+                    adminOnly: true
+                });
             }
         });
     }
@@ -5421,6 +5427,7 @@
             const filtered = visibleNotifs.filter(([id, n]) => {
                 // visibleTo kontrolü: sadece belirtilen kişi görebilir
                 if (n.visibleTo && currentEmail !== n.visibleTo) return false;
+                if (n.adminOnly && !isSuperAdmin) return false;
                 const isPending = n.text.includes('Onay bekliyor');
                 if (isPending) return isSuperAdmin || (currentUser && n.createdBy === currentEmail);
                 const isEditNotif = n.text.includes('mevki değişikliği');

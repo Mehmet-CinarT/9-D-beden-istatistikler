@@ -1580,8 +1580,8 @@
 <div id="maintenance-screen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#2c3e50,#1a252f);z-index:8000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;padding:20px">
     <img src="Logo.png" alt="Logo" style="width:80px;height:80px;border-radius:50%;border:3px solid rgba(255,255,255,0.2);opacity:0.8">
     <div style="font-size:2.5rem">&#128679;</div>
-    <h1 style="color:#fff;font-size:1.6rem;margin:0">Bakım Arası</h1>
-    <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;max-width:400px;line-height:1.6">Site şu anda bakım modundadır. Kısa süre içinde tekrar erişime açılacaktır. Anlayışınız için teşekkürler.</p>
+    <h1 style="color:#fff;font-size:1.6rem;margin:0">Bakım Arasındadır</h1>
+    <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;max-width:400px;line-height:1.6">Site şu anda bakım arasındadır. Kısa süre içinde tekrar erişime açılacaktır. Anlayışınız için teşekkürler.</p>
     <div style="padding:12px 24px;background:rgba(255,255,255,0.1);border-radius:12px;border:1px solid rgba(255,255,255,0.1)">
         <div style="color:rgba(255,255,255,0.5);font-size:0.8rem">Durum</div>
         <div id="maintenance-msg" style="color:#e67e22;font-weight:700;font-size:0.9rem">Bakım devam ediyor...</div>
@@ -1703,7 +1703,7 @@
                     <span style="font-size:1.1rem">&#9998;</span> Onay Bekleyenler <span id="pending-edits-badge" style="background:#e74c3c;color:#fff;font-size:0.6rem;font-weight:800;padding:1px 6px;border-radius:8px;margin-left:4px;display:none">0</span>
                 </div>
                 <div class="auth-only" onclick="toggleMaintenance();closeUserMenu()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#e67e22" onmouseover="this.style.background='#fff3e0'" onmouseout="this.style.background='none'">
-                    <span style="font-size:1.1rem">&#128679;</span> <span id="maintenance-toggle-text">Bakım Modunu Aç</span>
+                    <span style="font-size:1.1rem">&#128679;</span> <span id="maintenance-toggle-text">Bakım Arasını Başlat</span>
                 </div>
                 <div id="mode-toggle-item" style="display:none">
                     <div onclick="toggleViewMode()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:0.85rem;color:#e67e22" onmouseover="this.style.background='#fff3e0'" onmouseout="this.style.background='none'">
@@ -5226,14 +5226,14 @@
         if (!isControlMode()) return;
         maintenanceMode = !maintenanceMode;
         db.ref('9d_maintenance').set(maintenanceMode ? { active: true, since: new Date().toISOString() } : null).then(() => {
-            notify(maintenanceMode ? 'Bakım modu açıldı!' : 'Bakım modu kapatıldı!');
+            notify(maintenanceMode ? 'Bakım arasındadır!' : 'Bakım arası bitti!');
             updateMaintenanceUI();
         });
     }
 
     function updateMaintenanceUI() {
         const text = document.getElementById('maintenance-toggle-text');
-        if (text) text.textContent = maintenanceMode ? 'Bakım Modunu Kapat' : 'Bakım Modunu Aç';
+        if (text) text.textContent = maintenanceMode ? 'Bakım Arasını Bitir' : 'Bakım Arasını Başlat';
     }
 
     // Bakım modunu Firebase'den dinle
@@ -5247,9 +5247,11 @@
 
         const screen = document.getElementById('maintenance-screen');
         if (maintenanceMode) {
-            // Kontrolcüler geçebilir, gözlemciler bakım ekranına yönlendirilir
-            if (!SUPER_ADMIN_EMAILS.includes(user.email)) {
-                // Gözlemci: Firebase'den rol kontrol et
+            // Süper adminler her zaman geçebilir (gözlemci modunda bile)
+            // Diğer kontrolcüler de geçebilir, sadece normal gözlemciler bakım ekranına yönlendirilir
+            if (SUPER_ADMIN_EMAILS.includes(user.email)) {
+                screen.style.display = 'none';
+            } else {
                 db.ref('9d_users/' + user.uid + '/role').once('value', roleSnap => {
                     const role = roleSnap.val();
                     if (role !== 'admin') {
@@ -5258,8 +5260,6 @@
                         screen.style.display = 'none';
                     }
                 });
-            } else {
-                screen.style.display = 'none';
             }
             if (data && data.since) {
                 const msg = document.getElementById('maintenance-msg');

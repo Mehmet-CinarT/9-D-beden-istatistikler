@@ -2788,37 +2788,30 @@
     }
 
     function checkGkSelection() {
-        const t1Count = parseInt(document.getElementById('match-t1-count').value) || 6;
-        const t2Count = parseInt(document.getElementById('match-t2-count').value) || 6;
         const t1Ids = [...document.querySelectorAll('input[name="team1"]:checked')].map(c => parseInt(c.value));
         const t2Ids = [...document.querySelectorAll('input[name="team2"]:checked')].map(c => parseInt(c.value));
-
-        const t1HasGk = t1Ids.some(id => goalkeeperIds.includes(id));
-        const t2HasGk = t2Ids.some(id => goalkeeperIds.includes(id));
-        const t1Full = t1Ids.length >= t1Count;
-        const t2Full = t2Ids.length >= t2Count;
-
-        // 2 kaleci de henüz seçilmediyse hiçbir takım için kaleci seçimi gösterme
-        const allSelectedIds = [...t1Ids, ...t2Ids];
-        const totalGkSelected = allSelectedIds.filter(id => goalkeeperIds.includes(id)).length;
-        const totalGkInRoster = goalkeeperIds.length;
 
         const section = document.getElementById('gk-select-section');
         let html = '';
 
-        // Tüm kaleciler seçilene kadar bekle, sonra eksik takıma kaleci seçtir
-        if (totalGkSelected >= totalGkInRoster) {
-            if (t1Full && !t1HasGk) {
-                const opts = t1Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + '</option>' : ''; }).join('');
-                html += '<div style="margin-bottom:10px"><label style="display:block;font-weight:600;color:#e67e22;margin-bottom:6px;font-size:0.85rem">Takım A\'da kaleci yok! Kaleci olarak kimi seçmek istersiniz?</label>' +
-                    '<select id="gk-select-t1" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:8px;font-size:0.85rem">' + opts + '</select></div>';
-            }
+        // Her takım için kaleci seçimi göster (en az 1 oyuncu seçildiyse)
+        if (t1Ids.length > 0) {
+            const prevVal = document.getElementById('gk-select-t1') ? parseInt(document.getElementById('gk-select-t1').value) : null;
+            // Varsayılan: takımdaki ilk KL mevkili oyuncu
+            const defaultGk1 = t1Ids.find(id => goalkeeperIds.includes(id)) || t1Ids[0];
+            const selected1 = prevVal && t1Ids.includes(prevVal) ? prevVal : defaultGk1;
+            const opts1 = t1Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '" ' + (id === selected1 ? 'selected' : '') + '>' + p.name + '</option>' : ''; }).join('');
+            html += '<div style="margin-bottom:10px"><label style="display:block;font-weight:600;color:#1E90FF;margin-bottom:6px;font-size:0.85rem">Takım A Kalecisi</label>' +
+                '<select id="gk-select-t1" style="width:100%;padding:10px;border:2px solid #bbdefb;border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">' + opts1 + '</select></div>';
+        }
 
-            if (t2Full && !t2HasGk) {
-                const opts = t2Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '">' + p.name + '</option>' : ''; }).join('');
-                html += '<div><label style="display:block;font-weight:600;color:#e67e22;margin-bottom:6px;font-size:0.85rem">Takım B\'de kaleci yok! Kaleci olarak kimi seçmek istersiniz?</label>' +
-                    '<select id="gk-select-t2" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:8px;font-size:0.85rem">' + opts + '</select></div>';
-            }
+        if (t2Ids.length > 0) {
+            const prevVal = document.getElementById('gk-select-t2') ? parseInt(document.getElementById('gk-select-t2').value) : null;
+            const defaultGk2 = t2Ids.find(id => goalkeeperIds.includes(id)) || t2Ids[0];
+            const selected2 = prevVal && t2Ids.includes(prevVal) ? prevVal : defaultGk2;
+            const opts2 = t2Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '" ' + (id === selected2 ? 'selected' : '') + '>' + p.name + '</option>' : ''; }).join('');
+            html += '<div><label style="display:block;font-weight:600;color:#e74c3c;margin-bottom:6px;font-size:0.85rem">Takım B Kalecisi</label>' +
+                '<select id="gk-select-t2" style="width:100%;padding:10px;border:2px solid #ffcdd2;border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">' + opts2 + '</select></div>';
         }
 
         if (html) {
@@ -3078,6 +3071,14 @@
             eventsHtml += '<div class="event-row" id="edit-ev-' + editEventCounter + '"><select><option value="goal" ' + (ev.type === 'goal' ? 'selected' : '') + '>Gol</option><option value="assist" ' + (ev.type === 'assist' ? 'selected' : '') + '>Asist</option><option value="owngoal" ' + (ev.type === 'owngoal' ? 'selected' : '') + '>Kendi Kalesine Gol</option></select><select>' + allMatchPlayers + '</select><input type="number" min="0" value="' + (ev.count || 1) + '" style="width:60px"><button class="remove-event" onclick="document.getElementById(\'edit-ev-' + editEventCounter + '\').remove()">&#10005;</button></div>';
         });
 
+        // Kaleci seçimi
+        const t1Ids = m.team1Players || [];
+        const t2Ids = m.team2Players || [];
+        const currentGk1 = m.matchGk && m.matchGk.team1 ? m.matchGk.team1 : (t1Ids.find(id => goalkeeperIds.includes(id)) || t1Ids[0]);
+        const currentGk2 = m.matchGk && m.matchGk.team2 ? m.matchGk.team2 : (t2Ids.find(id => goalkeeperIds.includes(id)) || t2Ids[0]);
+        const gkOpts1 = t1Ids.map(id => { const p = findPlayer(id, m); return p ? '<option value="' + p.id + '" ' + (id === currentGk1 ? 'selected' : '') + '>' + p.name + '</option>' : ''; }).join('');
+        const gkOpts2 = t2Ids.map(id => { const p = findPlayer(id, m); return p ? '<option value="' + p.id + '" ' + (id === currentGk2 ? 'selected' : '') + '>' + p.name + '</option>' : ''; }).join('');
+
         // Sakatlık checkbox'ları
         const injurySet = new Set(m.injuries || []);
         const injuryChecks = allIds.map(id => {
@@ -3135,6 +3136,17 @@
                 <label style="display:block;font-weight:600;color:var(--text-secondary);margin-bottom:8px;font-size:0.85rem">Gol & Asist Olayları</label>
                 <button class="btn btn-secondary" onclick="addEditEvent()" style="margin-bottom:8px">+ Olay Ekle</button>
                 <div id="edit-event-list">${eventsHtml}</div>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+                <div style="flex:1;min-width:100px">
+                    <label style="display:block;font-weight:600;color:#1E90FF;margin-bottom:6px;font-size:0.85rem">Takım A Kalecisi</label>
+                    <select id="edit-gk-t1" style="width:100%;padding:10px;border:2px solid #bbdefb;border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">${gkOpts1}</select>
+                </div>
+                <div style="flex:1;min-width:100px">
+                    <label style="display:block;font-weight:600;color:#e74c3c;margin-bottom:6px;font-size:0.85rem">Takım B Kalecisi</label>
+                    <select id="edit-gk-t2" style="width:100%;padding:10px;border:2px solid #ffcdd2;border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">${gkOpts2}</select>
+                </div>
             </div>
 
             <div style="margin-bottom:14px">
@@ -3226,6 +3238,14 @@
         m.team2Players = team2Players;
         m.events = Object.values(eventMap);
         m.injuries = [...document.querySelectorAll('input[name="edit-injury"]:checked')].map(c => parseInt(c.value));
+
+        // Kaleci seçimi kaydet
+        const editGk = {};
+        const editGkT1 = document.getElementById('edit-gk-t1');
+        const editGkT2 = document.getElementById('edit-gk-t2');
+        if (editGkT1) editGk.team1 = parseInt(editGkT1.value);
+        if (editGkT2) editGk.team2 = parseInt(editGkT2.value);
+        m.matchGk = editGk;
 
         saveData('9d_matches', matches);
         recalcPlayerStats();
@@ -3325,7 +3345,7 @@
             return;
         }
 
-        // Kaleci seçimi: takımda kaleci yoksa seçilen oyuncuyu kaydet
+        // Kaleci seçimi: her takım için seçilen kaleci
         const matchGk = {};
         const gkT1 = document.getElementById('gk-select-t1');
         const gkT2 = document.getElementById('gk-select-t2');
@@ -3453,7 +3473,18 @@
         // matchGk ile seçilen kaleci
         if (match.matchGk && match.matchGk[teamKey] === playerId) return 'KL';
 
-        // Boran+Demir aynı takımda: Demir=KL, Boran=STP
+        // matchGk varsa ve bu oyuncu kaleci olarak seçilmediyse
+        if (match.matchGk && match.matchGk[teamKey]) {
+            // Boran kaleci seçilmediyse STP oynasın
+            if (playerId === boranId) return 'STP';
+            const p = players.find(x => x.id === playerId);
+            if (!p) return '?';
+            // Mevkisi KL olan ama kaleci seçilmeyen oyuncu (Ege Demir) → STP
+            if (p.positions[0] === 'KL') return 'STP';
+            return p.positions[0];
+        }
+
+        // matchGk yoksa (eski maçlar) eski mantık
         if (teamPlayers.includes(boranId) && teamPlayers.includes(demirId)) {
             if (playerId === demirId) return 'KL';
             if (playerId === boranId) return 'STP';
@@ -3491,8 +3522,10 @@
         return { goals, assists, matches: matchList.length, wins, draws, losses, winRate, conceded, gkMatches };
     }
 
-    function renderStatsGrid(s) {
-        const gkRow = s.gkMatches > 0 ? `
+    function renderStatsGrid(s, playerId) {
+        const p = playerId ? players.find(x => x.id === playerId) : null;
+        const isNaturalGk = p && p.positions.includes('KL');
+        const gkRow = (s.gkMatches > 0 && isNaturalGk) ? `
             <div class="info-item" style="border:1px solid #e74c3c33"><div class="info-value" style="color:#e74c3c">${s.conceded}</div><div class="info-label">Yenilen Gol</div></div>
             <div class="info-item" style="border:1px solid #e74c3c33"><div class="info-value" style="color:#e74c3c">${s.gkMatches > 0 ? (s.conceded / s.gkMatches).toFixed(1) : '-'}</div><div class="info-label">Maç Başı YG</div></div>
             <div class="info-item" style="border:1px solid #2ecc7133"><div class="info-value" style="color:#2ecc71">${s.gkMatches}</div><div class="info-label">Kalecilik Maçı</div></div>
@@ -3560,7 +3593,7 @@
                 ${isControlMode() ? `<button onclick="openEditPlayerPositions(${id})" style="margin-left:auto;padding:6px 14px;border:2px solid #9b59b6;border-radius:8px;background:#fff;color:#9b59b6;font-size:0.75rem;font-weight:700;cursor:pointer">Mevkileri Düzenle</button><button onclick="openLinkUserModal(${id})" style="padding:6px 14px;border:2px solid #e67e22;border-radius:8px;background:#fff;color:#e67e22;font-size:0.75rem;font-weight:700;cursor:pointer">Kullanıcı Bağla</button>` : ''}
             </div>
 
-            ${filteredMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem;text-align:center;padding:16px">Bu kategoride henüz maç yok</p>' : renderStatsGrid(stats)}
+            ${filteredMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem;text-align:center;padding:16px">Bu kategoride henüz maç yok</p>' : renderStatsGrid(stats, id)}
 
             <h3 style="color:#1E90FF;margin:16px 0 12px">Son Maçlar</h3>
             ${filteredMatches.length === 0 ? '' :
@@ -4998,13 +5031,13 @@
                 </div>
 
                 <h3 style="color:#1E90FF;margin:16px 0 8px">Genel Performans</h3>
-                ${renderStatsGrid(genelStats)}
+                ${renderStatsGrid(genelStats, linkedId)}
 
                 <h3 style="color:#1E90FF;margin:20px 0 8px">Okul Performansı</h3>
-                ${okulMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz okul maçı yok</p>' : renderStatsGrid(okulStats)}
+                ${okulMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz okul maçı yok</p>' : renderStatsGrid(okulStats, linkedId)}
 
                 <h3 style="color:#2e7d32;margin:20px 0 8px">Halısaha Performansı</h3>
-                ${haliMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz halısaha maçı yok</p>' : renderStatsGrid(haliStats)}
+                ${haliMatches.length === 0 ? '<p style="color:#aaa;font-size:0.85rem">Henüz halısaha maçı yok</p>' : renderStatsGrid(haliStats, linkedId)}
 
                 <h3 style="color:#1E90FF;margin:20px 0 12px">Son 5 Maç</h3>
                 ${allPlayerMatches.length === 0 ? '<p style="color:#aaa">Henüz maç yok</p>' :

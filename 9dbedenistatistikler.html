@@ -2459,7 +2459,7 @@
                     let tag = '';
                     if (ev.type === 'goal') tag = `<span class="match-detail-tag goal">&#9917; ${pName} (${ev.count || 1} gol)</span>`;
                     else if (ev.type === 'assist') tag = `<span class="match-detail-tag assist">&#127919; ${pName} (${ev.count || 1} asist)</span>`;
-                    else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag" style="background:#4a0000;color:#ff6b6b;border-radius:6px;padding:4px 10px;font-size:0.8rem">&#9940; ${pName} (${ev.count || 1} kendi kalesine gol)</span>`;
+                    else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag" style="background:rgba(74,0,0,0.15);color:#a04040;border:1px solid rgba(74,0,0,0.2);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:600">&#9917; ${pName} (${ev.count || 1} kendi kalesine gol)</span>`;
                     if (tag) {
                         if (ev.type === 'owngoal') { if (inT1) t2Events.push(tag); else t1Events.push(tag); }
                         else { if (inT1) t1Events.push(tag); else t2Events.push(tag); }
@@ -3742,7 +3742,7 @@
                 if (s.goals > 0) parts.push(s.goals + ' Gol');
                 if (s.assists > 0) parts.push(s.assists + ' Asist');
                 if (s.owngoals > 0) parts.push(s.owngoals + ' KKG');
-                const icon = s.owngoals > 0 ? '<div class="match-event-icon" style="background:#4a0000">&#9940;</div>' : s.goals > 0 ? '<div class="match-event-icon goal-icon">&#9917;</div>' : '<div class="match-event-icon assist-icon">&#127919;</div>';
+                const icon = s.owngoals > 0 ? '<div class="match-event-icon" style="background:rgba(74,0,0,0.15)">&#9917;</div>' : s.goals > 0 ? '<div class="match-event-icon goal-icon">&#9917;</div>' : '<div class="match-event-icon assist-icon">&#127919;</div>';
                 return '<div class="match-event-item">' + icon + '<div><strong>' + name + '</strong> — ' + parts.join(' + ') + '</div></div>';
             }).join('');
             return '<div style="margin-bottom:8px"><div style="font-weight:700;font-size:0.85rem;color:' + (teamLabel === 'Takım A' ? 'var(--primary)' : '#e74c3c') + ';margin-bottom:6px">' + teamLabel + '</div>' + items + '</div>';

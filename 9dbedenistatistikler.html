@@ -2364,7 +2364,7 @@
                 });
             }
         });
-        // Yenilen gol hesapla (sadece KL oynanan maçlar)
+        // Yenilen gol hesapla (sadece asıl kaleciler için - mevkisinde KL olanlar)
         matches.forEach(m => {
             if (m.pending) return;
             if (m.location === 'Halısaha') return;
@@ -2372,6 +2372,7 @@
             allPlayerIds.forEach(pid => {
                 const p = players.find(x => x.id === pid);
                 if (!p) return;
+                if (!p.positions.includes('KL')) return; // Sadece asıl kaleciler
                 const pos = getPlayerMatchPos(pid, m);
                 if (pos === 'KL') {
                     const inTeam1 = (m.team1Players || []).includes(pid);
@@ -2423,7 +2424,7 @@
                 <td>${p.assists}</td>
                 <td>${p.matches}</td>
                 <td>${p.gaMatches > 0 ? ((p.goals + p.assists) / p.gaMatches).toFixed(2) : '-'}</td>
-                <td>${p.gkMatches > 0 ? p.conceded : '-'}</td>
+                <td>${p.gkMatches > 0 && p.positions.includes('KL') ? p.conceded : '-'}</td>
             </tr>
         `).join('') + (sorted.length > playersShown ? `<tr><td colspan="9" style="text-align:center;padding:14px"><button onclick="playersShown+=12;renderPlayersTable()" style="background:#1E90FF;color:#fff;border:none;padding:8px 24px;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer">Daha Fazla Göster (${sorted.length - playersShown})</button></td></tr>` : '');
     }
@@ -3510,12 +3511,15 @@
                     if (ev.type === 'assist') assists += (ev.count || 1);
                 }
             });
-            // Yenilen gol: sadece KL oynanan maçlarda
-            const pos = getPlayerMatchPos(id, m);
-            if (pos === 'KL') {
-                const inTeam1 = (m.team1Players || []).includes(id);
-                conceded += inTeam1 ? (m.score2 || 0) : (m.score1 || 0);
-                gkMatches++;
+            // Yenilen gol: sadece asıl kaleciler için (mevkisinde KL olanlar)
+            const playerObj = players.find(x => x.id === id);
+            if (playerObj && playerObj.positions.includes('KL')) {
+                const pos = getPlayerMatchPos(id, m);
+                if (pos === 'KL') {
+                    const inTeam1 = (m.team1Players || []).includes(id);
+                    conceded += inTeam1 ? (m.score2 || 0) : (m.score1 || 0);
+                    gkMatches++;
+                }
             }
         });
         const winRate = matchList.length > 0 ? ((wins / matchList.length) * 100).toFixed(0) : 0;

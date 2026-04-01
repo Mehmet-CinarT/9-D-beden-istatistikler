@@ -4945,9 +4945,7 @@
             const playerId = snap.val();
             if (playerId) {
                 localStorage.setItem('9d_linked_player_' + user.uid, playerId);
-                // Kontrolcüler için Performansım sekmesi gizli
-                const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(user.email);
-                document.getElementById('performansim-tab').style.display = (isSuperAdmin && !viewingAsObserver) ? 'none' : 'inline-block';
+                document.getElementById('performansim-tab').style.display = 'inline-block';
             } else {
                 localStorage.removeItem('9d_linked_player_' + user.uid);
                 document.getElementById('performansim-tab').style.display = 'none';

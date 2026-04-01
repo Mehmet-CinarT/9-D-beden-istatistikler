@@ -2477,8 +2477,8 @@
                     const pName = p ? p.name : 'Bilinmeyen';
                     const inT1 = t1Set.has(ev.playerId);
                     let tag = '';
-                    const goalIcon = '<svg class="tag-icon" viewBox="0 0 512 512"><circle cx="256" cy="256" r="240" fill="none" stroke="currentColor" stroke-width="32"/><polygon points="256,48 296,176 224,176" fill="currentColor"/><polygon points="448,200 344,248 320,176" fill="currentColor"/><polygon points="376,408 296,312 360,264" fill="currentColor"/><polygon points="136,408 152,264 216,312" fill="currentColor"/><polygon points="64,200 192,176 168,248" fill="currentColor"/><circle cx="256" cy="256" r="72" fill="none" stroke="currentColor" stroke-width="24"/></svg>';
-                    const assistIcon = '<svg class="tag-icon" viewBox="0 0 512 512"><circle cx="256" cy="256" r="240" fill="none" stroke="currentColor" stroke-width="32"/><circle cx="256" cy="256" r="160" fill="none" stroke="currentColor" stroke-width="24"/><circle cx="256" cy="256" r="80" fill="none" stroke="currentColor" stroke-width="24"/><circle cx="256" cy="256" r="20" fill="currentColor"/></svg>';
+                    const goalIcon = '<svg class="tag-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 2.07c1.26.22 2.43.72 3.44 1.44l-1.47 2.03-2.97-.71V4.07zm-2 0v2.76l-2.97.71-1.47-2.03A8.04 8.04 0 0 1 11 4.07zM4.53 8.56l2.11 1.1-.58 3.07-2.47.47A7.9 7.9 0 0 1 4 12c0-.12.01-.23.01-.35l.52-3.09zM7.3 19.03a8.02 8.02 0 0 1-2.59-2.84l2.14-.91 2.39 1.88-.37 2.61c-.55-.17-1.07-.41-1.57-.74zm6.13.74l-.37-2.61 2.39-1.88 2.14.91a8.02 8.02 0 0 1-2.59 2.84c-.5.33-1.02.57-1.57.74zm5.04-6.58l-2.47-.47-.58-3.07 2.11-1.1.52 3.09c0 .12.01.23.01.35a7.9 7.9 0 0 1-.59 1.2zM12 15.5l-2.94-2.13 1.12-3.24h3.64l1.12 3.24L12 15.5z"/></svg>';
+                    const assistIcon = '<svg class="tag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
                     if (ev.type === 'goal') tag = `<span class="match-detail-tag goal">${goalIcon}${pName} (${ev.count || 1} gol)</span>`;
                     else if (ev.type === 'assist') tag = `<span class="match-detail-tag assist">${assistIcon}${pName} (${ev.count || 1} asist)</span>`;
                     else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag owngoal">${goalIcon}${pName} (${ev.count || 1} KKG)</span>`;
@@ -2488,7 +2488,7 @@
                     }
                 });
                 // Sakatlık tag'lerini takım bazlı ekle
-                const injuryIcon = '<svg class="tag-icon" viewBox="0 0 512 512"><rect x="96" y="176" width="320" height="160" rx="24" fill="currentColor" opacity="0.25"/><rect x="96" y="176" width="320" height="160" rx="24" fill="none" stroke="currentColor" stroke-width="28"/><line x1="256" y1="176" x2="256" y2="336" stroke="currentColor" stroke-width="28"/><line x1="176" y1="196" x2="176" y2="316" stroke="currentColor" stroke-width="16" opacity="0.4"/><line x1="336" y1="196" x2="336" y2="316" stroke="currentColor" stroke-width="16" opacity="0.4"/></svg>';
+                const injuryIcon = '<svg class="tag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="4" ry="4" transform="rotate(45 12 12)"/><path d="M12 4.5v15M4.5 12h15"/></svg>';
                 if (m.injuries && m.injuries.length > 0) {
                     m.injuries.forEach(pid => {
                         const p = findPlayer(pid, m);

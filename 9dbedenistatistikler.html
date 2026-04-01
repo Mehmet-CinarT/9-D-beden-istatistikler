@@ -2481,7 +2481,7 @@
                     const assistIcon = '<svg class="tag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg>';
                     if (ev.type === 'goal') tag = `<span class="match-detail-tag goal">${goalIcon}${pName} (${ev.count || 1} gol)</span>`;
                     else if (ev.type === 'assist') tag = `<span class="match-detail-tag assist">${assistIcon}${pName} (${ev.count || 1} asist)</span>`;
-                    else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag owngoal">${goalIcon}${pName} (${ev.count || 1} kendi kalesine gol)</span>`;
+                    else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag owngoal">${goalIcon}${pName} (${ev.count || 1} KKG)</span>`;
                     if (tag) {
                         if (ev.type === 'owngoal') { if (inT1) t2Events.push(tag); else t1Events.push(tag); }
                         else { if (inT1) t1Events.push(tag); else t2Events.push(tag); }

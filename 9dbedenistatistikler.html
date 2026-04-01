@@ -73,6 +73,9 @@
         body.dark-mode .match-date { background: #1a2744; color: #b0b0b0; }
         body.dark-mode .match-detail-tag.goal { background: #1a3a2a; color: #6ddc6d; }
         body.dark-mode .match-detail-tag.assist { background: #3a2a1a; color: #f0b060; }
+        body.dark-mode .match-detail-tag.owngoal { background: #3a1a1a; color: #e08080; border-color: #5a2a2a; }
+        body.dark-mode .match-detail-tag.injury { background: #3a1a1a; color: #f08080; }
+        body.dark-mode .injury-checkbox-label { background: #3a1a1a !important; border-color: #5a2a2a !important; color: #f0f0f0 !important; }
         body.dark-mode .info-item { background: #1a2744; }
         body.dark-mode .info-item .info-value { color: #5ab0ff; }
         body.dark-mode .king-count { color: #5ab0ff; }
@@ -648,6 +651,8 @@
             border-radius: 6px;
             background: #f0f7ff;
             color: #1E90FF;
+            font-weight: 600;
+            display: inline-block;
         }
 
         .match-detail-tag.goal {
@@ -658,6 +663,17 @@
         .match-detail-tag.assist {
             background: #fff3e0;
             color: #e68a00;
+        }
+
+        .match-detail-tag.owngoal {
+            background: rgba(74,0,0,0.15);
+            color: #a04040;
+            border: 1px solid rgba(74,0,0,0.2);
+        }
+
+        .match-detail-tag.injury {
+            background: #fce4ec;
+            color: #c62828;
         }
 
         /* ===== TEAM BUILDER ===== */
@@ -2459,7 +2475,7 @@
                     let tag = '';
                     if (ev.type === 'goal') tag = `<span class="match-detail-tag goal">&#9917; ${pName} (${ev.count || 1} gol)</span>`;
                     else if (ev.type === 'assist') tag = `<span class="match-detail-tag assist">&#127919; ${pName} (${ev.count || 1} asist)</span>`;
-                    else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag" style="background:rgba(74,0,0,0.15);color:#a04040;border:1px solid rgba(74,0,0,0.2);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:600">&#9917; ${pName} (${ev.count || 1} kendi kalesine gol)</span>`;
+                    else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag owngoal">&#9917; ${pName} (${ev.count || 1} kendi kalesine gol)</span>`;
                     if (tag) {
                         if (ev.type === 'owngoal') { if (inT1) t2Events.push(tag); else t1Events.push(tag); }
                         else { if (inT1) t1Events.push(tag); else t2Events.push(tag); }
@@ -2473,7 +2489,10 @@
             if (m.injuries && m.injuries.length > 0) {
                 const injTags = m.injuries.map(pid => {
                     const p = findPlayer(pid, m);
-                    return p ? '<span class="match-detail-tag" style="background:#fce4ec;color:#c62828;font-weight:600">&#129657; ' + p.name.split(' ')[0] + ' (sakatlandı)</span>' : '';
+                    if (!p) return '';
+                    const parts = p.name.split(' ');
+                    const shortName = parts.length >= 2 ? parts[0][0] + '. ' + parts[parts.length - 1] : parts[0];
+                    return '<span class="match-detail-tag injury">&#129657; ' + shortName + ' (sakatlandı)</span>';
                 }).filter(Boolean).join(' ');
                 if (injTags) eventsHtml += '<div style="margin-top:4px">' + injTags + '</div>';
             }
@@ -2759,7 +2778,7 @@
             const p = players.find(x => x.id === id);
             if (!p) return '';
             const teamLabel = t1Ids.includes(id) ? 'TA' : 'TB';
-            return '<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#fce4ec;border:1px solid #f8bbd0;border-radius:6px;cursor:pointer;font-size:0.8rem"><input type="checkbox" name="injury" value="' + id + '" ' + (prevChecked.has(id) ? 'checked' : '') + ' style="accent-color:#e74c3c;width:16px;height:16px"> ' + p.name + ' (' + teamLabel + ')</label>';
+            return '<label class="injury-checkbox-label" style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#fce4ec;border:1px solid #f8bbd0;border-radius:6px;cursor:pointer;font-size:0.8rem"><input type="checkbox" name="injury" value="' + id + '" ' + (prevChecked.has(id) ? 'checked' : '') + ' style="accent-color:#e74c3c;width:16px;height:16px"> ' + p.name + ' (' + teamLabel + ')</label>';
         }).join('');
     }
 
@@ -3060,7 +3079,7 @@
             const p = findPlayer(id, m);
             if (!p) return '';
             const teamLabel = t1Set.has(id) ? 'TA' : 'TB';
-            return '<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#fce4ec;border:1px solid #f8bbd0;border-radius:6px;cursor:pointer;font-size:0.8rem"><input type="checkbox" name="edit-injury" value="' + id + '" ' + (injurySet.has(id) ? 'checked' : '') + ' style="accent-color:#e74c3c;width:16px;height:16px"> ' + p.name + ' (' + teamLabel + ')</label>';
+            return '<label class="injury-checkbox-label" style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#fce4ec;border:1px solid #f8bbd0;border-radius:6px;cursor:pointer;font-size:0.8rem"><input type="checkbox" name="edit-injury" value="' + id + '" ' + (injurySet.has(id) ? 'checked' : '') + ' style="accent-color:#e74c3c;width:16px;height:16px"> ' + p.name + ' (' + teamLabel + ')</label>';
         }).join('');
 
         document.getElementById('edit-match-body').innerHTML = `

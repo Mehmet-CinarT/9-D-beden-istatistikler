@@ -2473,7 +2473,7 @@
             if (m.injuries && m.injuries.length > 0) {
                 const injTags = m.injuries.map(pid => {
                     const p = findPlayer(pid, m);
-                    return p ? '<span class="match-detail-tag" style="background:#fce4ec;color:#c62828;font-weight:600">&#128657; ' + p.name.split(' ')[0] + ' (sakatlandı)</span>' : '';
+                    return p ? '<span class="match-detail-tag" style="background:#fce4ec;color:#c62828;font-weight:600">&#129657; ' + p.name.split(' ')[0] + ' (sakatlandı)</span>' : '';
                 }).filter(Boolean).join(' ');
                 if (injTags) eventsHtml += '<div style="margin-top:4px">' + injTags + '</div>';
             }
@@ -3699,7 +3699,7 @@
             const shortName = getShortName(player);
             const isInjured = (matchData.injuries || []).includes(player.id);
             const injuryBorder = isInjured ? 'border:3px solid #c62828;box-shadow:0 0 8px rgba(198,40,40,0.6)' : '';
-            const injuryIcon = isInjured ? '<div style="font-size:0.65rem;margin-top:1px">&#128657;</div>' : '';
+            const injuryIcon = isInjured ? '<div style="font-size:0.65rem;margin-top:1px">&#129657;</div>' : '';
 
             html += `
                 <div class="pitch-player" style="top:${top}%;left:${left}%">
@@ -3760,7 +3760,7 @@
         if (m.injuries && m.injuries.length > 0) {
             const injItems = m.injuries.map(pid => {
                 const p = findPlayer(pid, m);
-                return p ? '<div class="match-event-item"><div class="match-event-icon" style="background:#c62828">&#128657;</div><div><strong>' + p.name + '</strong> — Sakatlandı</div></div>' : '';
+                return p ? '<div class="match-event-item"><div class="match-event-icon" style="background:#c62828">&#129657;</div><div><strong>' + p.name + '</strong> — Sakatlandı</div></div>' : '';
             }).filter(Boolean).join('');
             if (injItems) eventsHtml += '<div style="margin-bottom:8px"><div style="font-weight:700;font-size:0.85rem;color:#c62828;margin-bottom:6px">Sakatlıklar</div>' + injItems + '</div>';
         }
@@ -3801,7 +3801,7 @@
                         ${t1Players.length === 0 ? '<div style="color:#aaa;font-size:0.85rem">Oyuncu seçilmemiş</div>' :
                         t1Players.map(p => `
                             <div class="match-team-player" onclick="closeMatchModal();openPlayerModal(${p.id})" style="cursor:pointer" onmouseover="this.style.background='#e8f2ff'" onmouseout="this.style.background='#fff'">
-                                <span>${p.name}${(m.injuries || []).includes(p.id) ? ' &#128657;' : ''}</span>
+                                <span>${p.name}${(m.injuries || []).includes(p.id) ? ' &#129657;' : ''}</span>
                                 <span class="mtp-pos">${p.positions[0]}</span>
                             </div>
                         `).join('')}
@@ -3811,7 +3811,7 @@
                         ${t2Players.length === 0 ? '<div style="color:#aaa;font-size:0.85rem">Oyuncu seçilmemiş</div>' :
                         t2Players.map(p => `
                             <div class="match-team-player" onclick="closeMatchModal();openPlayerModal(${p.id})" style="cursor:pointer" onmouseover="this.style.background='#e8f2ff'" onmouseout="this.style.background='#fff'">
-                                <span>${p.name}${(m.injuries || []).includes(p.id) ? ' &#128657;' : ''}</span>
+                                <span>${p.name}${(m.injuries || []).includes(p.id) ? ' &#129657;' : ''}</span>
                                 <span class="mtp-pos">${p.positions[0]}</span>
                             </div>
                         `).join('')}

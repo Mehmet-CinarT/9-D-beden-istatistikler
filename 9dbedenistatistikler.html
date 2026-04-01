@@ -5444,7 +5444,14 @@
             const badge = document.getElementById('notif-badge');
             if (!notifs) { badge.textContent = '0'; badge.style.background = '#aaa'; return; }
             const readIds = getReadNotifIds();
-            const unread = Object.keys(notifs).filter(id => !readIds.includes(id)).length;
+            const isAdmin = isControlMode();
+            const unread = Object.entries(notifs).filter(([id, n]) => {
+                if (readIds.includes(id)) return false;
+                // Sistem duyuruları gözlemcilere sayılmasın
+                const cat = (n.category) || getNotifCategory(n.text);
+                if (cat === 'sistem' && !isAdmin) return false;
+                return true;
+            }).length;
             badge.textContent = unread;
             badge.style.background = unread > 0 ? '#e74c3c' : '#aaa';
         });
@@ -5571,6 +5578,9 @@
                 if (isPending) return isSuperAdmin || (currentUser && n.createdBy === currentEmail);
                 const isEditNotif = n.text.includes('mevki değişikliği');
                 if (isEditNotif) return isSuperAdmin || (currentUser && n.createdBy === currentEmail);
+                // Sistem duyuruları (yeni kayıt, mevki, onay, cevap, bakım) sadece kontrolcüler görsün
+                const cat = (n.category) || getNotifCategory(n.text);
+                if (cat === 'sistem' && !isAdminMode) return false;
                 return true;
             });
 
@@ -5644,7 +5654,10 @@
                 const user = auth.currentUser;
                 // Kendim oluşturduysam gösterme
                 if (!user || latest.createdBy !== user.email) {
-                    if (latest.text.includes('anket')) notify('Yeni anket eklendi!');
+                    // Sistem duyurularını gözlemcilere gösterme
+                    const cat = (latest.category) || getNotifCategory(latest.text);
+                    if (cat === 'sistem' && !isControlMode()) { /* gösterme */ }
+                    else if (latest.text.includes('anket')) notify('Yeni anket eklendi!');
                     else if (latest.text.includes('maç')) notify('Yeni maç eklendi!');
                     else notify(latest.text);
                 }

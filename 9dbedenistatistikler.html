@@ -2487,19 +2487,19 @@
                         else { if (inT1) t1Events.push(tag); else t2Events.push(tag); }
                     }
                 });
+                // Sakatlık tag'lerini takım bazlı ekle
+                const injuryIcon = '<svg class="tag-icon" viewBox="0 0 512 512"><rect x="96" y="176" width="320" height="160" rx="24" fill="currentColor" opacity="0.25"/><rect x="96" y="176" width="320" height="160" rx="24" fill="none" stroke="currentColor" stroke-width="28"/><line x1="256" y1="176" x2="256" y2="336" stroke="currentColor" stroke-width="28"/><line x1="176" y1="196" x2="176" y2="316" stroke="currentColor" stroke-width="16" opacity="0.4"/><line x1="336" y1="196" x2="336" y2="316" stroke="currentColor" stroke-width="16" opacity="0.4"/></svg>';
+                if (m.injuries && m.injuries.length > 0) {
+                    m.injuries.forEach(pid => {
+                        const p = findPlayer(pid, m);
+                        if (!p) return;
+                        const tag = '<span class="match-detail-tag injury">' + injuryIcon + getShortName(p) + ' (sakatlandı)</span>';
+                        if (t1Set.has(pid)) t1Events.push(tag); else t2Events.push(tag);
+                    });
+                }
+
                 if (t1Events.length > 0) eventsHtml += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:4px"><span style="font-size:0.7rem;font-weight:700;color:var(--primary)">Takım A:</span>' + t1Events.join('') + '</div>';
                 if (t2Events.length > 0) eventsHtml += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px"><span style="font-size:0.7rem;font-weight:700;color:#e74c3c">Takım B:</span>' + t2Events.join('') + '</div>';
-            }
-
-            // Sakatlık tag'leri
-            if (m.injuries && m.injuries.length > 0) {
-                const injTags = m.injuries.map(pid => {
-                    const p = findPlayer(pid, m);
-                    if (!p) return '';
-                    const injuryIcon = '<svg class="tag-icon" viewBox="0 0 512 512"><rect x="96" y="176" width="320" height="160" rx="24" fill="currentColor" opacity="0.25"/><rect x="96" y="176" width="320" height="160" rx="24" fill="none" stroke="currentColor" stroke-width="28"/><line x1="256" y1="176" x2="256" y2="336" stroke="currentColor" stroke-width="28"/><line x1="176" y1="196" x2="176" y2="316" stroke="currentColor" stroke-width="16" opacity="0.4"/><line x1="336" y1="196" x2="336" y2="316" stroke="currentColor" stroke-width="16" opacity="0.4"/></svg>';
-                    return '<span class="match-detail-tag injury">' + injuryIcon + getShortName(p) + ' (sakatlandı)</span>';
-                }).filter(Boolean).join(' ');
-                if (injTags) eventsHtml += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:4px">' + injTags + '</div>';
             }
 
             const result = isPending ? `<span style="background:#e0e0e0;color:#666;font-weight:700;padding:2px 8px;border-radius:6px">X</span>` :

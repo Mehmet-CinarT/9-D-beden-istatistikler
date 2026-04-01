@@ -662,44 +662,24 @@
             vertical-align: middle;
             overflow: hidden;
         }
-        .match-detail-tag .tag-icon {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            display: inline-block;
-        }
-        .match-detail-tag.goal .tag-icon { background: #2e7d32; }
-        .match-detail-tag.assist .tag-icon { background: #f57f17; }
-        .match-detail-tag.owngoal .tag-icon { background: #bf360c; }
-        .match-detail-tag.injury .tag-icon { background: #ad1457; }
-        body.dark-mode .match-detail-tag.goal .tag-icon { background: #66dd88; }
-        body.dark-mode .match-detail-tag.assist .tag-icon { background: #ffcc55; }
-        body.dark-mode .match-detail-tag.owngoal .tag-icon { background: #ff9966; }
-        body.dark-mode .match-detail-tag.injury .tag-icon { background: #ff77aa; }
-
         .match-detail-tag.goal {
             background: #e8f5e9;
             color: #2e7d32;
-            border: 1px solid #c8e6c9;
         }
 
         .match-detail-tag.assist {
             background: #fff8e1;
             color: #f57f17;
-            border: 1px solid #ffecb3;
         }
 
         .match-detail-tag.owngoal {
             background: #fbe9e7;
             color: #bf360c;
-            border: 1px solid #ffccbc;
         }
 
         .match-detail-tag.injury {
             background: #fce4ec;
             color: #ad1457;
-            border: 1px solid #f8bbd0;
         }
 
         /* ===== TEAM BUILDER ===== */
@@ -2499,9 +2479,9 @@
                     const pName = p ? p.name : 'Bilinmeyen';
                     const inT1 = t1Set.has(ev.playerId);
                     let tag = '';
-                    if (ev.type === 'goal') tag = `<span class="match-detail-tag goal"><span class="tag-icon"></span>${pName} (${ev.count || 1} gol)</span>`;
-                    else if (ev.type === 'assist') tag = `<span class="match-detail-tag assist"><span class="tag-icon"></span>${pName} (${ev.count || 1} asist)</span>`;
-                    else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag owngoal"><span class="tag-icon"></span>${pName} (${ev.count || 1} kendi kalesine gol)</span>`;
+                    if (ev.type === 'goal') tag = `<span class="match-detail-tag goal">⚽ ${pName} (${ev.count || 1} gol)</span>`;
+                    else if (ev.type === 'assist') tag = `<span class="match-detail-tag assist">🎯 ${pName} (${ev.count || 1} asist)</span>`;
+                    else if (ev.type === 'owngoal') tag = `<span class="match-detail-tag owngoal">⚽ ${pName} (${ev.count || 1} kendi kalesine gol)</span>`;
                     if (tag) {
                         if (ev.type === 'owngoal') { if (inT1) t2Events.push(tag); else t1Events.push(tag); }
                         else { if (inT1) t1Events.push(tag); else t2Events.push(tag); }
@@ -2516,7 +2496,7 @@
                 const injTags = m.injuries.map(pid => {
                     const p = findPlayer(pid, m);
                     if (!p) return '';
-                    return '<span class="match-detail-tag injury"><span class="tag-icon"></span>' + getShortName(p) + ' (sakatlandı)</span>';
+                    return '<span class="match-detail-tag injury">🩹 ' + getShortName(p) + ' (sakatlandı)</span>';
                 }).filter(Boolean).join(' ');
                 if (injTags) eventsHtml += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:4px">' + injTags + '</div>';
             }

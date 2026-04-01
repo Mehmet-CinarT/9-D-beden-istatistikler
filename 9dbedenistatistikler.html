@@ -5445,11 +5445,16 @@
             if (!notifs) { badge.textContent = '0'; badge.style.background = '#aaa'; return; }
             const readIds = getReadNotifIds();
             const isAdmin = isControlMode();
+            const currentUser = auth.currentUser;
+            const currentEmail = currentUser ? currentUser.email : '';
             const unread = Object.entries(notifs).filter(([id, n]) => {
                 if (readIds.includes(id)) return false;
-                // Sistem duyuruları gözlemcilere sayılmasın
+                if (n.adminOnly && !SUPER_ADMIN_EMAILS.includes(currentEmail)) return false;
                 const cat = (n.category) || getNotifCategory(n.text);
-                if (cat === 'sistem' && !isAdmin) return false;
+                // Sistem duyuruları: kontrolcüler hepsini, gözlemciler sadece kendilerini görsün
+                if (cat === 'sistem' && !isAdmin) {
+                    return currentUser && n.createdBy === currentEmail;
+                }
                 return true;
             }).length;
             badge.textContent = unread;
@@ -5573,14 +5578,23 @@
             const filtered = visibleNotifs.filter(([id, n]) => {
                 // visibleTo kontrolü: sadece belirtilen kişi görebilir
                 if (n.visibleTo && currentEmail !== n.visibleTo) return false;
+                // adminOnly: sadece süper adminler
                 if (n.adminOnly && !isSuperAdmin) return false;
-                const isPending = n.text.includes('Onay bekliyor');
-                if (isPending) return isSuperAdmin || (currentUser && n.createdBy === currentEmail);
-                const isEditNotif = n.text.includes('mevki değişikliği');
-                if (isEditNotif) return isSuperAdmin || (currentUser && n.createdBy === currentEmail);
-                // Sistem duyuruları (yeni kayıt, mevki, onay, cevap, bakım) sadece kontrolcüler görsün
+
                 const cat = (n.category) || getNotifCategory(n.text);
-                if (cat === 'sistem' && !isAdminMode) return false;
+                const isOwnNotif = currentUser && n.createdBy === currentEmail;
+
+                // Maç, anket, genel duyurular → herkes görsün
+                if (cat === 'mac' || cat === 'anket' || cat === 'genel') return true;
+
+                // Sistem duyuruları (mevki değişikliği, onay, geri bildirim cevabı vb.)
+                if (cat === 'sistem') {
+                    // Kontrolcüler hepsini görsün
+                    if (isAdminMode) return true;
+                    // Gözlemciler sadece kendileri hakkında olanları görsün
+                    return isOwnNotif;
+                }
+
                 return true;
             });
 
@@ -5654,9 +5668,10 @@
                 const user = auth.currentUser;
                 // Kendim oluşturduysam gösterme
                 if (!user || latest.createdBy !== user.email) {
-                    // Sistem duyurularını gözlemcilere gösterme
+                    // Sistem duyuruları: gözlemcilere sadece kendileri hakkında olanları göster
                     const cat = (latest.category) || getNotifCategory(latest.text);
-                    if (cat === 'sistem' && !isControlMode()) { /* gösterme */ }
+                    const isOwnNotif = user && latest.createdBy === user.email;
+                    if (cat === 'sistem' && !isControlMode() && !isOwnNotif) { /* gösterme */ }
                     else if (latest.text.includes('anket')) notify('Yeni anket eklendi!');
                     else if (latest.text.includes('maç')) notify('Yeni maç eklendi!');
                     else notify(latest.text);

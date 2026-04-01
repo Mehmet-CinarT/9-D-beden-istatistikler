@@ -2531,7 +2531,23 @@
                 }
             }
 
-            const cardStyle = isPending ? 'border-left:5px solid #e67e22;opacity:0.8' : '';
+            // Bağlı oyuncunun sonucuna göre arka plan rengi
+            let playerResultBg = '';
+            if (!isPending) {
+                const myId = parseInt(getLinkedPlayerId());
+                if (myId) {
+                    const inT1 = (m.team1Players || []).includes(myId);
+                    const inT2 = (m.team2Players || []).includes(myId);
+                    if (inT1 || inT2) {
+                        const myWin = inT1 ? m.score1 > m.score2 : m.score2 > m.score1;
+                        const myDraw = m.score1 === m.score2;
+                        if (myWin) playerResultBg = 'background:rgba(46,204,113,0.08);border-left:5px solid rgba(46,204,113,0.5)';
+                        else if (myDraw) playerResultBg = 'background:rgba(243,156,18,0.08);border-left:5px solid rgba(243,156,18,0.5)';
+                        else playerResultBg = 'background:rgba(231,76,60,0.08);border-left:5px solid rgba(231,76,60,0.5)';
+                    }
+                }
+            }
+            const cardStyle = isPending ? 'border-left:5px solid #e67e22;opacity:0.8' : playerResultBg;
 
             return `
                 <div class="match-card" onclick="${isPending ? '' : `openMatchModal(${m.id})`}" style="cursor:${isPending ? 'default' : 'pointer'};${cardStyle}" title="${isPending ? 'Oynanmamış maç' : 'Detaylar için tıkla'}">

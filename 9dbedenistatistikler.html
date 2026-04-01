@@ -2599,7 +2599,7 @@
         `).join('');
         t2.innerHTML = players.map(p => `
             <label class="player-checkbox-item">
-                <input type="checkbox" value="${p.id}" name="team2" disabled> ${p.name}
+                <input type="checkbox" value="${p.id}" name="team2" disabled onchange="updateInjuryCheckboxes()"> ${p.name}
             </label>
         `).join('');
         document.getElementById('match-date').value = new Date().toISOString().split('T')[0];
@@ -2691,12 +2691,14 @@
         );
         const t1Count = t1Checked.size;
 
-        // Takım A: 6 kişi limiti
+        const t1Max = parseInt(document.getElementById('match-t1-count').value) || MAX_TEAM_SIZE;
+
+        // Takım A: kişi sayısı limiti
         document.querySelectorAll('input[name="team1"]').forEach(cb => {
             if (cb.checked) {
                 cb.disabled = false;
                 cb.closest('.player-checkbox-item').style.opacity = '1';
-            } else if (t1Count >= MAX_TEAM_SIZE) {
+            } else if (t1Count >= t1Max) {
                 cb.disabled = true;
                 cb.closest('.player-checkbox-item').style.opacity = '0.4';
             } else {
@@ -2705,7 +2707,7 @@
             }
         });
 
-        // Takım A'da hiç kimse seçili değilse Takım B'yi temizle
+        // Takım A boşsa → Team B deaktif ve unchecked
         if (t1Count === 0) {
             document.querySelectorAll('input[name="team2"]').forEach(cb => {
                 cb.checked = false;
@@ -2713,7 +2715,7 @@
                 cb.closest('.player-checkbox-item').style.opacity = '0.4';
             });
         } else {
-            // Takım B checkboxlarını güncelle
+            // Takım B: Team A'da olan deaktif, kalan TÜM oyuncular seçili
             document.querySelectorAll('input[name="team2"]').forEach(cb => {
                 if (t1Checked.has(cb.value)) {
                     cb.checked = false;
@@ -2725,14 +2727,6 @@
                     cb.closest('.player-checkbox-item').style.opacity = '1';
                 }
             });
-
-            // Takım B'de 6'dan fazla varsa sondan kaldır
-            const t2Final = [...document.querySelectorAll('input[name="team2"]:checked')];
-            if (t2Final.length > MAX_TEAM_SIZE) {
-                for (let i = t2Final.length - 1; i >= MAX_TEAM_SIZE; i--) {
-                    t2Final[i].checked = false;
-                }
-            }
         }
 
         // Kaleci yoksa seçim bölümü göster

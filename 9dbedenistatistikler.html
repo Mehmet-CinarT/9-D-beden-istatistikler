@@ -2812,20 +2812,26 @@
         let html = '';
 
         // Her takım için kaleci seçimi göster (en az 1 oyuncu seçildiyse)
+        function getGkDefault(teamIds, selectId) {
+            const gkInTeam = teamIds.find(id => goalkeeperIds.includes(id));
+            const prevEl = document.getElementById(selectId);
+            const prevVal = prevEl ? parseInt(prevEl.value) : null;
+            // Takımda kaleci varsa her zaman onu seç
+            if (gkInTeam) return gkInTeam;
+            // Kaleci yoksa önceki seçimi koru (hala takımdaysa)
+            if (prevVal && teamIds.includes(prevVal)) return prevVal;
+            return teamIds[0];
+        }
+
         if (t1Ids.length > 0) {
-            const prevVal = document.getElementById('gk-select-t1') ? parseInt(document.getElementById('gk-select-t1').value) : null;
-            // Varsayılan: takımdaki ilk KL mevkili oyuncu
-            const defaultGk1 = t1Ids.find(id => goalkeeperIds.includes(id)) || t1Ids[0];
-            const selected1 = prevVal && t1Ids.includes(prevVal) ? prevVal : defaultGk1;
+            const selected1 = getGkDefault(t1Ids, 'gk-select-t1');
             const opts1 = t1Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '" ' + (id === selected1 ? 'selected' : '') + '>' + p.name + '</option>' : ''; }).join('');
             html += '<div style="margin-bottom:10px"><label style="display:block;font-weight:600;color:#1E90FF;margin-bottom:6px;font-size:0.85rem">Takım A Kalecisi</label>' +
                 '<select id="gk-select-t1" style="width:100%;padding:10px;border:2px solid #bbdefb;border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">' + opts1 + '</select></div>';
         }
 
         if (t2Ids.length > 0) {
-            const prevVal = document.getElementById('gk-select-t2') ? parseInt(document.getElementById('gk-select-t2').value) : null;
-            const defaultGk2 = t2Ids.find(id => goalkeeperIds.includes(id)) || t2Ids[0];
-            const selected2 = prevVal && t2Ids.includes(prevVal) ? prevVal : defaultGk2;
+            const selected2 = getGkDefault(t2Ids, 'gk-select-t2');
             const opts2 = t2Ids.map(id => { const p = players.find(x => x.id === id); return p ? '<option value="' + p.id + '" ' + (id === selected2 ? 'selected' : '') + '>' + p.name + '</option>' : ''; }).join('');
             html += '<div><label style="display:block;font-weight:600;color:#e74c3c;margin-bottom:6px;font-size:0.85rem">Takım B Kalecisi</label>' +
                 '<select id="gk-select-t2" style="width:100%;padding:10px;border:2px solid #ffcdd2;border-radius:8px;font-size:0.85rem;background:var(--card-bg);color:var(--text)">' + opts2 + '</select></div>';

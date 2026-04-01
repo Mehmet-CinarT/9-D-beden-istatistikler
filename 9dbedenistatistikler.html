@@ -2484,8 +2484,8 @@
                         else { if (inT1) t1Events.push(tag); else t2Events.push(tag); }
                     }
                 });
-                if (t1Events.length > 0) eventsHtml += '<div style="margin-bottom:4px"><span style="font-size:0.7rem;font-weight:700;color:var(--primary)">Takım A:</span> ' + t1Events.join(' ') + '</div>';
-                if (t2Events.length > 0) eventsHtml += '<div><span style="font-size:0.7rem;font-weight:700;color:#e74c3c">Takım B:</span> ' + t2Events.join(' ') + '</div>';
+                if (t1Events.length > 0) eventsHtml += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:4px"><span style="font-size:0.7rem;font-weight:700;color:var(--primary)">Takım A:</span>' + t1Events.join('') + '</div>';
+                if (t2Events.length > 0) eventsHtml += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px"><span style="font-size:0.7rem;font-weight:700;color:#e74c3c">Takım B:</span>' + t2Events.join('') + '</div>';
             }
 
             // Sakatlık tag'leri
@@ -2495,7 +2495,7 @@
                     if (!p) return '';
                     return '<span class="match-detail-tag injury">&#129657; ' + getShortName(p) + ' (sakatlandı)</span>';
                 }).filter(Boolean).join(' ');
-                if (injTags) eventsHtml += '<div style="margin-top:4px">' + injTags + '</div>';
+                if (injTags) eventsHtml += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:4px">' + injTags + '</div>';
             }
 
             const result = isPending ? `<span style="background:#e0e0e0;color:#666;font-weight:700;padding:2px 8px;border-radius:6px">X</span>` :

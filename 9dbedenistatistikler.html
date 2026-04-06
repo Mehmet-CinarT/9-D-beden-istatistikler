@@ -3643,14 +3643,21 @@
                     }
                 }
 
+                const _dk = document.body.classList.contains('dark-mode');
+                const _cardBg = _dk ? '#1a2233' : '#f8f8f8';
+                const _hoverBg = _dk ? '#2a3a5a' : '#eef4ff';
+                const _gaColor = _dk ? '#aaa' : '#666';
+                const _serieBg = m.serieMatch ? (_dk ? '#3a1a2a' : '#fce4ec') : '';
+                const _locBg = m.location === 'Halısaha' ? (_dk ? '#1a3a2a' : '#e8f5e9') : '';
+
                 return `
-                    <div onclick="document.getElementById('player-modal').classList.remove('show');openMatchModal(${m.id})" style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8f8f8;border-radius:8px;margin-bottom:6px;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#eef4ff'" onmouseout="this.style.background='#f8f8f8'">
+                    <div onclick="document.getElementById('player-modal').classList.remove('show');openMatchModal(${m.id})" style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:${_cardBg};border-radius:8px;margin-bottom:6px;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='${_hoverBg}'" onmouseout="this.style.background='${_cardBg}'">
                         <span style="width:28px;height:28px;border-radius:50%;background:${resultColor};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem">${resultText}</span>
                         <div style="flex:1">
                             <div style="display:flex;align-items:center;gap:6px">${m.team1} <strong>${m.score1} - ${m.score2}</strong> ${m.team2} ${serieBadge} ${locTag}</div>
                             ${totalLine}
                         </div>
-                        <span style="font-size:0.8rem;color:#666">${matchGoals}G ${matchAssists}A</span>
+                        <span style="font-size:0.8rem;color:${_gaColor}">${matchGoals}G ${matchAssists}A</span>
                     </div>
                 `;
             }).join('')}
@@ -5152,12 +5159,17 @@
                     const resultText = draw ? 'B' : (won ? 'G' : 'M');
                     const mGoals = (m.events || []).filter(e => e.playerId === linkedId && e.type === 'goal').reduce((s, e) => s + (e.count || 1), 0);
                     const mAssists = (m.events || []).filter(e => e.playerId === linkedId && e.type === 'assist').reduce((s, e) => s + (e.count || 1), 0);
-                    const locTag = m.location === 'Halısaha' ? '<span style="font-size:0.6rem;padding:1px 5px;border-radius:5px;background:#e8f5e9;color:#2e7d32;font-weight:700">HS</span>' : '';
-                    return '<div onclick="document.getElementById(\'user-profile-modal\').classList.remove(\'show\');openMatchModal(' + m.id + ')" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#f8f8f8;border-radius:8px;margin-bottom:6px;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background=\'#eef4ff\'" onmouseout="this.style.background=\'#f8f8f8\'">' +
+                    const _dk = document.body.classList.contains('dark-mode');
+                    const _cBg = _dk ? '#1a2233' : '#f8f8f8';
+                    const _hBg = _dk ? '#2a3a5a' : '#eef4ff';
+                    const _gaC = _dk ? '#aaa' : '#666';
+                    const _dtC = _dk ? '#777' : '#aaa';
+                    const locTag = m.location === 'Halısaha' ? '<span style="font-size:0.6rem;padding:1px 5px;border-radius:5px;background:' + (_dk ? '#1a3a2a' : '#e8f5e9') + ';color:#2e7d32;font-weight:700">HS</span>' : '';
+                    return '<div onclick="document.getElementById(\'user-profile-modal\').classList.remove(\'show\');openMatchModal(' + m.id + ')" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:' + _cBg + ';border-radius:8px;margin-bottom:6px;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background=\'' + _hBg + '\'" onmouseout="this.style.background=\'' + _cBg + '\'">' +
                         '<span style="width:28px;height:28px;border-radius:50%;background:' + resultColor + ';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem">' + resultText + '</span>' +
                         '<div style="flex:1"><div style="display:flex;align-items:center;gap:6px">' + m.team1 + ' <strong>' + m.score1 + ' - ' + m.score2 + '</strong> ' + m.team2 + ' ' + locTag + '</div>' +
-                        '<div style="font-size:0.7rem;color:#aaa;margin-top:2px">' + (m.date || '') + '</div></div>' +
-                        '<span style="font-size:0.8rem;color:#666">' + mGoals + 'G ' + mAssists + 'A</span></div>';
+                        '<div style="font-size:0.7rem;color:' + _dtC + ';margin-top:2px">' + (m.date || '') + '</div></div>' +
+                        '<span style="font-size:0.8rem;color:' + _gaC + '">' + mGoals + 'G ' + mAssists + 'A</span></div>';
                 }).join('')}
             </div>
         `;

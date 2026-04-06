@@ -4579,31 +4579,41 @@
                 return aAdmin - bAdmin;
             });
 
+            const dk = document.body.classList.contains('dark-mode');
             let html = '<div style="display:flex;flex-direction:column;gap:10px">';
             userList.forEach(([uid, u]) => {
                 const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(u.email);
                 const isAdmin = u.role === 'admin';
 
+                const inactiveBg = dk ? '#1a2233' : '#fff';
+                const inactiveColor = dk ? '#666' : '#aaa';
                 const toggleBtns = isSuperAdmin
                     ? `<div style="display:flex;align-items:center;gap:4px">
                         <span style="font-size:0.7rem;padding:5px 12px;border-radius:8px;font-weight:700;background:#2ecc71;color:#fff">Kontrolcü</span>
                         <span style="font-size:0.6rem;color:#999;font-style:italic">Sabit</span>
                        </div>`
                     : `<div style="display:flex;border-radius:8px;overflow:hidden;border:2px solid ${isAdmin ? '#2ecc71' : '#f39c12'}">
-                        <button onclick="event.stopPropagation();changeUserRole('${uid}','observer')" style="padding:5px 12px;border:none;font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.2s;background:${!isAdmin ? '#f39c12' : '#fff'};color:${!isAdmin ? '#fff' : '#aaa'}">Gözlemci</button>
-                        <button onclick="event.stopPropagation();changeUserRole('${uid}','admin')" style="padding:5px 12px;border:none;font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.2s;background:${isAdmin ? '#2ecc71' : '#fff'};color:${isAdmin ? '#fff' : '#aaa'}">Kontrolcü</button>
+                        <button onclick="event.stopPropagation();changeUserRole('${uid}','observer')" style="padding:5px 12px;border:none;font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.2s;background:${!isAdmin ? '#f39c12' : inactiveBg};color:${!isAdmin ? '#fff' : inactiveColor}">Gözlemci</button>
+                        <button onclick="event.stopPropagation();changeUserRole('${uid}','admin')" style="padding:5px 12px;border:none;font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.2s;background:${isAdmin ? '#2ecc71' : inactiveBg};color:${isAdmin ? '#fff' : inactiveColor}">Kontrolcü</button>
                        </div>`;
 
+                const cardBg = dk ? '#161b22' : '#fff';
+                const cardBorder = isAdmin ? (dk ? '#2a4a3a' : '#d4edda') : (dk ? '#30363d' : '#f0f0f0');
+                const nameColor = dk ? '#f0f0f0' : '#333';
+                const emailColor = dk ? '#aaa' : '#888';
+                const dateColor = dk ? '#666' : '#bbb';
+                const hoverShadow = dk ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.08)';
+
                 html += `
-                    <div onclick="openUserProfile('${uid}')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border-radius:12px;border:2px solid ${isAdmin ? '#d4edda' : '#f0f0f0'};transition:all 0.2s;cursor:pointer" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div onclick="openUserProfile('${uid}')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:${cardBg};border-radius:12px;border:2px solid ${cardBorder};transition:all 0.2s;cursor:pointer" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='${hoverShadow}'" onmouseout="this.style.transform='';this.style.boxShadow=''">
                         ${u.photoURL
                             ? `<img src="${u.photoURL}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ${isAdmin ? '#2ecc71' : '#1E90FF'}">`
                             : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,${isAdmin ? '#2ecc71,#27ae60' : '#1E90FF,#0066cc'});color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.9rem;flex-shrink:0">${(u.displayName || '?')[0].toUpperCase()}</div>`
                         }
                         <div style="flex:1;min-width:0">
-                            <div style="font-weight:700;font-size:0.9rem;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.displayName || 'İsimsiz'}</div>
-                            <div style="font-size:0.73rem;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.email}</div>
-                            <div style="font-size:0.63rem;color:#bbb;margin-top:2px">Son giriş: ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-'}</div>
+                            <div style="font-weight:700;font-size:0.9rem;color:${nameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.displayName || 'İsimsiz'}</div>
+                            <div style="font-size:0.73rem;color:${emailColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.email}</div>
+                            <div style="font-size:0.63rem;color:${dateColor};margin-top:2px">Son giriş: ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-'}</div>
                         </div>
                         ${toggleBtns}
                     </div>
@@ -4635,39 +4645,52 @@
             const links = linkSnap.val() || {};
             const linkedPlayerId = links[uid];
             const linkedPlayer = linkedPlayerId ? players.find(p => p.id == linkedPlayerId) : null;
+            const dk = document.body.classList.contains('dark-mode');
 
             let linkedSection = '';
             if (linkedPlayer) {
                 const pStats = calcStats(matches.filter(m => !m.pending && ((m.team1Players||[]).includes(linkedPlayer.id) || (m.team2Players||[]).includes(linkedPlayer.id))), linkedPlayer.id);
+                const secBg = dk ? '#1a2744' : '#f0f7ff';
+                const statBg = dk ? '#161b22' : '#fff';
+                const statMatchColor = dk ? '#f0f0f0' : '#333';
+                const btnOutBg = dk ? '#1a2233' : '#fff';
                 linkedSection = `
-                    <div style="margin-top:16px;padding:14px;background:#f0f7ff;border-radius:12px;border:2px solid #1E90FF30">
+                    <div style="margin-top:16px;padding:14px;background:${secBg};border-radius:12px;border:2px solid #1E90FF30">
                         <div style="font-weight:700;font-size:0.85rem;color:#1E90FF;margin-bottom:10px">Bağlı Oyuncu: ${linkedPlayer.name}</div>
                         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-                            ${linkedPlayer.positions.map(pos => `<span style="padding:3px 10px;border-radius:6px;font-size:0.7rem;font-weight:700;background:${pos === (linkedPlayer.primaryPos || linkedPlayer.positions[0]) ? '#1E90FF' : '#e8e8e8'};color:${pos === (linkedPlayer.primaryPos || linkedPlayer.positions[0]) ? '#fff' : '#555'}">${pos}</span>`).join('')}
+                            ${linkedPlayer.positions.map(pos => `<span style="padding:3px 10px;border-radius:6px;font-size:0.7rem;font-weight:700;background:${pos === (linkedPlayer.primaryPos || linkedPlayer.positions[0]) ? '#1E90FF' : (dk ? '#2a3a5a' : '#e8e8e8')};color:${pos === (linkedPlayer.primaryPos || linkedPlayer.positions[0]) ? '#fff' : (dk ? '#ccc' : '#555')}">${pos}</span>`).join('')}
                         </div>
                         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
-                            <div style="text-align:center;padding:8px 4px;background:#fff;border-radius:8px"><div style="font-size:1.1rem;font-weight:800;color:#1E90FF">${pStats.goals}</div><div style="font-size:0.6rem;color:#999">Gol</div></div>
-                            <div style="text-align:center;padding:8px 4px;background:#fff;border-radius:8px"><div style="font-size:1.1rem;font-weight:800;color:#e67e22">${pStats.assists}</div><div style="font-size:0.6rem;color:#999">Asist</div></div>
-                            <div style="text-align:center;padding:8px 4px;background:#fff;border-radius:8px"><div style="font-size:1.1rem;font-weight:800;color:#333">${pStats.matches}</div><div style="font-size:0.6rem;color:#999">Maç</div></div>
-                            <div style="text-align:center;padding:8px 4px;background:#fff;border-radius:8px"><div style="font-size:1.1rem;font-weight:800;color:#2ecc71">${pStats.matches > 0 ? Math.round(pStats.wins/pStats.matches*100) : 0}%</div><div style="font-size:0.6rem;color:#999">Kazanma</div></div>
+                            <div style="text-align:center;padding:8px 4px;background:${statBg};border-radius:8px"><div style="font-size:1.1rem;font-weight:800;color:#1E90FF">${pStats.goals}</div><div style="font-size:0.6rem;color:#999">Gol</div></div>
+                            <div style="text-align:center;padding:8px 4px;background:${statBg};border-radius:8px"><div style="font-size:1.1rem;font-weight:800;color:#e67e22">${pStats.assists}</div><div style="font-size:0.6rem;color:#999">Asist</div></div>
+                            <div style="text-align:center;padding:8px 4px;background:${statBg};border-radius:8px"><div style="font-size:1.1rem;font-weight:800;color:${statMatchColor}">${pStats.matches}</div><div style="font-size:0.6rem;color:#999">Maç</div></div>
+                            <div style="text-align:center;padding:8px 4px;background:${statBg};border-radius:8px"><div style="font-size:1.1rem;font-weight:800;color:#2ecc71">${pStats.matches > 0 ? Math.round(pStats.wins/pStats.matches*100) : 0}%</div><div style="font-size:0.6rem;color:#999">Kazanma</div></div>
                         </div>
-                        <button onclick="closeAdminPanel();openPlayerModal(${linkedPlayer.id})" style="width:100%;padding:10px;border:2px solid #1E90FF;border-radius:8px;background:#fff;color:#1E90FF;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='#1E90FF';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#1E90FF'">Oyuncu Profilini Aç</button>
+                        <button onclick="closeAdminPanel();openPlayerModal(${linkedPlayer.id})" style="width:100%;padding:10px;border:2px solid #1E90FF;border-radius:8px;background:${btnOutBg};color:#1E90FF;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='#1E90FF';this.style.color='#fff'" onmouseout="var d=document.body.classList.contains('dark-mode');this.style.background=d?'#1a2233':'#fff';this.style.color='#1E90FF'">Oyuncu Profilini Aç</button>
                     </div>`;
             } else {
-                linkedSection = `<div style="margin-top:16px;padding:12px;background:#f8f8f8;border-radius:10px;text-align:center;color:#bbb;font-size:0.8rem">Bağlı oyuncu yok</div>`;
+                linkedSection = `<div style="margin-top:16px;padding:12px;background:${dk ? '#1a2233' : '#f8f8f8'};border-radius:10px;text-align:center;color:#bbb;font-size:0.8rem">Bağlı oyuncu yok</div>`;
             }
+
+            const profNameColor = dk ? '#f0f0f0' : '#333';
+            const profEmailColor = dk ? '#aaa' : '#888';
+            const profDateColor = dk ? '#666' : '#bbb';
+            const backBg = dk ? '#2a3a5a' : '#f0f0f0';
+            const backHoverBg = dk ? '#35456a' : '#e0e0e0';
+            const backColor = dk ? '#ccc' : '#666';
+            const roleBadgeBg = isSuperAdmin ? 'linear-gradient(135deg,#2ecc71,#27ae60)' : (isAdmin ? (dk ? '#1a3a2a' : '#d4edda') : (dk ? '#3a2a1a' : '#fff3e0'));
 
             document.getElementById('admin-modal-body').innerHTML = `
                 <div style="display:flex;flex-direction:column;align-items:center">
-                    <button onclick="loadUsers()" style="align-self:flex-start;padding:6px 14px;border:none;background:#f0f0f0;border-radius:8px;font-size:0.8rem;font-weight:600;color:#666;cursor:pointer;margin-bottom:16px;transition:background 0.2s" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">← Geri</button>
+                    <button onclick="loadUsers()" style="align-self:flex-start;padding:6px 14px;border:none;background:${backBg};border-radius:8px;font-size:0.8rem;font-weight:600;color:${backColor};cursor:pointer;margin-bottom:16px;transition:background 0.2s" onmouseover="this.style.background='${backHoverBg}'" onmouseout="this.style.background='${backBg}'">← Geri</button>
                     ${u.photoURL
                         ? `<img src="${u.photoURL}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid ${roleColor};margin-bottom:12px">`
                         : `<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,${isAdmin ? '#2ecc71,#27ae60' : '#1E90FF,#0066cc'});color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.8rem;margin-bottom:12px">${(u.displayName || '?')[0].toUpperCase()}</div>`
                     }
-                    <div style="font-weight:800;font-size:1.1rem;color:#333;margin-bottom:4px">${u.displayName || 'İsimsiz'}</div>
-                    <div style="font-size:0.8rem;color:#888;margin-bottom:8px">${u.email}</div>
-                    <span style="padding:5px 16px;border-radius:20px;font-size:0.75rem;font-weight:700;background:${isSuperAdmin ? 'linear-gradient(135deg,#2ecc71,#27ae60)' : (isAdmin ? '#d4edda' : '#fff3e0')};color:${isSuperAdmin ? '#fff' : (isAdmin ? '#2ecc71' : '#f39c12')}">${roleLabel}</span>
-                    <div style="font-size:0.7rem;color:#bbb;margin-top:8px">Son giriş: ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-'}</div>
+                    <div style="font-weight:800;font-size:1.1rem;color:${profNameColor};margin-bottom:4px">${u.displayName || 'İsimsiz'}</div>
+                    <div style="font-size:0.8rem;color:${profEmailColor};margin-bottom:8px">${u.email}</div>
+                    <span style="padding:5px 16px;border-radius:20px;font-size:0.75rem;font-weight:700;background:${roleBadgeBg};color:${isSuperAdmin ? '#fff' : (isAdmin ? '#2ecc71' : '#f39c12')}">${roleLabel}</span>
+                    <div style="font-size:0.7rem;color:${profDateColor};margin-top:8px">Son giriş: ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('tr-TR', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-'}</div>
                     ${linkedSection}
                 </div>
             `;

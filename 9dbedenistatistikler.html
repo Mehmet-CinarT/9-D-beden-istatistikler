@@ -2511,11 +2511,11 @@
             // Tür ve yer etiketleri
             const typeBadge = m.matchType ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;font-weight:600;background:${m.matchType==='Turnuva'?'#fff3e0;color:#e67e22':m.matchType==='Lig'?'#e8f5e9;color:#2e7d32':'#e3f2fd;color:#1565c0'}">${m.matchType}</span>` : '';
             const locBadge = m.location ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;font-weight:600;background:${m.location==='Halısaha'?'#e8f5e9;color:#2e7d32':'#f3e5f5;color:#7b1fa2'}">${m.location}</span>` : '';
-            const serieBadge = m.serieMatch ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;background:#fce4ec;color:#c62828;font-weight:600">${m.serieMatch}/${m.serieTotal}</span>` : '';
+            const serieBadge = (m.serieMatch && m.matchType === 'Turnuva') ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;background:#fce4ec;color:#c62828;font-weight:600">${m.serieMatch}/${m.serieTotal}</span>` : '';
 
             // Turnuva toplam sonucu (2. maçta göster)
             let tournamentSummary = '';
-            if (m.serieId && m.serieMatch === 2 && !isPending) {
+            if (m.serieId && m.serieMatch === 2 && m.matchType === 'Turnuva' && !isPending) {
                 const match1 = matches.find(x => x.serieId === m.serieId && x.serieMatch === 1);
                 if (match1 && !match1.pending) {
                     const totalT1 = match1.score1 + m.score1;
@@ -2943,7 +2943,7 @@
         pendingMatchId = matchId;
         pendingEventCounter = 0;
 
-        document.getElementById('pending-modal-title').textContent = `Hafta ${m.week} — Sonuç Gir (${m.serieMatch ? m.serieMatch + '/' + m.serieTotal : ''})`;
+        document.getElementById('pending-modal-title').textContent = `Hafta ${m.week} — Sonuç Gir (${(m.serieMatch && m.matchType === 'Turnuva') ? m.serieMatch + '/' + m.serieTotal : ''})`;
 
         const t1Players = (m.team1Players || []).map(id => findPlayer(id, m)).filter(Boolean);
         const t2Players = (m.team2Players || []).map(id => findPlayer(id, m)).filter(Boolean);
@@ -3254,6 +3254,11 @@
 
         m.location = document.getElementById('edit-location').value;
         m.matchType = document.getElementById('edit-type').value;
+        if (m.matchType !== 'Turnuva') {
+            m.serieId = null;
+            m.serieMatch = null;
+            m.serieTotal = null;
+        }
         m.date = document.getElementById('edit-date').value;
         m.score1 = score1;
         m.score2 = score2;
@@ -3632,10 +3637,10 @@
                 const matchGoals = (m.events || []).filter(e => e.playerId === id && e.type === 'goal').reduce((s, e) => s + (e.count || 1), 0);
                 const matchAssists = (m.events || []).filter(e => e.playerId === id && e.type === 'assist').reduce((s, e) => s + (e.count || 1), 0);
                 // Turnuva etiketi, yer etiketi ve toplam skor
-                const serieBadge = m.serieMatch ? `<span style="font-size:0.65rem;padding:1px 6px;border-radius:6px;background:#fce4ec;color:#c62828;font-weight:700">${m.serieMatch}/${m.serieTotal}</span>` : '';
+                const serieBadge = (m.serieMatch && m.matchType === 'Turnuva') ? `<span style="font-size:0.65rem;padding:1px 6px;border-radius:6px;background:#fce4ec;color:#c62828;font-weight:700">${m.serieMatch}/${m.serieTotal}</span>` : '';
                 const locTag = m.location === 'Halısaha' ? `<span style="font-size:0.6rem;padding:1px 5px;border-radius:5px;background:#e8f5e9;color:#2e7d32;font-weight:700">HS</span>` : '';
                 let totalLine = '';
-                if (m.serieId && m.serieMatch === 2) {
+                if (m.serieId && m.serieMatch === 2 && m.matchType === 'Turnuva') {
                     const m1 = matches.find(x => x.serieId === m.serieId && x.serieMatch === 1);
                     if (m1 && !m1.pending) {
                         const tT1 = m1.score1 + m.score1, tT2 = m1.score2 + m.score2;
@@ -3647,7 +3652,7 @@
                 const _cardBg = _dk ? '#1a2233' : '#f8f8f8';
                 const _hoverBg = _dk ? '#2a3a5a' : '#eef4ff';
                 const _gaColor = _dk ? '#aaa' : '#666';
-                const _serieBg = m.serieMatch ? (_dk ? '#3a1a2a' : '#fce4ec') : '';
+                const _serieBg = (m.serieMatch && m.matchType === 'Turnuva') ? (_dk ? '#3a1a2a' : '#fce4ec') : '';
                 const _locBg = m.location === 'Halısaha' ? (_dk ? '#1a3a2a' : '#e8f5e9') : '';
 
                 return `

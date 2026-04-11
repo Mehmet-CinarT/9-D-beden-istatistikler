@@ -3314,7 +3314,34 @@
     function deleteMatch(matchId) {
         if (!isControlMode()) return;
         if (!confirm('Bu maçı silmek istediğinize emin misiniz?')) return;
+        const deleted = matches.find(m => m.id === matchId);
         matches = matches.filter(m => m.id !== matchId);
+
+        // Turnuva 2. maçı silindiğinde: sonuç girilmişse ve 1. maç hâlâ varsa yeniden oluştur
+        if (deleted && deleted.matchType === 'Turnuva' && deleted.serieMatch === 2 && deleted.serieId && !deleted.pending) {
+            const match1 = matches.find(m => m.serieId === deleted.serieId && m.serieMatch === 1);
+            if (match1) {
+                const newMatch2 = {
+                    id: Date.now(),
+                    week: null,
+                    team1: match1.team1, team2: match1.team2, score1: 0, score2: 0,
+                    date: deleted.date,
+                    location: match1.location, matchType: 'Turnuva',
+                    serieId: deleted.serieId, serieMatch: 2, serieTotal: 2,
+                    team1Players: match1.team1Players, team2Players: match1.team2Players,
+                    events: [], extraPlayers: match1.extraPlayers || [],
+                    pending: true
+                };
+                if (match1.matchGk) newMatch2.matchGk = match1.matchGk;
+                matches.push(newMatch2);
+                saveData('9d_matches', matches);
+                recalcPlayerStats();
+                renderAll();
+                notify('2. turnuva maçı silindi ve yeniden oynanmamış olarak oluşturuldu!');
+                return;
+            }
+        }
+
         saveData('9d_matches', matches);
         recalcPlayerStats();
         renderAll();

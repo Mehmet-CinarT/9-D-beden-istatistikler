@@ -7,7 +7,26 @@
       "Bash(python -c \"import openpyxl; print\\(''ok''\\)\")",
       "Bash(\"C:\\\\Users\\\\mcina\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -c \":*)",
       "Bash(PYTHONIOENCODING=utf-8 \"C:\\\\Users\\\\mcina\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -c \":*)",
-      "Bash(ls \"/c/Users/mcina/OneDrive/Masaüstü/9-D Beden İstatistikler/\"*.png)"
+      "Bash(ls \"/c/Users/mcina/OneDrive/Masaüstü/9-D Beden İstatistikler/\"*.png)",
+      "Bash(curl -s \"https://api.iconify.design/mdi/soccer.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/lucide/target.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/mdi/bandage.svg\")",
+      "Bash(curl -s --max-time 10 \"https://api.iconify.design/mdi/bandage.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/noto/soccer-ball.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/twemoji/soccer-ball.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/noto/bullseye.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/twemoji/direct-hit.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/noto/adhesive-bandage.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/twemoji/adhesive-bandage.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/openmoji/soccer-ball.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/fxemoji/soccerball.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/emojione/soccer-ball.svg\")",
+      "Bash(curl -s \"https://api.iconify.design/flat-color-icons/sports-mode.svg\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git stash *)"
     ]
   }
 }

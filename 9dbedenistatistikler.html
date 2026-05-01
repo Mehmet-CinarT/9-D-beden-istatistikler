@@ -2433,6 +2433,7 @@
         const filterBar = `<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
             <button onclick="setPlayersFilter('okul')" style="${btnStyle('okul')}">Okul</button>
             <button onclick="setPlayersFilter('halisaha')" style="${btnStyle('halisaha')}">Halısaha</button>
+            <button onclick="setPlayersFilter('genel')" style="${btnStyle('genel')}">Genel</button>
         </div>`;
         const getG = p => playersFilter === 'halisaha' ? p.haliGoals : playersFilter === 'genel' ? p.goals + p.haliGoals : p.goals;
         const getA = p => playersFilter === 'halisaha' ? p.haliAssists : playersFilter === 'genel' ? p.assists + p.haliAssists : p.assists;
